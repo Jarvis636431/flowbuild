@@ -277,11 +277,18 @@ const Output: React.FC = () => {
         <>
           {activeTab === '甘特图模式' && (
             <div className="gantt-container">
-              <div className="gantt-header">
+              <div className="gantt-header" style={{
+                minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
+              }}>
                 <div className="task-label-header">任务名称</div>
-                <div className="timeline-header">
+                <div className="timeline-header" style={{
+                  width: getTimelineDates().length > 14 ? `${getTimelineDates().length * 60}px` : 'auto'
+                }}>
                   {getTimelineDates().map((date, index) => (
-                    <div key={index} className="timeline-date">
+                    <div key={index} className="timeline-date" style={{
+                      width: getTimelineDates().length > 14 ? '60px' : 'auto',
+                      flexShrink: getTimelineDates().length > 14 ? 0 : 1
+                    }}>
                       {new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
                     </div>
                   ))}
@@ -291,12 +298,17 @@ const Output: React.FC = () => {
                 {tasks.map((task) => {
                   const position = getTaskPosition(task.startDate, task.endDate);
                   return (
-                    <div key={task.id} className="task-row">
+                    <div key={task.id} className="task-row" style={{
+                      minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
+                    }}>
                       <div className="task-info">
                         <span className={`status-dot ${task.status}`}></span>
                         <span className="task-name">{task.name}</span>
                       </div>
-                      <div className="task-timeline">
+                      <div className="task-timeline" style={{
+                        width: getTimelineDates().length > 14 ? `${getTimelineDates().length * 60}px` : 'auto',
+                        flex: getTimelineDates().length > 14 ? 'none' : '1'
+                      }}>
                         <div 
                           className="task-bar"
                           style={{
