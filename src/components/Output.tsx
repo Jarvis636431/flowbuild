@@ -85,15 +85,28 @@ const Output: React.FC = () => {
     // 确保任务至少占据一天
     const actualEndDay = Math.max(taskStartDay, taskEndDay);
     
-    // 使用固定像素宽度而不是百分比，每天60px
-    const dayWidth = 60;
-    const leftPixels = taskStartDay * dayWidth;
-    const widthPixels = (actualEndDay - taskStartDay + 1) * dayWidth;
-    
-    return {
-      left: `${leftPixels}px`,
-      width: `${widthPixels}px`
-    };
+    // 动态选择定位方式：天数少时用百分比，天数多时用像素
+    if (totalDays <= 14) {
+      // 使用百分比定位，让时间轴填满容器
+      const columnWidth = 100 / totalDays;
+      const leftPercent = taskStartDay * columnWidth;
+      const widthPercent = (actualEndDay - taskStartDay + 1) * columnWidth;
+      
+      return {
+        left: `${leftPercent}%`,
+        width: `${widthPercent}%`
+      };
+    } else {
+      // 使用固定像素宽度，支持滚动
+      const dayWidth = 60;
+      const leftPixels = taskStartDay * dayWidth;
+      const widthPixels = (actualEndDay - taskStartDay + 1) * dayWidth;
+      
+      return {
+        left: `${leftPixels}px`,
+        width: `${widthPixels}px`
+      };
+    }
   };
 
   // 生成时间轴日期
@@ -242,12 +255,7 @@ const Output: React.FC = () => {
       {!loading && !error && (
         <>
           {activeTab === '甘特图模式' && (
-            <div 
-              className="gantt-container"
-              style={{
-                '--timeline-width': `${getTimelineDates().length * 60}px`
-              } as React.CSSProperties}
-            >
+            <div className="gantt-container">
               <div className="gantt-header">
                 <div className="task-label-header">任务名称</div>
                 <div className="timeline-header">
