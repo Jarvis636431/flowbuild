@@ -156,8 +156,13 @@ const Output: React.FC = () => {
           <div className="legend-color" style={{ backgroundColor: '#ff3b30' }}></div>
           <span>未完成</span>
         </div>
-        <div className="search-box">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <div className="search-container">
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="搜索任务..."
+          />
+          <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
             <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
             <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2"/>
           </svg>
