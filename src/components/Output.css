@@ -180,7 +180,7 @@
   background: #333;
   border: 1px solid #555;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   color: #fff;
   font-size: 14px;
 }
@@ -192,11 +192,11 @@
 
 .view-tabs {
   display: flex;
-  gap: 2px;
-  margin-bottom: 15px;
-  padding: 0 20px;
+  gap: 10px;
+  padding: 0px;
   width: 100%;
   box-sizing: border-box;
+  justify-content: flex-end;
 }
 
 .tab-btn {
@@ -261,7 +261,7 @@
   color: #fff;
   font-size: 14px;
   transition: all 0.2s ease;
-  height: 40px;
+  height: 30px;
   box-sizing: border-box;
 }
 
