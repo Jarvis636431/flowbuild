@@ -342,8 +342,6 @@
   border-right: none;
 }
 
-
-
 .tasks-container {
   width: 100%;
 }
@@ -449,8 +447,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-container p {
@@ -502,7 +504,7 @@
   margin-top: 20px;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 240px);
 }
 
 .table-header {
