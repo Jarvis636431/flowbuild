@@ -289,6 +289,13 @@
   width: 100%;
   overflow-x: auto;
   min-width: 100%;
+  /* 隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.gantt-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .gantt-header {
