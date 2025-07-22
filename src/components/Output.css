@@ -284,46 +284,74 @@
   pointer-events: none;
 }
 
-.timeline-header {
-  display: grid;
-  grid-template-columns: 200px repeat(7, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
-  padding: 10px 20px;
-  border-bottom: 1px solid #333;
+/* 甘特图容器样式 */
+.gantt-container {
   width: 100%;
-  box-sizing: border-box;
+  overflow-x: auto;
 }
 
-.timeline-day {
+.gantt-header {
+  display: flex;
+  border-bottom: 1px solid #333;
+  background-color: #1a1a1a;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.task-label-header {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #cccccc;
+  border-right: 1px solid #333;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-header {
+  display: flex;
+  flex: 1;
+  min-width: 800px;
+}
+
+.timeline-date {
+  flex: 1;
   text-align: center;
-  font-size: 14px;
+  padding: 12px 8px;
+  font-size: 12px;
   color: #ccc;
   font-weight: 500;
+  border-right: 1px solid #333;
+  min-width: 80px;
+}
+
+.timeline-date:last-child {
+  border-right: none;
 }
 
 .tasks-container {
   max-height: 400px;
   overflow-y: auto;
   width: 100%;
-  box-sizing: border-box;
-  padding: 0 20px;
 }
 
 .task-row {
-  display: grid;
-  grid-template-columns: 200px repeat(7, 1fr);
-  gap: 10px;
+  display: flex;
   align-items: center;
-  padding: 12px 0;
   border-bottom: 1px solid #2a2a2a;
-  width: 100%;
+  min-height: 48px;
 }
 
 .task-info {
+  width: 200px;
+  min-width: 200px;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 12px 16px;
+  border-right: 1px solid #333;
 }
 
 .task-status-dot {
@@ -342,12 +370,14 @@
 }
 
 .task-timeline {
-  grid-column: 2 / -1;
-  height: 20px;
+  flex: 1;
+  height: 24px;
   background: #2a2a2a;
-  border-radius: 10px;
+  border-radius: 4px;
   overflow: hidden;
   position: relative;
+  margin: 0 16px;
+  min-width: 800px;
 }
 
 .task-progress-bar {
@@ -357,9 +387,33 @@
 }
 
 .task-bar {
-  height: 100%;
+  position: absolute;
+  top: 2px;
+  height: calc(100% - 4px);
   border-radius: 4px;
   transition: all 0.3s ease;
+  min-width: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 状态点样式 */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.completed {
+  background-color: #ff9500;
+}
+
+.status-dot.in-progress {
+  background-color: #007aff;
+}
+
+.status-dot.pending {
+  background-color: #ff3b30;
 }
 
 /* 加载状态样式 */
