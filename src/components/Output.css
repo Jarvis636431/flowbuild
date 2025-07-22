@@ -288,6 +288,7 @@
 .gantt-container {
   width: 100%;
   overflow-x: auto;
+  min-width: 100%;
 }
 
 .gantt-header {
@@ -297,6 +298,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  min-width: calc(var(--timeline-width, 600px) + 200px);
 }
 
 .task-label-header {
@@ -312,28 +314,42 @@
 
 .timeline-header {
   display: flex;
-  flex: 1;
-  min-width: 800px;
+  margin: 0 16px;
 }
 
 .timeline-date {
-  flex: 1;
+  width: 60px;
+  flex-shrink: 0;
   text-align: center;
-  padding: 12px 8px;
+  padding: 12px 4px;
   font-size: 12px;
   color: #ccc;
   font-weight: 500;
   border-right: 1px solid #333;
-  min-width: 80px;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .timeline-date:last-child {
   border-right: none;
 }
 
+.timeline-date::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 1px;
+  height: 400px;
+  background-color: #333;
+  z-index: 1;
+}
+
+.timeline-date:last-child::after {
+  display: none;
+}
+
 .tasks-container {
-  max-height: 400px;
-  overflow-y: auto;
   width: 100%;
 }
 
@@ -342,6 +358,7 @@
   align-items: center;
   border-bottom: 1px solid #2a2a2a;
   min-height: 48px;
+  min-width: calc(var(--timeline-width, 600px) + 200px);
 }
 
 .task-info {
@@ -370,14 +387,13 @@
 }
 
 .task-timeline {
-  flex: 1;
   height: 24px;
   background: #2a2a2a;
   border-radius: 4px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   margin: 0 16px;
-  min-width: 800px;
+  min-width: calc(var(--timeline-width, 600px));
 }
 
 .task-progress-bar {
