@@ -338,29 +338,15 @@ const Output: React.FC = () => {
                     <div className="table-cell">{task.cost}</div>
                     <div className="table-cell">{task.personnel}</div>
                     <div className="table-cell notes-cell">
-                      {task.notes && (
-                        <div className="notes-content">
-                          {task.notes === '铝模板' && (
-                            <span className="notes-text">铝模板</span>
-                          )}
-                          {task.notes === 'C30，4%' && (
-                            <span className="notes-text">C30，4%</span>
-                          )}
-                          {task.notes === '无' && (
-                            <span className="notes-text">无</span>
-                          )}
-                          {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
-                            <span className="notes-text">{task.notes}</span>
-                          )}
-                          {task.notes === '' && (
-                            <div className="notes-image">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
-                                <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
-                                <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
-                              </svg>
-                            </div>
-                          )}
+                      {task.notes ? (
+                        <span className="notes-text">{task.notes}</span>
+                      ) : (
+                        <div className="notes-image">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
+                            <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
+                          </svg>
                         </div>
                       )}
                     </div>
