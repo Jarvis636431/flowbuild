@@ -79,16 +79,20 @@ const Output: React.FC = () => {
     // 计算任务开始相对于时间轴开始的天数（从0开始）
     const taskStartDay = Math.max(0, Math.floor((taskStart.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
     
-    // 计算任务持续天数
-    const taskDuration = Math.max(1, Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    // 计算任务结束相对于时间轴开始的天数
+    const taskEndDay = Math.min(totalDays - 1, Math.floor((taskEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
     
-    // 计算百分比位置
-    const leftPercent = (taskStartDay / totalDays) * 100;
-    const widthPercent = Math.min((taskDuration / totalDays) * 100, 100 - leftPercent);
+    // 确保任务至少占据一天
+    const actualEndDay = Math.max(taskStartDay, taskEndDay);
+    
+    // 使用固定像素宽度而不是百分比，每天60px
+    const dayWidth = 60;
+    const leftPixels = taskStartDay * dayWidth;
+    const widthPixels = (actualEndDay - taskStartDay + 1) * dayWidth;
     
     return {
-      left: `${leftPercent}%`,
-      width: `${widthPercent}%`
+      left: `${leftPixels}px`,
+      width: `${widthPixels}px`
     };
   };
 
@@ -238,7 +242,12 @@ const Output: React.FC = () => {
       {!loading && !error && (
         <>
           {activeTab === '甘特图模式' && (
-            <div className="gantt-container">
+            <div 
+              className="gantt-container"
+              style={{
+                '--timeline-width': `${getTimelineDates().length * 60}px`
+              } as React.CSSProperties}
+            >
               <div className="gantt-header">
                 <div className="task-label-header">任务名称</div>
                 <div className="timeline-header">
