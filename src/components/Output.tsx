@@ -5,7 +5,11 @@ interface TaskItem {
   id: string;
   name: string;
   status: 'completed' | 'in-progress' | 'pending';
-  progress: number;
+  startDate: string;
+  endDate: string;
+  cost: string;
+  personnel: string;
+  notes: string;
 }
 
 const Output: React.FC = () => {
@@ -15,13 +19,14 @@ const Output: React.FC = () => {
   const [activeTab, setActiveTab] = useState('甘特图模式');
   
   const tasks: TaskItem[] = [
-    { id: '1', name: '地面支模', status: 'completed', progress: 100 },
-    { id: '2', name: '地面混凝土浇筑', status: 'completed', progress: 100 },
-    { id: '3', name: '地面拆模', status: 'completed', progress: 85 },
-    { id: '4', name: '钢筋混凝土柱支模', status: 'completed', progress: 90 },
-    { id: '5', name: '钢筋混凝土柱浇筑', status: 'in-progress', progress: 75 },
-    { id: '6', name: '柱拆模', status: 'pending', progress: 0 },
-    { id: '7', name: '钢筋混凝土承重墙支模', status: 'completed', progress: 85 }
+    { id: '1', name: '地面支模', status: 'completed', startDate: '2025-07-01', endDate: '2025-07-01', cost: '¥22400', personnel: '张三', notes: '铝模板' },
+    { id: '2', name: '地面混凝土浇筑', status: 'completed', startDate: '2025-07-02', endDate: '2025-07-03', cost: '¥64000', personnel: '李四', notes: '' },
+    { id: '3', name: '地面拆模', status: 'completed', startDate: '2025-07-04', endDate: '2025-07-04', cost: '¥18000', personnel: '张三', notes: '无' },
+    { id: '4', name: '钢筋混凝土柱支模', status: 'completed', startDate: '2025-07-05', endDate: '2025-07-05', cost: '¥18000', personnel: '王五', notes: '铝模板' },
+    { id: '5', name: '钢筋混凝土柱浇筑', status: 'in-progress', startDate: '2025-07-06', endDate: '2025-07-08', cost: '¥96600', personnel: '唐六', notes: 'C30，4%' },
+    { id: '6', name: '柱拆模', status: 'pending', startDate: '2025-07-09', endDate: '2025-07-09', cost: '¥12000', personnel: '张三', notes: '无' },
+    { id: '7', name: '钢筋混凝土承重墙支模', status: 'completed', startDate: '2025-07-05', endDate: '2025-07-05', cost: '¥14400', personnel: '王五', notes: '铝模板' },
+    { id: '8', name: '钢筋混凝土承重墙浇筑', status: 'in-progress', startDate: '2025-07-06', endDate: '2025-07-08', cost: '¥124500', personnel: '唐六', notes: 'C30，4%' }
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +61,39 @@ const Output: React.FC = () => {
       case 'pending': return '#ff3b30';
       default: return '#8e8e93';
     }
+  };
+
+  // 计算任务在甘特图中的位置和宽度
+  const getTaskPosition = (taskStartDate: string, taskEndDate: string) => {
+    const timelineStart = new Date(startDate);
+    const timelineEnd = new Date(endDate);
+    const taskStart = new Date(taskStartDate);
+    const taskEnd = new Date(taskEndDate);
+    
+    const totalDays = Math.ceil((timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const taskStartDay = Math.ceil((taskStart.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
+    const taskDuration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    const leftPercent = (taskStartDay / totalDays) * 100;
+    const widthPercent = (taskDuration / totalDays) * 100;
+    
+    return {
+      left: `${Math.max(0, leftPercent)}%`,
+      width: `${Math.min(widthPercent, 100 - Math.max(0, leftPercent))}%`
+    };
+  };
+
+  // 生成时间轴日期
+  const getTimelineDates = () => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const dates = [];
+    
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      dates.push(new Date(d));
+    }
+    
+    return dates;
   };
 
 
@@ -169,34 +207,110 @@ const Output: React.FC = () => {
         </div>
       </div>
       
-      <div className="timeline-header">
-        {[1, 2, 3, 4, 5, 6, 7].map(day => (
-          <div key={day} className="timeline-day">{day}</div>
-        ))}
-      </div>
-      
-      <div className="tasks-container">
-        {tasks.map(task => (
-          <div key={task.id} className="task-row">
-            <div className="task-info">
-              <div 
-                className="task-status-dot" 
-                style={{ backgroundColor: getStatusColor(task.status) }}
-              ></div>
-              <span className="task-name">{task.name}</span>
-            </div>
-            <div className="task-timeline">
-              <div 
-                className="task-progress-bar"
-                style={{ 
-                  backgroundColor: getStatusColor(task.status),
-                  width: `${task.progress}%`
-                }}
-              ></div>
-            </div>
+      {activeTab === '甘特图模式' && (
+        <>
+          <div className="timeline-header">
+            {getTimelineDates().map((date, index) => (
+              <div key={index} className="timeline-day">
+                {date.getMonth() + 1}/{date.getDate()}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          
+          <div className="tasks-container">
+            {tasks.map(task => {
+              const position = getTaskPosition(task.startDate, task.endDate);
+              return (
+                <div key={task.id} className="task-row">
+                  <div className="task-info">
+                    <div 
+                      className="task-status-dot" 
+                      style={{ backgroundColor: getStatusColor(task.status) }}
+                    ></div>
+                    <span className="task-name">{task.name}</span>
+                  </div>
+                  <div className="task-timeline">
+                    <div 
+                      className="task-bar"
+                      style={{ 
+                        backgroundColor: getStatusColor(task.status),
+                        left: position.left,
+                        width: position.width,
+                        position: 'absolute',
+                        height: '100%',
+                        borderRadius: '4px'
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+      
+      {activeTab === '进度表模式' && (
+        <div className="progress-table">
+          <div className="table-header">
+            <div className="table-cell header-cell">项目名称</div>
+            <div className="table-cell header-cell">开始日期</div>
+            <div className="table-cell header-cell">结束日期</div>
+            <div className="table-cell header-cell">资金物料</div>
+            <div className="table-cell header-cell">施工人员</div>
+            <div className="table-cell header-cell">备注</div>
+          </div>
+          {tasks.map(task => (
+            <div key={task.id} className="table-row">
+              <div className="table-cell task-name-cell">
+                <div 
+                  className="task-status-dot" 
+                  style={{ backgroundColor: getStatusColor(task.status) }}
+                ></div>
+                <span>{task.name}</span>
+              </div>
+              <div className="table-cell">{task.startDate}</div>
+              <div className="table-cell">{task.endDate}</div>
+              <div className="table-cell">{task.cost}</div>
+              <div className="table-cell">{task.personnel}</div>
+              <div className="table-cell notes-cell">
+                {task.notes && (
+                  <div className="notes-content">
+                    {task.notes === '铝模板' && (
+                      <span className="notes-text">铝模板</span>
+                    )}
+                    {task.notes === 'C30，4%' && (
+                      <span className="notes-text">C30，4%</span>
+                    )}
+                    {task.notes === '无' && (
+                      <span className="notes-text">无</span>
+                    )}
+                    {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
+                      <span className="notes-text">{task.notes}</span>
+                    )}
+                    {task.notes === '' && (
+                      <div className="notes-image">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
+                          <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
+                          <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {activeTab === '资金物料模式' && (
+        <div className="material-mode">
+          <div className="placeholder-content">
+            <p>资金物料模式内容待开发</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

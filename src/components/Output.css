@@ -356,6 +356,104 @@
   transition: width 0.3s ease;
 }
 
+.task-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Progress Table Styles */
+.progress-table {
+  width: 100%;
+  border: 1px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #444;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #333;
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #2a2a2a;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-cell {
+  padding: 12px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid #333;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+.header-cell {
+  font-weight: 600;
+  color: #cccccc;
+  background-color: #2a2a2a;
+}
+
+.task-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-cell {
+  justify-content: center;
+}
+
+.notes-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.notes-text {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.notes-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Material Mode Placeholder */
+.material-mode {
+  width: 100%;
+  padding: 40px;
+  text-align: center;
+}
+
+.placeholder-content {
+  color: #888;
+  font-size: 16px;
+}
+
 /* 滚动条样式 */
 .tasks-container::-webkit-scrollbar {
   width: 6px;
