@@ -112,21 +112,25 @@ const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
       <div className="input-area">
-        <input 
-          type="text" 
-          placeholder="输入你的消息..." 
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          disabled={isTyping}
-        />
-        <button 
-          onClick={handleSendMessage} 
-          disabled={isTyping || inputValue.trim() === ''}
-          className="send-button"
-        >
-          发送
-        </button>
+        <div className="input-container">
+          <textarea 
+             placeholder="输入你的消息..." 
+             value={inputValue}
+             onChange={(e) => setInputValue(e.target.value)}
+             onKeyPress={handleKeyPress}
+             disabled={isTyping}
+             rows={4}
+           />
+          <button 
+            onClick={handleSendMessage} 
+            disabled={isTyping || inputValue.trim() === ''}
+            className="send-button"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
