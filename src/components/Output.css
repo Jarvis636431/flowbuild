@@ -364,13 +364,6 @@
   border-right: 1px solid #333;
 }
 
-.task-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .task-name {
   font-size: 14px;
   color: #fff;
@@ -388,12 +381,6 @@
   position: relative;
   margin: 0 16px;
   min-width: 60px;
-}
-
-.task-progress-bar {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.3s ease;
 }
 
 .task-bar {
