@@ -1,33 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { taskAPI, type TaskItem } from '../services/api';
 import './Output.css';
-
-interface TaskItem {
-  id: string;
-  name: string;
-  status: 'completed' | 'in-progress' | 'pending';
-  startDate: string;
-  endDate: string;
-  cost: string;
-  personnel: string;
-  notes: string;
-}
 
 const Output: React.FC = () => {
   const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
   const [startDate, setStartDate] = useState('2025-07-01');
   const [endDate, setEndDate] = useState('2025-07-18');
   const [activeTab, setActiveTab] = useState('甘特图模式');
-  
-  const tasks: TaskItem[] = [
-    { id: '1', name: '地面支模', status: 'completed', startDate: '2025-07-01', endDate: '2025-07-01', cost: '¥22400', personnel: '张三', notes: '铝模板' },
-    { id: '2', name: '地面混凝土浇筑', status: 'completed', startDate: '2025-07-02', endDate: '2025-07-03', cost: '¥64000', personnel: '李四', notes: '' },
-    { id: '3', name: '地面拆模', status: 'completed', startDate: '2025-07-04', endDate: '2025-07-04', cost: '¥18000', personnel: '张三', notes: '无' },
-    { id: '4', name: '钢筋混凝土柱支模', status: 'completed', startDate: '2025-07-05', endDate: '2025-07-05', cost: '¥18000', personnel: '王五', notes: '铝模板' },
-    { id: '5', name: '钢筋混凝土柱浇筑', status: 'in-progress', startDate: '2025-07-06', endDate: '2025-07-08', cost: '¥96600', personnel: '唐六', notes: 'C30，4%' },
-    { id: '6', name: '柱拆模', status: 'pending', startDate: '2025-07-09', endDate: '2025-07-09', cost: '¥12000', personnel: '张三', notes: '无' },
-    { id: '7', name: '钢筋混凝土承重墙支模', status: 'completed', startDate: '2025-07-05', endDate: '2025-07-05', cost: '¥14400', personnel: '王五', notes: '铝模板' },
-    { id: '8', name: '钢筋混凝土承重墙浇筑', status: 'in-progress', startDate: '2025-07-06', endDate: '2025-07-08', cost: '¥124500', personnel: '唐六', notes: 'C30，4%' }
-  ];
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 获取任务数据
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const tasksData = await taskAPI.getTasks();
+      setTasks(tasksData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '获取数据失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 组件挂载时获取数据
+  useEffect(() => {
+    if (viewMode === 'output') {
+      fetchTasks();
+    }
+  }, [viewMode]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -181,6 +184,24 @@ const Output: React.FC = () => {
         </div>
       </div>
       
+      {/* 加载状态 */}
+      {loading && (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>正在加载数据...</p>
+        </div>
+      )}
+
+      {/* 错误状态 */}
+      {error && (
+        <div className="error-container">
+          <p className="error-message">❌ {error}</p>
+          <button className="retry-button" onClick={fetchTasks}>
+            重新加载
+          </button>
+        </div>
+      )}
+      
       <div className="status-legend">
         <div className="legend-item">
           <div className="legend-color" style={{ backgroundColor: '#ff9500' }}></div>
@@ -207,109 +228,107 @@ const Output: React.FC = () => {
         </div>
       </div>
       
-      {activeTab === '甘特图模式' && (
+      {/* 数据内容 */}
+      {!loading && !error && (
         <>
-          <div className="timeline-header">
-            {getTimelineDates().map((date, index) => (
-              <div key={index} className="timeline-day">
-                {date.getMonth() + 1}/{date.getDate()}
+          {activeTab === '甘特图模式' && (
+            <div className="gantt-container">
+              <div className="timeline-header">
+                {getTimelineDates().map((date, index) => (
+                  <div key={index} className="timeline-date">
+                    {new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          
-          <div className="tasks-container">
-            {tasks.map(task => {
-              const position = getTaskPosition(task.startDate, task.endDate);
-              return (
-                <div key={task.id} className="task-row">
-                  <div className="task-info">
+              <div className="tasks-container">
+                {tasks.map((task) => {
+                  const position = getTaskPosition(task.startDate, task.endDate);
+                  return (
+                    <div key={task.id} className="task-row">
+                      <div className="task-info">
+                        <span className={`status-dot ${task.status}`}></span>
+                        <span className="task-name">{task.name}</span>
+                      </div>
+                      <div className="task-timeline">
+                        <div 
+                          className="task-bar"
+                          style={{
+                            left: position.left,
+                            width: position.width,
+                            backgroundColor: getStatusColor(task.status)
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === '进度表模式' && (
+            <div className="progress-table">
+              <div className="table-header">
+                <div className="table-cell header-cell">项目名称</div>
+                <div className="table-cell header-cell">开始日期</div>
+                <div className="table-cell header-cell">结束日期</div>
+                <div className="table-cell header-cell">资金物料</div>
+                <div className="table-cell header-cell">施工人员</div>
+                <div className="table-cell header-cell">备注</div>
+              </div>
+              {tasks.map(task => (
+                <div key={task.id} className="table-row">
+                  <div className="table-cell task-name-cell">
                     <div 
                       className="task-status-dot" 
                       style={{ backgroundColor: getStatusColor(task.status) }}
                     ></div>
-                    <span className="task-name">{task.name}</span>
+                    <span>{task.name}</span>
                   </div>
-                  <div className="task-timeline">
-                    <div 
-                      className="task-bar"
-                      style={{ 
-                        backgroundColor: getStatusColor(task.status),
-                        left: position.left,
-                        width: position.width,
-                        position: 'absolute',
-                        height: '100%',
-                        borderRadius: '4px'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-      
-      {activeTab === '进度表模式' && (
-        <div className="progress-table">
-          <div className="table-header">
-            <div className="table-cell header-cell">项目名称</div>
-            <div className="table-cell header-cell">开始日期</div>
-            <div className="table-cell header-cell">结束日期</div>
-            <div className="table-cell header-cell">资金物料</div>
-            <div className="table-cell header-cell">施工人员</div>
-            <div className="table-cell header-cell">备注</div>
-          </div>
-          {tasks.map(task => (
-            <div key={task.id} className="table-row">
-              <div className="table-cell task-name-cell">
-                <div 
-                  className="task-status-dot" 
-                  style={{ backgroundColor: getStatusColor(task.status) }}
-                ></div>
-                <span>{task.name}</span>
-              </div>
-              <div className="table-cell">{task.startDate}</div>
-              <div className="table-cell">{task.endDate}</div>
-              <div className="table-cell">{task.cost}</div>
-              <div className="table-cell">{task.personnel}</div>
-              <div className="table-cell notes-cell">
-                {task.notes && (
-                  <div className="notes-content">
-                    {task.notes === '铝模板' && (
-                      <span className="notes-text">铝模板</span>
-                    )}
-                    {task.notes === 'C30，4%' && (
-                      <span className="notes-text">C30，4%</span>
-                    )}
-                    {task.notes === '无' && (
-                      <span className="notes-text">无</span>
-                    )}
-                    {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
-                      <span className="notes-text">{task.notes}</span>
-                    )}
-                    {task.notes === '' && (
-                      <div className="notes-image">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                          <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
-                          <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
-                          <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
-                        </svg>
+                  <div className="table-cell">{task.startDate}</div>
+                  <div className="table-cell">{task.endDate}</div>
+                  <div className="table-cell">{task.cost}</div>
+                  <div className="table-cell">{task.personnel}</div>
+                  <div className="table-cell notes-cell">
+                    {task.notes && (
+                      <div className="notes-content">
+                        {task.notes === '铝模板' && (
+                          <span className="notes-text">铝模板</span>
+                        )}
+                        {task.notes === 'C30，4%' && (
+                          <span className="notes-text">C30，4%</span>
+                        )}
+                        {task.notes === '无' && (
+                          <span className="notes-text">无</span>
+                        )}
+                        {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
+                          <span className="notes-text">{task.notes}</span>
+                        )}
+                        {task.notes === '' && (
+                          <div className="notes-image">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                              <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
+                              <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
+                              <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
+                            </svg>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {activeTab === '资金物料模式' && (
+            <div className="material-mode">
+              <div className="placeholder-content">
+                <p>资金物料模式内容待开发</p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-      
-      {activeTab === '资金物料模式' && (
-        <div className="material-mode">
-          <div className="placeholder-content">
-            <p>资金物料模式内容待开发</p>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
