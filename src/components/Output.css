@@ -493,6 +493,9 @@
   border-radius: 8px;
   overflow: hidden;
   margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 300px);
 }
 
 .table-header {
@@ -500,6 +503,13 @@
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
   background-color: #2a2a2a;
   border-bottom: 1px solid #444;
+  flex-shrink: 0;
+}
+
+.table-body {
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(100vh - 300px);
 }
 
 .table-row {
@@ -579,20 +589,24 @@
 }
 
 /* 滚动条样式 */
-.tasks-container::-webkit-scrollbar {
+.tasks-container::-webkit-scrollbar,
+.table-body::-webkit-scrollbar {
   width: 6px;
 }
 
-.tasks-container::-webkit-scrollbar-track {
+.tasks-container::-webkit-scrollbar-track,
+.table-body::-webkit-scrollbar-track {
   background: #2a2a2a;
   border-radius: 3px;
 }
 
-.tasks-container::-webkit-scrollbar-thumb {
+.tasks-container::-webkit-scrollbar-thumb,
+.table-body::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 3px;
 }
 
-.tasks-container::-webkit-scrollbar-thumb:hover {
+.tasks-container::-webkit-scrollbar-thumb:hover,
+.table-body::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
