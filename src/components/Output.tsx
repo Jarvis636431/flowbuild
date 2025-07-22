@@ -73,16 +73,22 @@ const Output: React.FC = () => {
     const taskStart = new Date(taskStartDate);
     const taskEnd = new Date(taskEndDate);
     
+    // 计算总天数
     const totalDays = Math.ceil((timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    const taskStartDay = Math.ceil((taskStart.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
-    const taskDuration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
+    // 计算任务开始相对于时间轴开始的天数（从0开始）
+    const taskStartDay = Math.max(0, Math.floor((taskStart.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+    
+    // 计算任务持续天数
+    const taskDuration = Math.max(1, Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    
+    // 计算百分比位置
     const leftPercent = (taskStartDay / totalDays) * 100;
-    const widthPercent = (taskDuration / totalDays) * 100;
+    const widthPercent = Math.min((taskDuration / totalDays) * 100, 100 - leftPercent);
     
     return {
-      left: `${Math.max(0, leftPercent)}%`,
-      width: `${Math.min(widthPercent, 100 - Math.max(0, leftPercent))}%`
+      left: `${leftPercent}%`,
+      width: `${widthPercent}%`
     };
   };
 
@@ -233,12 +239,15 @@ const Output: React.FC = () => {
         <>
           {activeTab === '甘特图模式' && (
             <div className="gantt-container">
-              <div className="timeline-header">
-                {getTimelineDates().map((date, index) => (
-                  <div key={index} className="timeline-date">
-                    {new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
-                  </div>
-                ))}
+              <div className="gantt-header">
+                <div className="task-label-header">任务名称</div>
+                <div className="timeline-header">
+                  {getTimelineDates().map((date, index) => (
+                    <div key={index} className="timeline-date">
+                      {new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="tasks-container">
                 {tasks.map((task) => {
