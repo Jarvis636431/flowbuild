@@ -93,7 +93,6 @@ const Chat: React.FC = () => {
 
   return (
     <div className="chat-panel">
-      <h2>AI 对话</h2>
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>
