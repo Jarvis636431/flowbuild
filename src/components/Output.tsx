@@ -5,11 +5,27 @@ import './Output.css';
 const Output: React.FC = () => {
   const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
   const [startDate, setStartDate] = useState('2025-07-01');
-  const [endDate, setEndDate] = useState('2025-07-18');
+  const [endDate, setEndDate] = useState('2025-09-10');
   const [activeTab, setActiveTab] = useState('甘特图模式');
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 自动计算任务数据的日期范围
+  const getTasksDateRange = (tasks: TaskItem[]) => {
+    if (tasks.length === 0) {
+      return {
+        minDate: '2025-07-01',
+        maxDate: '2025-07-18'
+      };
+    }
+    
+    const allDates = tasks.flatMap(task => [task.startDate, task.endDate]);
+    const minDate = allDates.reduce((min, date) => date < min ? date : min);
+    const maxDate = allDates.reduce((max, date) => date > max ? date : max);
+    
+    return { minDate, maxDate };
+  };
 
   // 获取任务数据
   const fetchTasks = async () => {
@@ -18,6 +34,11 @@ const Output: React.FC = () => {
       setError(null);
       const tasksData = await taskAPI.getTasks();
       setTasks(tasksData);
+      
+      // 自动设置日期范围
+      const { minDate, maxDate } = getTasksDateRange(tasksData);
+      setStartDate(minDate);
+      setEndDate(maxDate);
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据失败');
     } finally {
@@ -302,48 +323,50 @@ const Output: React.FC = () => {
                 <div className="table-cell header-cell">施工人员</div>
                 <div className="table-cell header-cell">备注</div>
               </div>
-              {tasks.map(task => (
-                <div key={task.id} className="table-row">
-                  <div className="table-cell task-name-cell">
-                    <div 
-                      className="task-status-dot" 
-                      style={{ backgroundColor: getStatusColor(task.status) }}
-                    ></div>
-                    <span>{task.name}</span>
+              <div className="table-body">
+                {tasks.map(task => (
+                  <div key={task.id} className="table-row">
+                    <div className="table-cell task-name-cell">
+                      <div 
+                        className="task-status-dot" 
+                        style={{ backgroundColor: getStatusColor(task.status) }}
+                      ></div>
+                      <span>{task.name}</span>
+                    </div>
+                    <div className="table-cell">{task.startDate}</div>
+                    <div className="table-cell">{task.endDate}</div>
+                    <div className="table-cell">{task.cost}</div>
+                    <div className="table-cell">{task.personnel}</div>
+                    <div className="table-cell notes-cell">
+                      {task.notes && (
+                        <div className="notes-content">
+                          {task.notes === '铝模板' && (
+                            <span className="notes-text">铝模板</span>
+                          )}
+                          {task.notes === 'C30，4%' && (
+                            <span className="notes-text">C30，4%</span>
+                          )}
+                          {task.notes === '无' && (
+                            <span className="notes-text">无</span>
+                          )}
+                          {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
+                            <span className="notes-text">{task.notes}</span>
+                          )}
+                          {task.notes === '' && (
+                            <div className="notes-image">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
+                                <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
+                                <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="table-cell">{task.startDate}</div>
-                  <div className="table-cell">{task.endDate}</div>
-                  <div className="table-cell">{task.cost}</div>
-                  <div className="table-cell">{task.personnel}</div>
-                  <div className="table-cell notes-cell">
-                    {task.notes && (
-                      <div className="notes-content">
-                        {task.notes === '铝模板' && (
-                          <span className="notes-text">铝模板</span>
-                        )}
-                        {task.notes === 'C30，4%' && (
-                          <span className="notes-text">C30，4%</span>
-                        )}
-                        {task.notes === '无' && (
-                          <span className="notes-text">无</span>
-                        )}
-                        {task.notes && task.notes !== '铝模板' && task.notes !== 'C30，4%' && task.notes !== '无' && task.notes !== '' && (
-                          <span className="notes-text">{task.notes}</span>
-                        )}
-                        {task.notes === '' && (
-                          <div className="notes-image">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
-                              <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
-                              <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
           
