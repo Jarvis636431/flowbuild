@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
+import { chatAPI, type ChatMessage, type ChatRequest } from '../services/api';
 
-interface Message {
-  id: number;
-  text: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
+// 使用API中定义的接口
+type Message = ChatMessage;
 
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -29,25 +26,21 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const getAIResponse = (userMessage: string): string => {
-    const responses = [
-      '这是一个很好的问题！让我来帮你分析一下。',
-      '我理解你的需求，这里有几个建议供你参考。',
-      '根据你提供的信息，我认为可以这样处理。',
-      '这个问题很有趣，让我为你详细解答。',
-      '感谢你的提问，我会尽力为你提供帮助。',
-      '基于我的理解，这里是一些可能的解决方案。'
-    ];
-    
-    if (userMessage.includes('你好') || userMessage.includes('hello')) {
-      return '你好！很高兴与你交流，有什么我可以帮助你的吗？';
+  // 获取AI回复的异步函数
+  const getAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const request: ChatRequest = {
+        message: userMessage,
+        history: messages.slice(-10) // 发送最近10条消息作为上下文
+      };
+      
+      const response = await chatAPI.sendMessage(request);
+      return response.text;
+    } catch (error) {
+      console.error('获取AI回复失败:', error);
+      // 降级到简单的错误回复
+      return '抱歉，我现在无法回复您的消息，请稍后再试。';
     }
-    
-    if (userMessage.includes('谢谢') || userMessage.includes('感谢')) {
-      return '不客气！如果还有其他问题，随时可以问我。';
-    }
-    
-    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleSendMessage = async () => {
@@ -60,22 +53,38 @@ const Chat: React.FC = () => {
       timestamp: new Date()
     };
 
+    const currentInput = inputValue; // 保存当前输入值
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
 
-    // 模拟AI思考时间
-    setTimeout(() => {
+    try {
+      // 调用API获取AI回复
+      const aiResponseText = await getAIResponse(currentInput);
+      
       const aiResponse: Message = {
         id: Date.now() + 1,
-        text: getAIResponse(inputValue),
+        text: aiResponseText,
         sender: 'ai',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      
+      // 显示错误消息
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        text: '抱歉，发送消息时出现错误，请稍后再试。',
+        sender: 'ai',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 2000); // 1-3秒随机延迟
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
