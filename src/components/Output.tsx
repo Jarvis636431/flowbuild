@@ -251,19 +251,7 @@ const Output: React.FC = () => {
         </div>
       )}
       
-      <div className="status-legend">
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#ff9500' }}></div>
-          <span>已完成</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#007aff' }}></div>
-          <span>进行中</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#ff3b30' }}></div>
-          <span>未完成</span>
-        </div>
+      <div className="search-section">
         <div className="search-container">
           <input 
             type="text" 

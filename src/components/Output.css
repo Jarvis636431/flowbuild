@@ -229,31 +229,13 @@
   background: #444;
 }
 
-.status-legend {
+.search-section {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  justify-content: flex-end;
   margin-bottom: 15px;
   padding: 0 20px;
   width: 100%;
   box-sizing: border-box;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-
-.legend-item span {
-  font-size: 14px;
-  color: #ccc;
 }
 
 .search-container {
@@ -411,16 +393,8 @@
   flex-shrink: 0;
 }
 
-.status-dot.completed {
-  background-color: #ff9500;
-}
-
-.status-dot.in-progress {
-  background-color: #007aff;
-}
-
-.status-dot.pending {
-  background-color: #ff3b30;
+.status-dot {
+  background-color: #4CAF50;
 }
 
 /* 加载状态样式 */
@@ -732,20 +706,8 @@
   text-transform: uppercase;
 }
 
-.status-badge.completed {
-  background: rgba(255, 149, 0, 0.2);
-  color: #ff9500;
-  border: 1px solid #ff9500;
-}
-
-.status-badge.in-progress {
-  background: rgba(0, 122, 255, 0.2);
-  color: #007aff;
-  border: 1px solid #007aff;
-}
-
-.status-badge.pending {
-  background: rgba(255, 59, 48, 0.2);
-  color: #ff3b30;
-  border: 1px solid #ff3b30;
+.status-badge {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid #4CAF50;
 }
