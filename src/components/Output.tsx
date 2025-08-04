@@ -10,6 +10,8 @@ const Output: React.FC = () => {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
   // 自动计算任务数据的日期范围
   const getTasksDateRange = (tasks: TaskItem[]) => {
@@ -72,6 +74,22 @@ const Output: React.FC = () => {
 
   const toggleViewMode = () => {
     setViewMode(viewMode === 'upload' ? 'output' : 'upload');
+  };
+
+  // 处理任务行点击事件
+  const handleTaskClick = (task: TaskItem, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setSelectedTask(task);
+    setPopupPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10
+    });
+  };
+
+  // 关闭悬浮窗
+  const closePopup = () => {
+    setSelectedTask(null);
+    setPopupPosition(null);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -298,9 +316,14 @@ const Output: React.FC = () => {
                 {tasks.map((task) => {
                   const position = getTaskPosition(task.startDate, task.endDate);
                   return (
-                    <div key={task.id} className="task-row" style={{
-                      minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
-                    }}>
+                    <div 
+                      key={task.id} 
+                      className="task-row clickable-row" 
+                      style={{
+                        minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
+                      }}
+                      onClick={(e) => handleTaskClick(task, e)}
+                    >
                       <div className="task-info">
                         <span className={`status-dot ${task.status}`}></span>
                         <span className="task-name">{task.name}</span>
@@ -337,7 +360,11 @@ const Output: React.FC = () => {
               </div>
               <div className="table-body">
                 {tasks.map(task => (
-                  <div key={task.id} className="table-row">
+                  <div 
+                    key={task.id} 
+                    className="table-row clickable-row"
+                    onClick={(e) => handleTaskClick(task, e)}
+                  >
                     <div className="table-cell task-name-cell">
                       <div 
                         className="task-status-dot" 
@@ -375,6 +402,64 @@ const Output: React.FC = () => {
               </div>
             </div>
           )}
+        </>      )}
+      
+      {/* 悬浮窗 */}
+      {selectedTask && popupPosition && (
+        <>
+          {/* 遮罩层 */}
+          <div className="popup-overlay" onClick={closePopup}></div>
+          {/* 悬浮窗内容 */}
+          <div 
+            className="task-detail-popup"
+            style={{
+              left: `${popupPosition.x}px`,
+              top: `${popupPosition.y}px`,
+              transform: 'translate(-50%, -100%)'
+            }}
+          >
+            <div className="popup-header">
+              <h3>{selectedTask.name}</h3>
+              <button className="close-btn" onClick={closePopup}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div className="popup-content">
+              <div className="detail-item">
+                <span className="detail-label">状态:</span>
+                <span className={`status-badge ${selectedTask.status}`}>
+                  {selectedTask.status === 'completed' ? '已完成' : 
+                   selectedTask.status === 'in-progress' ? '进行中' : '未开始'}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">开始日期:</span>
+                <span>{selectedTask.startDate}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">结束日期:</span>
+                <span>{selectedTask.endDate}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">成本:</span>
+                <span>{selectedTask.cost}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">负责人:</span>
+                <span>{selectedTask.personnel}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">备注:</span>
+                <span>{selectedTask.notes}</span>
+              </div>
+              <div className="detail-item detail-description">
+                <span className="detail-label">详细信息:</span>
+                <p>{selectedTask.details}</p>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
