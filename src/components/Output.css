@@ -163,9 +163,9 @@
 .date-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 5px;
   margin-bottom: 15px;
-  padding: 0 20px;
+  padding: 0 5px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -180,14 +180,24 @@
   background: #333;
   border: 1px solid #555;
   border-radius: 6px;
-  padding: 8px 16px;
-  color: #fff;
+  padding: 8px 8px;
   font-size: 14px;
 }
 
 .date-input-group span {
   color: #ccc;
   font-size: 14px;
+}
+
+.day-range-display {
+  padding: 8px 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  min-width: 200px;
+  text-align: center;
 }
 
 .view-tabs {

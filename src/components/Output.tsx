@@ -13,20 +13,20 @@ const Output: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
-  // 自动计算任务数据的日期范围
-  const getTasksDateRange = (tasks: TaskItem[]) => {
+  // 自动计算任务数据的天数范围
+  const getTasksDayRange = (tasks: TaskItem[]) => {
     if (tasks.length === 0) {
       return {
-        minDate: '2025-07-01',
-        maxDate: '2025-07-18'
+        minDay: 1,
+        maxDay: 18
       };
     }
     
-    const allDates = tasks.flatMap(task => [task.startDate, task.endDate]);
-    const minDate = allDates.reduce((min, date) => date < min ? date : min);
-    const maxDate = allDates.reduce((max, date) => date > max ? date : max);
+    const allDays = tasks.flatMap(task => [task.startDay, task.endDay]);
+    const minDay = Math.min(...allDays);
+    const maxDay = Math.max(...allDays);
     
-    return { minDate, maxDate };
+    return { minDay, maxDay };
   };
 
   // 获取任务数据
@@ -37,10 +37,10 @@ const Output: React.FC = () => {
       const tasksData = await taskAPI.getTasks();
       setTasks(tasksData);
       
-      // 自动设置日期范围
-      const { minDate, maxDate } = getTasksDateRange(tasksData);
-      setStartDate(minDate);
-      setEndDate(maxDate);
+      // 自动设置天数范围
+      const { minDay, maxDay } = getTasksDayRange(tasksData);
+      setStartDate(`第${minDay}天`);
+      setEndDate(`第${maxDay}天`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据失败');
     } finally {
@@ -96,40 +96,30 @@ const Output: React.FC = () => {
     event.preventDefault();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return '#ff9500';
-      case 'in-progress': return '#007aff';
-      case 'pending': return '#ff3b30';
-      default: return '#8e8e93';
-    }
-  };
+  const getStatusColor = () => {
+  return '#4CAF50'; // 所有任务都使用绿色表示活跃状态
+};
 
   // 计算任务在甘特图中的位置和宽度
-  const getTaskPosition = (taskStartDate: string, taskEndDate: string) => {
-    const timelineStart = new Date(startDate);
-    const timelineEnd = new Date(endDate);
-    const taskStart = new Date(taskStartDate);
-    const taskEnd = new Date(taskEndDate);
-    
-    // 计算总天数
-    const totalDays = Math.ceil((timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const getTaskPosition = (taskStartDay: number, taskEndDay: number) => {
+    const { minDay, maxDay } = getTasksDayRange(tasks);
+    const totalDays = maxDay - minDay + 1;
     
     // 计算任务开始相对于时间轴开始的天数（从0开始）
-    const taskStartDay = Math.max(0, Math.floor((taskStart.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+    const relativeStartDay = Math.max(0, taskStartDay - minDay);
     
     // 计算任务结束相对于时间轴开始的天数
-    const taskEndDay = Math.min(totalDays - 1, Math.floor((taskEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24)));
+    const relativeEndDay = Math.min(totalDays - 1, taskEndDay - minDay);
     
     // 确保任务至少占据一天
-    const actualEndDay = Math.max(taskStartDay, taskEndDay);
+    const actualEndDay = Math.max(relativeStartDay, relativeEndDay);
     
     // 动态选择定位方式：天数少时用百分比，天数多时用像素
     if (totalDays <= 14) {
       // 使用百分比定位，让时间轴填满容器
       const columnWidth = 100 / totalDays;
-      const leftPercent = taskStartDay * columnWidth;
-      const widthPercent = (actualEndDay - taskStartDay + 1) * columnWidth;
+      const leftPercent = relativeStartDay * columnWidth;
+      const widthPercent = (actualEndDay - relativeStartDay + 1) * columnWidth;
       
       return {
         left: `${leftPercent}%`,
@@ -138,8 +128,8 @@ const Output: React.FC = () => {
     } else {
       // 使用固定像素宽度，支持滚动
       const dayWidth = 60;
-      const leftPixels = taskStartDay * dayWidth;
-      const widthPixels = (actualEndDay - taskStartDay + 1) * dayWidth;
+      const leftPixels = relativeStartDay * dayWidth;
+      const widthPixels = (actualEndDay - relativeStartDay + 1) * dayWidth;
       
       return {
         left: `${leftPixels}px`,
@@ -148,17 +138,16 @@ const Output: React.FC = () => {
     }
   };
 
-  // 生成时间轴日期
-  const getTimelineDates = () => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const dates = [];
+  // 生成时间轴天数
+  const getTimelineDays = () => {
+    const { minDay, maxDay } = getTasksDayRange(tasks);
+    const days = [];
     
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      dates.push(new Date(d));
+    for (let day = minDay; day <= maxDay; day++) {
+      days.push(day);
     }
     
-    return dates;
+    return days;
   };
 
 
@@ -228,9 +217,7 @@ const Output: React.FC = () => {
       
       <div className="date-controls">
         <div className="date-input-group">
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          <span>至</span>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <span className="day-range-display">{startDate} 至 {endDate}</span>
         </div>
         
         <div className="view-tabs">
@@ -296,31 +283,31 @@ const Output: React.FC = () => {
           {activeTab === '甘特图模式' && (
             <div className="gantt-container">
               <div className="gantt-header" style={{
-                minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
+                minWidth: getTimelineDays().length > 14 ? `${200 + 32 + getTimelineDays().length * 60}px` : '400px'
               }}>
                 <div className="task-label-header">任务名称</div>
                 <div className="timeline-header" style={{
-                  width: getTimelineDates().length > 14 ? `${getTimelineDates().length * 60}px` : 'auto'
+                  width: getTimelineDays().length > 14 ? `${getTimelineDays().length * 60}px` : 'auto'
                 }}>
-                  {getTimelineDates().map((date, index) => (
+                  {getTimelineDays().map((day, index) => (
                     <div key={index} className="timeline-date" style={{
-                      width: getTimelineDates().length > 14 ? '60px' : 'auto',
-                      flexShrink: getTimelineDates().length > 14 ? 0 : 1
+                      width: getTimelineDays().length > 14 ? '60px' : 'auto',
+                      flexShrink: getTimelineDays().length > 14 ? 0 : 1
                     }}>
-                      {new Date(date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                      第{day}天
                     </div>
                   ))}
                 </div>
               </div>
               <div className="tasks-container">
                 {tasks.map((task) => {
-                  const position = getTaskPosition(task.startDate, task.endDate);
+                  const position = getTaskPosition(task.startDay, task.endDay);
                   return (
                     <div 
                       key={task.id} 
                       className="task-row clickable-row" 
                       style={{
-                        minWidth: getTimelineDates().length > 14 ? `${200 + 32 + getTimelineDates().length * 60}px` : '400px'
+                        minWidth: getTimelineDays().length > 14 ? `${200 + 32 + getTimelineDays().length * 60}px` : '400px'
                       }}
                       onClick={(e) => handleTaskClick(task, e)}
                     >
@@ -329,15 +316,15 @@ const Output: React.FC = () => {
                         <span className="task-name">{task.name}</span>
                       </div>
                       <div className="task-timeline" style={{
-                        width: getTimelineDates().length > 14 ? `${getTimelineDates().length * 60}px` : 'auto',
-                        flex: getTimelineDates().length > 14 ? 'none' : '1'
+                        width: getTimelineDays().length > 14 ? `${getTimelineDays().length * 60}px` : 'auto',
+                        flex: getTimelineDays().length > 14 ? 'none' : '1'
                       }}>
                         <div 
                           className="task-bar"
                           style={{
                             left: position.left,
                             width: position.width,
-                            backgroundColor: getStatusColor(task.status)
+                            backgroundColor: getStatusColor()
                           }}
                         ></div>
                       </div>
@@ -368,12 +355,12 @@ const Output: React.FC = () => {
                     <div className="table-cell task-name-cell">
                       <div 
                         className="task-status-dot" 
-                        style={{ backgroundColor: getStatusColor(task.status) }}
+                        style={{ backgroundColor: getStatusColor() }}
                       ></div>
                       <span>{task.name}</span>
                     </div>
-                    <div className="table-cell">{task.startDate}</div>
-                    <div className="table-cell">{task.endDate}</div>
+                    <div className="table-cell">第{task.startDay}天</div>
+                    <div className="table-cell">第{task.endDay}天</div>
                     <div className="table-cell">{task.cost}</div>
                     <div className="table-cell">{task.personnel}</div>
                     <div className="table-cell notes-cell">
@@ -430,17 +417,16 @@ const Output: React.FC = () => {
               <div className="detail-item">
                 <span className="detail-label">状态:</span>
                 <span className={`status-badge ${selectedTask.status}`}>
-                  {selectedTask.status === 'completed' ? '已完成' : 
-                   selectedTask.status === 'in-progress' ? '进行中' : '未开始'}
+                  活跃
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">开始日期:</span>
-                <span>{selectedTask.startDate}</span>
+                <span className="detail-label">开始时间:</span>
+                <span>第{selectedTask.startDay}天</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">结束日期:</span>
-                <span>{selectedTask.endDate}</span>
+                <span className="detail-label">结束时间:</span>
+                <span>第{selectedTask.endDay}天</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">成本:</span>
