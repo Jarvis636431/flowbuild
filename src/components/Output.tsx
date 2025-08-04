@@ -78,12 +78,28 @@ const Output: React.FC = () => {
 
   // 处理任务行点击事件
   const handleTaskClick = (task: TaskItem, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('Task clicked:', task.name); // 调试信息
+    
     const rect = event.currentTarget.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // 计算弹窗位置，确保在可视区域内
+    let x = rect.left + rect.width / 2;
+    let y = rect.top - 10;
+    
+    // 防止弹窗超出屏幕边界
+    if (x < 200) x = 200;
+    if (x > viewportWidth - 200) x = viewportWidth - 200;
+    if (y < 100) y = rect.bottom + 10;
+    
     setSelectedTask(task);
-    setPopupPosition({
-      x: rect.left + rect.width / 2,
-      y: rect.top - 10
-    });
+    setPopupPosition({ x, y });
+    
+    console.log('Popup position set:', { x, y }, 'Viewport:', { viewportWidth, viewportHeight }); // 调试信息
   };
 
   // 关闭悬浮窗
@@ -382,6 +398,7 @@ const Output: React.FC = () => {
       {/* 悬浮窗 */}
       {selectedTask && popupPosition && (
         <>
+          {console.log('Rendering popup for task:', selectedTask.name, 'at position:', popupPosition)}
           {/* 遮罩层 */}
           <div className="popup-overlay" onClick={closePopup}></div>
           {/* 悬浮窗内容 */}
@@ -390,7 +407,9 @@ const Output: React.FC = () => {
             style={{
               left: `${popupPosition.x}px`,
               top: `${popupPosition.y}px`,
-              transform: 'translate(-50%, -100%)'
+              transform: 'translate(-50%, -100%)',
+              backgroundColor: '#2a2a2a',
+              border: '2px solid #ff0000' // 临时红色边框用于调试
             }}
           >
             <div className="popup-header">
