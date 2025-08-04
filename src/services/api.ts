@@ -10,6 +10,7 @@ export interface TaskItem {
   cost: string;
   personnel: string;
   notes: string;
+  details: string; // 新增详细信息字段
 }
 
 // 定义聊天消息接口
@@ -51,7 +52,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-01',
     cost: '¥22400',
     personnel: '张三',
-    notes: '铝模板'
+    notes: '铝模板',
+    details: '地面支撑工程采用铝合金模板系统，包括底板支撑、侧模安装等工序。施工面积约200平方米，使用铝模板可重复利用，提高施工效率。'
   },
   {
     id: 2,
@@ -61,7 +63,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-03',
     cost: '¥64000',
     personnel: '李四',
-    notes: '图片'
+    notes: '图片',
+    details: '地面混凝土浇筑采用C30商品混凝土，浇筑厚度150mm。施工过程中需要控制混凝土坍落度，确保浇筑质量。浇筑完成后需要及时养护。'
   },
   {
     id: 3,
@@ -71,7 +74,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-04',
     cost: '¥18000',
     personnel: '张三',
-    notes: '无'
+    notes: '无',
+    details: '混凝土达到拆模强度后进行拆模作业。拆模时需要小心操作，避免损坏混凝土表面。拆下的模板需要清理并妥善保管，以备下次使用。'
   },
   {
     id: 4,
@@ -81,7 +85,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-05',
     cost: '¥18000',
     personnel: '王五',
-    notes: '铝模板'
+    notes: '铝模板',
+    details: '钢筋混凝土柱支撑采用铝合金模板系统，确保柱子截面尺寸准确。支撑系统需要承受混凝土浇筑时的侧压力，施工时需要严格按照设计要求进行。'
   },
   {
     id: 5,
@@ -91,7 +96,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-08',
     cost: '¥96600',
     personnel: '唐六',
-    notes: 'C30，4%'
+    notes: 'C30，4%',
+    details: '柱子混凝土浇筑采用C30强度等级混凝土，钢筋保护层厚度25mm。浇筑过程中需要分层浇筑，每层厚度不超过500mm，并使用振动棒充分振捣。'
   },
   {
     id: 6,
@@ -101,7 +107,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-09',
     cost: '¥12000',
     personnel: '张三',
-    notes: '无'
+    notes: '无',
+    details: '柱子拆模需要在混凝土强度达到设计强度的70%以上时进行。拆模时要小心操作，避免损坏柱子棱角。拆模后需要对柱子表面进行检查和修补。'
   },
   {
     id: 7,
@@ -111,7 +118,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-05',
     cost: '¥14400',
     personnel: '王五',
-    notes: '铝模板'
+    notes: '铝模板',
+    details: '承重墙支撑系统采用铝合金大模板，墙厚200mm。支撑系统包括内外侧模板、拉杆、支撑架等，确保墙体垂直度和平整度符合要求。'
   },
   {
     id: 8,
@@ -121,7 +129,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-08',
     cost: '¥124500',
     personnel: '唐六',
-    notes: 'C30，4%'
+    notes: 'C30，4%',
+    details: '承重墙混凝土浇筑采用C30混凝土，墙厚200mm。浇筑时需要控制浇筑速度，避免产生蜂窝、麻面等质量缺陷。浇筑完成后需要及时覆盖养护。'
   },
   {
     id: 9,
@@ -131,7 +140,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-10',
     cost: '¥15000',
     personnel: '王五',
-    notes: '无'
+    notes: '无',
+    details: '承重墙拆模需要在混凝土强度达到要求后进行。拆模顺序应先拆非承重侧模板，再拆承重侧模板。拆模后需要检查墙体质量，及时处理表面缺陷。'
   },
   {
     id: 10,
@@ -141,7 +151,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-12',
     cost: '¥85000',
     personnel: '赵七',
-    notes: 'HRB400钢筋'
+    notes: 'HRB400钢筋',
+    details: '楼板钢筋绑扎采用HRB400级钢筋，按设计图纸进行配筋。钢筋间距需要严格控制，保护层厚度15mm。绑扎完成后需要进行隐蔽工程验收。'
   },
   {
     id: 11,
@@ -151,7 +162,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-14',
     cost: '¥32000',
     personnel: '张三',
-    notes: '木模板'
+    notes: '木模板',
+    details: '楼板模板采用18mm厚胶合板，支撑系统采用钢管脚手架。模板安装前需要检查支撑系统的稳定性，确保模板平整度符合要求。'
   },
   {
     id: 12,
@@ -161,7 +173,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-16',
     cost: '¥128000',
     personnel: '李四',
-    notes: 'C30混凝土'
+    notes: 'C30混凝土',
+    details: '楼板混凝土浇筑采用C30商品混凝土，板厚120mm。浇筑时需要控制浇筑顺序，避免冷缝产生。浇筑完成后需要及时进行表面处理和养护。'
   },
   {
     id: 13,
@@ -171,7 +184,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-23',
     cost: '¥18000',
     personnel: '张三',
-    notes: '养护7天后'
+    notes: '养护7天后',
+    details: '楼板拆模需要在混凝土强度达到设计强度的75%以上时进行，通常需要养护7天。拆模时应先拆侧模，再拆底模，避免损坏楼板。'
   },
   {
     id: 14,
@@ -181,7 +195,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-20',
     cost: '¥76000',
     personnel: '孙八',
-    notes: '加气混凝土砌块'
+    notes: '加气混凝土砌块',
+    details: '外墙砌筑采用加气混凝土砌块，规格为600×200×200mm。砌筑时需要控制砂浆饱满度，水平灰缝厚度10-15mm，竖向灰缝宽度8-12mm。'
   },
   {
     id: 15,
@@ -191,7 +206,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-24',
     cost: '¥54000',
     personnel: '孙八',
-    notes: '轻质隔墙板'
+    notes: '轻质隔墙板',
+    details: '内墙砌筑采用轻质隔墙板，厚度100mm。安装时需要确保板材垂直度和平整度，板缝处需要用专用胶粘剂填充密实。'
   },
   {
     id: 16,
@@ -201,7 +217,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-07-28',
     cost: '¥95000',
     personnel: '周九',
-    notes: 'SBS改性沥青防水卷材'
+    notes: 'SBS改性沥青防水卷材',
+    details: '屋面防水采用SBS改性沥青防水卷材，厚度4mm。施工前需要清理基层，确保干燥平整。卷材铺设时需要控制搭接宽度，热熔施工确保粘结牢固。'
   },
   {
     id: 17,
@@ -211,7 +228,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-02',
     cost: '¥112000',
     personnel: '吴十',
-    notes: 'EPS外墙保温系统'
+    notes: 'EPS外墙保温系统',
+    details: 'EPS外墙保温系统包括保温板、粘结砂浆、抗裂砂浆、耐碱玻纤网格布等。施工时需要控制保温板拼缝，确保系统整体性和保温效果。'
   },
   {
     id: 18,
@@ -221,7 +239,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-06',
     cost: '¥168000',
     personnel: '郑十一',
-    notes: '断桥铝合金门窗'
+    notes: '断桥铝合金门窗',
+    details: '门窗采用断桥铝合金材质，具有良好的保温隔热性能。安装时需要控制门窗框的垂直度和水平度，密封胶条安装要到位，确保气密性和水密性。'
   },
   {
     id: 19,
@@ -231,7 +250,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-12',
     cost: '¥145000',
     personnel: '王十二',
-    notes: 'PVC管线预埋'
+    notes: 'PVC管线预埋',
+    details: '水电预埋包括给排水管道、电气线路等。采用PVC管材，管径根据设计要求选择。预埋时需要注意管线走向，避免交叉冲突，预留检修口。'
   },
   {
     id: 20,
@@ -241,7 +261,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-18',
     cost: '¥89000',
     personnel: '李十三',
-    notes: '水泥砂浆抹灰'
+    notes: '水泥砂浆抹灰',
+    details: '内墙抹灰采用1:3水泥砂浆，分两遍施工。第一遍粗抹找平，第二遍精抹压光。抹灰厚度控制在15-20mm，表面平整度偏差不超过4mm。'
   },
   {
     id: 21,
@@ -251,7 +272,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-22',
     cost: '¥67000',
     personnel: '张十四',
-    notes: '弹性外墙涂料'
+    notes: '弹性外墙涂料',
+    details: '外墙涂料采用弹性涂料，具有良好的耐候性和装饰效果。施工前需要处理基层，刮腻子找平。涂料施工分底漆和面漆两遍，确保涂膜厚度均匀。'
   },
   {
     id: 22,
@@ -261,7 +283,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-08-25',
     cost: '¥43000',
     personnel: '赵十五',
-    notes: '自流平水泥'
+    notes: '自流平水泥',
+    details: '地面找平采用自流平水泥，厚度3-5mm。施工前需要清理基层，涂刷界面剂。自流平施工需要控制流动性，确保表面平整度达到要求。'
   },
   {
     id: 23,
@@ -271,7 +294,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-09-05',
     cost: '¥235000',
     personnel: '孙十六',
-    notes: '精装修标准'
+    notes: '精装修标准',
+    details: '室内装修按精装修标准执行，包括地面铺装、墙面装饰、吊顶安装、灯具安装等。材料选用环保产品，施工工艺要求精细，确保装修质量和效果。'
   },
   {
     id: 24,
@@ -281,7 +305,8 @@ const mockTasks: TaskItem[] = [
     endDate: '2025-09-08',
     cost: '¥25000',
     personnel: '项目经理',
-    notes: '质量验收'
+    notes: '质量验收',
+    details: '竣工验收包括工程质量检查、安全检查、环保检查等。需要准备完整的工程资料，包括施工记录、检测报告、隐蔽工程验收记录等，确保工程符合验收标准。'
   }
 ];
 
