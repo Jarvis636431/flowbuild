@@ -388,8 +388,97 @@ const Output: React.FC = () => {
           
           {activeTab === '资金物料模式' && (
             <div className="material-mode">
-              <div className="placeholder-content">
-                <p>资金物料模式内容待开发</p>
+              <div className="charts-container">
+                <div className="chart-section">
+                  <h3 className="chart-title">资金投入趋势</h3>
+                  <div className="line-chart">
+                    <svg width="100%" height="200" viewBox="0 0 400 200">
+                      {/* 网格线 */}
+                      <defs>
+                        <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
+                          <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#333" strokeWidth="0.5" opacity="0.3"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+                      
+                      {/* Y轴标签 */}
+                      <text x="15" y="25" fill="#888" fontSize="12">100万</text>
+                      <text x="15" y="65" fill="#888" fontSize="12">50万</text>
+                      <text x="15" y="105" fill="#888" fontSize="12">25万</text>
+                      <text x="15" y="145" fill="#888" fontSize="12">10万</text>
+                      <text x="15" y="185" fill="#888" fontSize="12">0</text>
+                      
+                      {/* X轴标签 */}
+                      <text x="50" y="195" fill="#888" fontSize="10">第1天</text>
+                      <text x="120" y="195" fill="#888" fontSize="10">第5天</text>
+                      <text x="190" y="195" fill="#888" fontSize="10">第10天</text>
+                      <text x="260" y="195" fill="#888" fontSize="10">第15天</text>
+                      <text x="330" y="195" fill="#888" fontSize="10">第20天</text>
+                      
+                      {/* 折线图 */}
+                      <polyline
+                        fill="none"
+                        stroke="#4CAF50"
+                        strokeWidth="2"
+                        points="50,160 80,140 120,120 160,100 200,80 240,70 280,60 320,50 360,40"
+                      />
+                      
+                      {/* 数据点 */}
+                      <circle cx="50" cy="160" r="3" fill="#4CAF50" />
+                      <circle cx="80" cy="140" r="3" fill="#4CAF50" />
+                      <circle cx="120" cy="120" r="3" fill="#4CAF50" />
+                      <circle cx="160" cy="100" r="3" fill="#4CAF50" />
+                      <circle cx="200" cy="80" r="3" fill="#4CAF50" />
+                      <circle cx="240" cy="70" r="3" fill="#4CAF50" />
+                      <circle cx="280" cy="60" r="3" fill="#4CAF50" />
+                      <circle cx="320" cy="50" r="3" fill="#4CAF50" />
+                      <circle cx="360" cy="40" r="3" fill="#4CAF50" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <div className="chart-section">
+                  <h3 className="chart-title">物料消耗趋势</h3>
+                  <div className="line-chart">
+                    <svg width="100%" height="200" viewBox="0 0 400 200">
+                      {/* 网格线 */}
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+                      
+                      {/* Y轴标签 */}
+                      <text x="15" y="25" fill="#888" fontSize="12">1000吨</text>
+                      <text x="15" y="65" fill="#888" fontSize="12">750吨</text>
+                      <text x="15" y="105" fill="#888" fontSize="12">500吨</text>
+                      <text x="15" y="145" fill="#888" fontSize="12">250吨</text>
+                      <text x="15" y="185" fill="#888" fontSize="12">0吨</text>
+                      
+                      {/* X轴标签 */}
+                      <text x="50" y="195" fill="#888" fontSize="10">第1天</text>
+                      <text x="120" y="195" fill="#888" fontSize="10">第5天</text>
+                      <text x="190" y="195" fill="#888" fontSize="10">第10天</text>
+                      <text x="260" y="195" fill="#888" fontSize="10">第15天</text>
+                      <text x="330" y="195" fill="#888" fontSize="10">第20天</text>
+                      
+                      {/* 折线图 */}
+                      <polyline
+                        fill="none"
+                        stroke="#FF9800"
+                        strokeWidth="2"
+                        points="50,170 80,150 120,130 160,110 200,95 240,85 280,75 320,65 360,55"
+                      />
+                      
+                      {/* 数据点 */}
+                      <circle cx="50" cy="170" r="3" fill="#FF9800" />
+                      <circle cx="80" cy="150" r="3" fill="#FF9800" />
+                      <circle cx="120" cy="130" r="3" fill="#FF9800" />
+                      <circle cx="160" cy="110" r="3" fill="#FF9800" />
+                      <circle cx="200" cy="95" r="3" fill="#FF9800" />
+                      <circle cx="240" cy="85" r="3" fill="#FF9800" />
+                      <circle cx="280" cy="75" r="3" fill="#FF9800" />
+                      <circle cx="320" cy="65" r="3" fill="#FF9800" />
+                      <circle cx="360" cy="55" r="3" fill="#FF9800" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           )}
