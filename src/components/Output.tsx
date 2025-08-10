@@ -12,6 +12,12 @@ const Output: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+  
+  // 新增状态：文件上传和项目创建
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [cadFile, setCadFile] = useState<File | null>(null);
+  const [projectName, setProjectName] = useState('');
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
 
   // 自动计算任务数据的天数范围
   const getTasksDayRange = (tasks: TaskItem[]) => {
@@ -55,20 +61,75 @@ const Output: React.FC = () => {
     }
   }, [viewMode]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理文档文件上传
+  const handleDocumentUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      console.log('上传的文件:', files[0]);
-      // 移除自动切换，由用户手动切换
+      setDocumentFile(files[0]);
+      console.log('上传的文档文件:', files[0]);
     }
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  // 处理CAD文件上传
+  const handleCadUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      setCadFile(files[0]);
+      console.log('上传的CAD文件:', files[0]);
+    }
+  };
+
+  // 处理文档文件拖拽
+  const handleDocumentDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const files = event.dataTransfer.files;
     if (files && files.length > 0) {
-      console.log('拖拽的文件:', files[0]);
-      // 移除自动切换，由用户手动切换
+      setDocumentFile(files[0]);
+      console.log('拖拽的文档文件:', files[0]);
+    }
+  };
+
+  // 处理CAD文件拖拽
+  const handleCadDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+      setCadFile(files[0]);
+      console.log('拖拽的CAD文件:', files[0]);
+    }
+  };
+
+  // 创建项目
+  const handleCreateProject = async () => {
+    if (!projectName.trim()) {
+      alert('请输入项目名称');
+      return;
+    }
+    
+    if (!documentFile && !cadFile) {
+      alert('请至少上传一个文件');
+      return;
+    }
+
+    setIsCreatingProject(true);
+    try {
+      // 这里可以调用API创建项目
+      console.log('创建项目:', {
+        name: projectName,
+        documentFile,
+        cadFile
+      });
+      
+      // 模拟创建项目的延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 创建成功后切换到输出模式
+      setViewMode('output');
+    } catch (error) {
+      console.error('创建项目失败:', error);
+      alert('创建项目失败，请重试');
+    } finally {
+      setIsCreatingProject(false);
     }
   };
 
@@ -175,30 +236,112 @@ const Output: React.FC = () => {
             切换到输出模式
           </button>
         </div>
-        <div 
-          className="file-upload-area"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onClick={() => document.getElementById('file-input')?.click()}
-        >
-          <div className="upload-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 16C4.79086 16 3 14.2091 3 12C3 9.79086 4.79086 8 7 8C7.27614 8 7.54291 8.02763 7.8 8.08C8.77805 5.74 11.2105 4 14 4C17.3137 4 20 6.68629 20 10C20 10.3431 19.9659 10.6772 19.9007 11H20C21.1046 11 22 11.8954 22 13C22 14.1046 21.1046 15 20 15H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 12L12 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M15 15L12 12L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        
+        <div className="upload-container">
+          <h2 className="upload-main-title">创建新项目</h2>
+          
+          {/* 上传区域容器 - 左右排列 */}
+          <div className="upload-sections-container">
+            {/* 文档文件上传区域 */}
+            <div className="upload-section">
+              <h3 className="upload-section-title">上传项目文档</h3>
+              <div 
+                className={`file-upload-area ${documentFile ? 'has-file' : ''}`}
+                onDrop={handleDocumentDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById('document-input')?.click()}
+              >
+                <div className="upload-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="upload-text">
+                  {documentFile ? (
+                    <>
+                      <div className="upload-title">已选择文件</div>
+                      <div className="upload-subtitle">{documentFile.name}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="upload-title">上传项目文档</div>
+                      <div className="upload-subtitle">支持PDF、DOC、DOCX等格式</div>
+                    </>
+                  )}
+                </div>
+                <input 
+                  id="document-input"
+                  type="file" 
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={handleDocumentUpload}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </div>
+
+            {/* CAD文件上传区域 */}
+            <div className="upload-section">
+              <h3 className="upload-section-title">上传CAD文件</h3>
+              <div 
+                className={`file-upload-area ${cadFile ? 'has-file' : ''}`}
+                onDrop={handleCadDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById('cad-input')?.click()}
+              >
+                <div className="upload-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 16C4.79086 16 3 14.2091 3 12C3 9.79086 4.79086 8 7 8C7.27614 8 7.54291 8.02763 7.8 8.08C8.77805 5.74 11.2105 4 14 4C17.3137 4 20 6.68629 20 10C20 10.3431 19.9659 10.6772 19.9007 11H20C21.1046 11 22 11.8954 22 13C22 14.1046 21.1046 15 20 15H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 12L12 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 15L12 12L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="upload-text">
+                  {cadFile ? (
+                    <>
+                      <div className="upload-title">已选择文件</div>
+                      <div className="upload-subtitle">{cadFile.name}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="upload-title">上传CAD文件或广联达模型文件</div>
+                      <div className="upload-subtitle">支持DWG、DWF、DXF等格式</div>
+                    </>
+                  )}
+                </div>
+                <input 
+                  id="cad-input"
+                  type="file" 
+                  accept=".dwg,.dwf,.dxf,.gbq,.gbd"
+                  onChange={handleCadUpload}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="upload-text">
-            <div className="upload-title">上传CAD文件或者广联达模型文件</div>
-            <div className="upload-subtitle">支持DWG、DWF等格式</div>
+
+          {/* 项目名称输入 */}
+          <div className="project-name-section">
+            <h3 className="upload-section-title">项目名称</h3>
+            <input 
+              type="text"
+              className="project-name-input"
+              placeholder="请输入项目名称"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+            />
           </div>
-          <input 
-            id="file-input"
-            type="file" 
-            accept=".dwg,.dwf,.dxf"
-            onChange={handleFileUpload}
-            style={{ display: 'none' }}
-          />
+
+          {/* 确认按钮 */}
+          <div className="create-project-section">
+            <button 
+              className="create-project-btn"
+              onClick={handleCreateProject}
+              disabled={isCreatingProject || !projectName.trim()}
+            >
+              {isCreatingProject ? '创建中...' : '确认创建项目'}
+            </button>
+          </div>
         </div>
       </div>
     );
