@@ -197,9 +197,6 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     event.preventDefault();
   };
 
-  const getStatusColor = () => {
-    return '#4CAF50'; // 所有任务都使用绿色表示活跃状态
-  };
 
   // 计算任务在甘特图中的位置和宽度
   const getTaskPosition = (taskStartDay: number, taskEndDay: number) => {
@@ -469,7 +466,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                           style={{
                             left: position.left,
                             width: position.width,
-                            backgroundColor: getStatusColor()
+                            backgroundColor: task.是否加班 ? '#ff6b6b' : '#4CAF50'
                           }}
                         ></div>
                       </div>
@@ -483,43 +480,41 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
           {activeTab === '进度表模式' && (
             <div className="progress-table">
               <div className="table-header">
-                <div className="table-cell header-cell">项目名称</div>
-                <div className="table-cell header-cell">开始日期</div>
-                <div className="table-cell header-cell">结束日期</div>
-                <div className="table-cell header-cell">资金物料</div>
-                <div className="table-cell header-cell">施工人员</div>
-                <div className="table-cell header-cell">备注</div>
+                <div className="table-cell header-cell">序号</div>
+                <div className="table-cell header-cell">施工工序</div>
+                <div className="table-cell header-cell">施工方式</div>
+                <div className="table-cell header-cell">施工人数</div>
+                <div className="table-cell header-cell">工种</div>
+                <div className="table-cell header-cell">价格</div>
+                <div className="table-cell header-cell">工程量与单位</div>
+                <div className="table-cell header-cell">开始时间</div>
+                <div className="table-cell header-cell">结束时间</div>
+                <div className="table-cell header-cell">直接依赖工种</div>
               </div>
               <div className="table-body">
                 {tasks.map(task => (
                   <div 
                     key={task.id} 
-                    className="table-row clickable-row"
+                    className={`table-row clickable-row ${task.是否加班 ? 'overtime-row' : ''}`}
                     onClick={(e) => handleTaskClick(task, e)}
                   >
+                    <div className="table-cell">{task.序号}</div>
                     <div className="table-cell task-name-cell">
                       <div 
                         className="task-status-dot" 
-                        style={{ backgroundColor: getStatusColor() }}
+                        style={{ backgroundColor: task.是否加班 ? '#ff6b6b' : '#4CAF50' }}
                       ></div>
                       <span>{task.name}</span>
                     </div>
+                    <div className="table-cell">{task.施工方式}</div>
+                    <div className="table-cell">{task.施工人数}人</div>
+                    <div className="table-cell">{task.工种}</div>
+                    <div className="table-cell">¥{task.cost.toLocaleString()}</div>
+                    <div className="table-cell">{task.工程量}{task.单位}</div>
                     <div className="table-cell">第{task.startDay}天</div>
                     <div className="table-cell">第{task.endDay}天</div>
-                    <div className="table-cell">{task.cost}</div>
-                    <div className="table-cell">{task.personnel}</div>
-                    <div className="table-cell notes-cell">
-                      {task.notes ? (
-                        <span className="notes-text">{task.notes}</span>
-                      ) : (
-                        <div className="notes-image">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="3" width="18" height="18" rx="2" fill="#e0e0e0"/>
-                            <circle cx="8.5" cy="8.5" r="1.5" fill="#999"/>
-                            <path d="M21 15L16 10L5 21" stroke="#999" strokeWidth="2"/>
-                          </svg>
-                        </div>
-                      )}
+                    <div className="table-cell">
+                      {task.直接依赖工种.length > 0 ? task.直接依赖工种.join(', ') : '无'}
                     </div>
                   </div>
                 ))}

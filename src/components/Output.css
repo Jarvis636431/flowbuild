@@ -672,6 +672,15 @@
   background-color: #333 !important;
 }
 
+/* 加班行样式 */
+.overtime-row {
+  background-color: #2d1b1b !important;
+}
+
+.overtime-row:hover {
+  background-color: #3d2525 !important;
+}
+
 /* 悬浮窗样式 */
 .popup-overlay {
   position: fixed;

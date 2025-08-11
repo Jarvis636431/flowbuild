@@ -33,7 +33,30 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </button>
       </div>
       <div className="popup-content">
-
+        <div className="detail-item">
+          <span className="detail-label">序号:</span>
+          <span>{task.序号}</span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">施工方式:</span>
+          <span>{task.施工方式}</span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">施工人数:</span>
+          <span>{task.施工人数}人</span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">工种:</span>
+          <span>{task.工种}</span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">价格:</span>
+          <span>¥{task.cost.toLocaleString()}</span>
+        </div>
+        <div className="detail-item">
+          <span className="detail-label">工程量:</span>
+          <span>{task.工程量}{task.单位}</span>
+        </div>
         <div className="detail-item">
           <span className="detail-label">开始时间:</span>
           <span>第{task.startDay}天</span>
@@ -43,20 +66,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           <span>第{task.endDay}天</span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">成本:</span>
-          <span>{task.cost}</span>
+          <span className="detail-label">是否加班:</span>
+          <span style={{ color: task.是否加班 ? '#ff6b6b' : '#4CAF50' }}>
+            {task.是否加班 ? '是' : '否'}
+          </span>
         </div>
         <div className="detail-item">
-          <span className="detail-label">负责人:</span>
-          <span>{task.personnel}</span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">备注:</span>
-          <span>{task.notes}</span>
-        </div>
-        <div className="detail-item detail-description">
-          <span className="detail-label">详细信息:</span>
-          <p>{task.details}</p>
+          <span className="detail-label">直接依赖工种:</span>
+          <span>{task.直接依赖工种?.length > 0 ? task.直接依赖工种.join(', ') : '无'}</span>
         </div>
       </div>
     </Modal>
