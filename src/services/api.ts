@@ -15,18 +15,18 @@ export interface Project {
 
 export interface TaskItem {
   id: number;
-  序号: number; // 序列号
+  serialNumber: number; // 序列号
   name: string; // 施工工序
-  施工方式: string;
-  施工人数: number;
-  工种: string;
+  constructionMethod: string; // 施工方式
+  workerCount: number; // 施工人数
+  workType: string; // 工种
   cost: number; // 价格
-  工程量: number;
-  单位: string;
+  workload: number; // 工程量
+  unit: string; // 单位
   startDay: number; // 开始时间
   endDay: number; // 结束时间
-  是否加班: boolean;
-  直接依赖工种: string[];
+  isOvertime: boolean; // 是否加班
+  dependencies: string[]; // 直接依赖工种
   projectId: number; // 关联的项目ID
 }
 

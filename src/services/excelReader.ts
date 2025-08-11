@@ -3,18 +3,18 @@ import type { Project, TaskItem } from './api';
 
 // Excel列名映射到TaskItem字段
 const COLUMN_MAPPING: Record<string, string> = {
-  '序号': '序号',
+  '序号': 'serialNumber',
   '施工工序': 'name',
-  '施工方式': '施工方式',
-  '施工人数': '施工人数',
-  '工种': '工种',
+  '施工方式': 'constructionMethod',
+  '施工人数': 'workerCount',
+  '工种': 'workType',
   '价格': 'cost',
-  '工程量': '工程量',
-  '工程量单位': '单位',
+  '工程量': 'workload',
+  '工程量单位': 'unit',
   '开始时间': 'startDay',
   '结束时间': 'endDay',
-  '是否加班': '是否加班',
-  '直接依赖任务': '直接依赖工种'
+  '是否加班': 'isOvertime',
+  '直接依赖任务': 'dependencies'
 };
 
 /**
@@ -113,20 +113,20 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
             case 'endDay':
               task.endDay = parseTimeString(value);
               break;
-            case '是否加班':
-              task.是否加班 = parseOvertime(value);
+            case 'isOvertime':
+              task.isOvertime = parseOvertime(value);
               break;
-            case '直接依赖工种':
-              task.直接依赖工种 = parseDependencies(value);
+            case 'dependencies':
+              task.dependencies = parseDependencies(value);
               break;
-            case '序号':
-              task.序号 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+            case 'serialNumber':
+              task.serialNumber = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
               break;
-            case '施工人数':
-              task.施工人数 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+            case 'workerCount':
+              task.workerCount = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
               break;
-            case '工程量':
-              task.工程量 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+            case 'workload':
+              task.workload = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
               break;
             case 'cost':
               // 特殊处理价格字段，可能是数字或文本
@@ -142,18 +142,18 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
             case 'name':
               task.name = String(value);
               break;
-            case '施工方式':
-              task.施工方式 = String(value);
+            case 'constructionMethod':
+              task.constructionMethod = String(value);
               break;
-            case '工种':
-              task.工种 = String(value);
+            case 'workType':
+              task.workType = String(value);
               break;
-            case '单位':
-              task.单位 = String(value);
+            case 'unit':
+              task.unit = String(value);
               break;
             default:
               // 对于其他字段，直接赋值
-              (task as any)[mappedField] = value;
+              (task as Record<string, unknown>)[mappedField] = value;
           }
         }
       });
@@ -162,10 +162,10 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
       if (!task.cost) task.cost = 0;
       if (!task.startDay) task.startDay = 1;
       if (!task.endDay) task.endDay = 1;
-      if (!task.施工人数) task.施工人数 = 0;
-      if (!task.序号) task.序号 = rowIndex + 1;
-      if (!task.是否加班) task.是否加班 = false;
-      if (!task.直接依赖工种) task.直接依赖工种 = [];
+      if (!task.workerCount) task.workerCount = 0;
+      if (!task.serialNumber) task.serialNumber = rowIndex + 1;
+      if (!task.isOvertime) task.isOvertime = false;
+      if (!task.dependencies) task.dependencies = [];
 
       // 只添加有名称的任务
       if (task.name && String(task.name).trim() !== '') {

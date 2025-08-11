@@ -84,7 +84,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
      tasks.forEach(task => {
        const startDay = task.startDay - 1; // 转为0索引
        const duration = task.endDay - task.startDay + 1;
-       const workload = task.工程量 || 0;
+       const workload = task.workload || 0;
        const dailyMaterialAmount = workload / duration;
        
        for (let i = 0; i < duration && (startDay + i) < totalDays; i++) {
@@ -795,7 +795,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                           style={{
                             left: position.left,
                             width: position.width,
-                            backgroundColor: task.是否加班
+                            backgroundColor: task.isOvertime
                               ? "#ff6b6b"
                               : "#4CAF50",
                           }}
@@ -828,37 +828,37 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                     <div
                       key={task.id}
                       className={`table-row clickable-row ${
-                        task.是否加班 ? "overtime-row" : ""
+                        task.isOvertime ? "overtime-row" : ""
                       }`}
                       onClick={(e) => handleTaskClick(task, e)}
                     >
-                      <div className="table-cell">{task.序号}</div>
+                      <div className="table-cell">{task.serialNumber}</div>
                       <div className="table-cell task-name-cell">
                         <div
                           className="task-status-dot"
                           style={{
-                            backgroundColor: task.是否加班
+                            backgroundColor: task.isOvertime
                               ? "#ff6b6b"
                               : "#4CAF50",
                           }}
                         ></div>
                         <span>{task.name}</span>
                       </div>
-                      <div className="table-cell">{task.施工方式}</div>
-                      <div className="table-cell">{task.施工人数}人</div>
-                      <div className="table-cell">{task.工种}</div>
+                      <div className="table-cell">{task.constructionMethod}</div>
+                      <div className="table-cell">{task.workerCount}人</div>
+                      <div className="table-cell">{task.workType}</div>
                       <div className="table-cell">
                         {task.cost.toLocaleString()}
                       </div>
                       <div className="table-cell">
-                        {task.工程量}
-                        {task.单位}
+                        {task.workload}
+                        {task.unit}
                       </div>
                       <div className="table-cell">第{task.startDay}天</div>
                       <div className="table-cell">第{task.endDay}天</div>
                       <div className="table-cell">
-                        {task.直接依赖工种.length > 0
-                          ? task.直接依赖工种.join(", ")
+                        {task.dependencies.length > 0
+                          ? task.dependencies.join(", ")
                           : "无"}
                       </div>
                     </div>

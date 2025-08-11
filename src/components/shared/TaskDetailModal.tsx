@@ -35,19 +35,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       <div className="popup-content">
         <div className="detail-item">
           <span className="detail-label">序号:</span>
-          <span>{task.序号}</span>
+          <span>{task.serialNumber}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">施工方式:</span>
-          <span>{task.施工方式}</span>
+          <span>{task.constructionMethod}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">施工人数:</span>
-          <span>{task.施工人数}人</span>
+          <span>{task.workerCount}人</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">工种:</span>
-          <span>{task.工种}</span>
+          <span>{task.workType}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">价格:</span>
@@ -55,7 +55,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
         <div className="detail-item">
           <span className="detail-label">工程量:</span>
-          <span>{task.工程量}{task.单位}</span>
+          <span>{task.workload}{task.unit}</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">开始时间:</span>
@@ -67,13 +67,13 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
         <div className="detail-item">
           <span className="detail-label">是否加班:</span>
-          <span style={{ color: task.是否加班 ? '#ff6b6b' : '#4CAF50' }}>
-            {task.是否加班 ? '是' : '否'}
+          <span style={{ color: task.isOvertime ? '#ff6b6b' : '#4CAF50' }}>
+            {task.isOvertime ? '是' : '否'}
           </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">直接依赖工种:</span>
-          <span>{task.直接依赖工种?.length > 0 ? task.直接依赖工种.join(', ') : '无'}</span>
+          <span>{task.dependencies?.length > 0 ? task.dependencies.join(', ') : '无'}</span>
         </div>
       </div>
     </Modal>
