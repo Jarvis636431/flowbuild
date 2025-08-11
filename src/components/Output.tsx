@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { taskAPI, type TaskItem, type Project } from '../services/api';
 import './Output.css';
+import TaskDetailModal from './shared/TaskDetailModal';
 
 interface OutputProps {
   currentProject: Project | null;
@@ -674,66 +675,13 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
           )}
         </>      )}
       
-      {/* 悬浮窗 */}
-      {selectedTask && popupPosition && (
-        <>
-          {console.log('Rendering popup for task:', selectedTask.name, 'at position:', popupPosition)}
-          {/* 遮罩层 */}
-          <div className="popup-overlay" onClick={closePopup}></div>
-          {/* 悬浮窗内容 */}
-          <div 
-            className="task-detail-popup"
-            style={{
-              left: `${popupPosition.x}px`,
-              top: `${popupPosition.y}px`,
-              transform: 'translate(-50%, -100%)',
-              backgroundColor: '#2a2a2a',
-              border: '2px solid #ff0000' // 临时红色边框用于调试
-            }}
-          >
-            <div className="popup-header">
-              <h3>{selectedTask.name}</h3>
-              <button className="close-btn" onClick={closePopup}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
-            </div>
-            <div className="popup-content">
-              <div className="detail-item">
-                <span className="detail-label">状态:</span>
-                <span className={`status-badge ${selectedTask.status}`}>
-                  活跃
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">开始时间:</span>
-                <span>第{selectedTask.startDay}天</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">结束时间:</span>
-                <span>第{selectedTask.endDay}天</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">成本:</span>
-                <span>{selectedTask.cost}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">负责人:</span>
-                <span>{selectedTask.personnel}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">备注:</span>
-                <span>{selectedTask.notes}</span>
-              </div>
-              <div className="detail-item detail-description">
-                <span className="detail-label">详细信息:</span>
-                <p>{selectedTask.details}</p>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {/* 任务详情弹窗 */}
+      <TaskDetailModal
+        isOpen={!!selectedTask}
+        onClose={closePopup}
+        task={selectedTask}
+        position={popupPosition}
+      />
     </div>
   );
 };

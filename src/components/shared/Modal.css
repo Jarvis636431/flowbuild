@@ -1,0 +1,128 @@
+/* Modal 遮罩层 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  cursor: pointer;
+}
+
+/* Modal 内容容器 */
+.modal-content {
+  position: fixed;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* 任务详情弹窗样式 */
+.task-detail-popup {
+  width: 320px;
+  color: #fff;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #444;
+  background-color: #333;
+  border-radius: 8px 8px 0 0;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: #fff;
+  background-color: #444;
+}
+
+.popup-content {
+  padding: 20px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #ccc;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.detail-item span:last-child {
+  color: #fff;
+  flex: 1;
+}
+
+.detail-description {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.detail-description p {
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .task-detail-popup {
+    width: 280px;
+  }
+  
+  .popup-header,
+  .popup-content {
+    padding: 12px 16px;
+  }
+  
+  .detail-label {
+    min-width: 70px;
+  }
+}
