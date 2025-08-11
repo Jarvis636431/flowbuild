@@ -1,7 +1,7 @@
 # TODO:
 
-- [x] check-excel-structure: 查看data/output.xlsx文件的内容结构，了解Excel表格的列名和数据格式 (priority: High)
-- [x] install-xlsx: 安装xlsx库用于解析Excel文件 (priority: High)
-- [x] create-excel-reader: 创建Excel文件读取函数，解析项目和任务数据 (priority: High)
-- [x] modify-api-service: 修改src/services/api.ts，将硬编码mockdata替换为Excel数据读取 (priority: High)
-- [x] test-excel-integration: 测试Excel数据读取功能，确保API接口正常工作 (priority: Medium)
+- [x] 1: 重构TaskItem接口，将所有中文字段名改为英文字段名 (priority: High)
+- [x] 2: 修改src/services/api.ts中的TaskItem接口定义 (priority: High)
+- [x] 3: 更新src/services/excelReader.ts中的字段映射和数据处理逻辑 (priority: High)
+- [x] 4: 检查并更新前端组件中使用TaskItem字段的地方 (priority: High)
+- [x] 5: 运行npm run check测试重构后的代码 (priority: Medium)
