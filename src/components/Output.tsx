@@ -35,6 +35,12 @@ const Output: React.FC = () => {
     return { minDay, maxDay };
   };
 
+  // 计算项目总天数
+  const getTotalDays = () => {
+    const { minDay, maxDay } = getTasksDayRange(tasks);
+    return maxDay - minDay + 1;
+  };
+
   // 获取任务数据
   const fetchTasks = async () => {
     try {
@@ -357,28 +363,14 @@ const Output: React.FC = () => {
       <div className="output-header">
         <div className="project-info">
           <h2 className="project-title">标准层测试项目1</h2>
-          <span className="project-date">2025-07-01</span>
+          <span className="project-date">总计{getTotalDays()}天</span>
         </div>
         <div className="header-controls">
-          <button className="nav-btn prev">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button className="nav-btn next">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
           <button className="export-btn">导出报告</button>
         </div>
       </div>
       
       <div className="date-controls">
-        <div className="date-input-group">
-          <span className="day-range-display">{startDate} 至 {endDate}</span>
-        </div>
-        
         <div className="view-tabs">
           {['甘特图模式', '进度表模式', '资金物料模式'].map(tab => (
             <button 
@@ -410,19 +402,7 @@ const Output: React.FC = () => {
         </div>
       )}
       
-      <div className="search-section">
-        <div className="search-container">
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="搜索任务..."
-          />
-          <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-            <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-        </div>
-      </div>
+
       
       {/* 数据内容 */}
       {!loading && !error && (
