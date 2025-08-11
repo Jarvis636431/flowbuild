@@ -14,7 +14,6 @@
 .modal-content {
   position: fixed;
   background-color: #2a2a2a;
-  border: 1px solid #444;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1001;
@@ -34,7 +33,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #444;
   background-color: #333;
   border-radius: 8px 8px 0 0;
 }
@@ -102,14 +100,7 @@
   color: #ddd;
 }
 
-.status-badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  background-color: #4CAF50;
-  color: #fff;
-}
+
 
 /* 响应式设计 */
 @media (max-width: 768px) {

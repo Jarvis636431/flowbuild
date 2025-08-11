@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { type Project, projectAPI } from '../services/api';
-import './Sidebar.css';
+import React, { useState, useEffect, useCallback } from "react";
+import { type Project, projectAPI } from "../services/api";
+import "./Sidebar.css";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggle,
   currentProject,
-  onProjectSelect
+  onProjectSelect,
 }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,14 +25,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       setLoading(true);
       const projectList = await projectAPI.getProjects();
       setProjects(projectList);
-      
+
       // 如果没有当前项目且有项目列表，选择第一个项目
       if (!currentProject && projectList.length > 0) {
         onProjectSelect(projectList[0]);
       }
     } catch (err) {
-      setError('加载项目列表失败');
-      console.error('加载项目失败:', err);
+      setError("加载项目列表失败");
+      console.error("加载项目失败:", err);
     } finally {
       setLoading(false);
     }
@@ -42,18 +42,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     loadProjects();
   }, [loadProjects]);
 
-  const handleDeleteProject = async (projectId: number, event: React.MouseEvent) => {
+  const handleDeleteProject = async (
+    projectId: number,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
-    
-    if (!confirm('确定要删除这个项目吗？这将同时删除项目下的所有任务。')) {
+
+    if (!confirm("确定要删除这个项目吗？这将同时删除项目下的所有任务。")) {
       return;
     }
 
     try {
       await projectAPI.deleteProject(projectId);
-      const updatedProjects = projects.filter(p => p.id !== projectId);
+      const updatedProjects = projects.filter((p) => p.id !== projectId);
       setProjects(updatedProjects);
-      
+
       // 如果删除的是当前项目，选择第一个可用项目
       if (currentProject?.id === projectId) {
         if (updatedProjects.length > 0) {
@@ -63,8 +66,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
       }
     } catch (err) {
-      setError('删除项目失败');
-      console.error('删除项目失败:', err);
+      setError("删除项目失败");
+      console.error("删除项目失败:", err);
     }
   };
 
@@ -75,21 +78,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   if (loading) {
     return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        {isCollapsed ? (
-          <button className="toggle-btn" onClick={onToggle}>
-            ▶
-          </button>
-        ) : (
-          <>
-            <span className="header-title">项目列表</span>
+      <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-header">
+          {isCollapsed ? (
             <button className="toggle-btn" onClick={onToggle}>
-              ◀
+              ▶
             </button>
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <span className="header-title">项目列表</span>
+              <button className="toggle-btn" onClick={onToggle}>
+                ◀
+              </button>
+            </>
+          )}
+        </div>
         {!isCollapsed && (
           <div className="sidebar-content">
             <div className="loading">加载中...</div>
@@ -100,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         {isCollapsed ? (
           <button className="toggle-btn" onClick={onToggle}>
@@ -115,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </>
         )}
       </div>
-      
+
       <div className="sidebar-content">
         {error && (
           <div className="error-message">
@@ -123,13 +126,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button onClick={() => setError(null)}>×</button>
           </div>
         )}
-        
+
         <div className="projects-list">
-          {projects.map(project => (
+          {projects.map((project) => (
             <div
               key={project.id}
               className={`project-item ${
-                currentProject?.id === project.id ? 'active' : ''
+                currentProject?.id === project.id ? "active" : ""
               }`}
               onClick={() => onProjectSelect(project)}
               title={project.name}
@@ -152,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
           ))}
-          
+
           {projects.length === 0 && (
             <div className="empty-state">
               <p>暂无项目</p>

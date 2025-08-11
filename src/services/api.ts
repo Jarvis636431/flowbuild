@@ -3,7 +3,6 @@ export interface Project {
   id: number;
   name: string;
   description: string;
-  status: 'active' | 'completed' | 'paused';
   createdAt: Date;
   updatedAt: Date;
   totalCost: number;
@@ -14,7 +13,6 @@ export interface Project {
 export interface TaskItem {
   id: number;
   name: string;
-  status: 'active';
   startDay: number;
   endDay: number;
   cost: number;
@@ -47,7 +45,6 @@ const mockProjects: Project[] = [
     id: 1,
     name: '住宅楼建设项目',
     description: '某小区住宅楼建设工程，包含地基、主体结构、装修等全流程施工',
-    status: 'active',
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-15'),
     totalCost: 2500000,
@@ -58,7 +55,6 @@ const mockProjects: Project[] = [
     id: 2,
     name: '办公楼改造项目',
     description: '老旧办公楼现代化改造，包含外立面、内部装修、设备更新',
-    status: 'paused',
     createdAt: new Date('2023-12-01'),
     updatedAt: new Date('2024-01-10'),
     totalCost: 1800000,
@@ -69,7 +65,6 @@ const mockProjects: Project[] = [
     id: 3,
     name: '商业综合体项目',
     description: '大型商业综合体建设，包含购物中心、写字楼、酒店等',
-    status: 'completed',
     createdAt: new Date('2023-06-01'),
     updatedAt: new Date('2023-12-31'),
     totalCost: 8500000,
@@ -83,7 +78,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 1,
     name: '地面支撑',
-    status: 'active',
     startDay: 1,
     endDay: 1,
     cost: 22400,
@@ -95,7 +89,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 2,
     name: '地面混凝土浇筑',
-    status: 'active',
     startDay: 2,
     endDay: 3,
     cost: 64000,
@@ -107,7 +100,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 3,
     name: '地面拆模',
-    status: 'active',
     startDay: 4,
     endDay: 4,
     cost: 18000,
@@ -119,7 +111,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 4,
     name: '钢筋混凝土柱支撑',
-    status: 'active',
     startDay: 5,
     endDay: 5,
     cost: 18000,
@@ -131,7 +122,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 5,
     name: '钢筋混凝土柱浇筑',
-    status: 'active',
     startDay: 6,
     endDay: 8,
     cost: 96600,
@@ -143,7 +133,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 6,
     name: '柱拆模',
-    status: 'active',
     startDay: 9,
     endDay: 9,
     cost: 12000,
@@ -155,7 +144,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 7,
     name: '钢筋混凝土承重墙支撑',
-    status: 'active',
     startDay: 5,
     endDay: 5,
     cost: 14400,
@@ -167,7 +155,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 8,
     name: '钢筋混凝土承重墙浇筑',
-    status: 'active',
     startDay: 6,
     endDay: 8,
     cost: 124500,
@@ -179,7 +166,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 9,
     name: '承重墙拆模',
-    status: 'active',
     startDay: 9,
     endDay: 10,
     cost: 15000,
@@ -191,7 +177,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 10,
     name: '楼板钢筋绑扎',
-    status: 'active',
     startDay: 10,
     endDay: 12,
     cost: 85000,
@@ -203,7 +188,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 11,
     name: '楼板模板安装',
-    status: 'active',
     startDay: 13,
     endDay: 14,
     cost: 32000,
@@ -215,7 +199,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 12,
     name: '楼板混凝土浇筑',
-    status: 'active',
     startDay: 15,
     endDay: 16,
     cost: 128000,
@@ -227,7 +210,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 13,
     name: '楼板拆模',
-    status: 'active',
     startDay: 22,
     endDay: 23,
     cost: 18000,
@@ -239,7 +221,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 14,
     name: '外立面清洗',
-    status: 'active',
     startDay: 1,
     endDay: 3,
     cost: 25000,
@@ -251,7 +232,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 15,
     name: '外墙保温拆除',
-    status: 'active',
     startDay: 4,
     endDay: 7,
     cost: 45000,
@@ -263,7 +243,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 16,
     name: '屋面防水施工',
-    status: 'active',
     startDay: 25,
     endDay: 28,
     cost: 95000,
@@ -275,7 +254,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 17,
     name: '外墙保温施工',
-    status: 'active',
     startDay: 29,
     endDay: 33,
     cost: 112000,
@@ -287,7 +265,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 18,
     name: '门窗安装',
-    status: 'active',
     startDay: 34,
     endDay: 37,
     cost: 168000,
@@ -299,7 +276,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 19,
     name: '水电预埋',
-    status: 'active',
     startDay: 38,
     endDay: 43,
     cost: 145000,
@@ -311,7 +287,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 20,
     name: '内墙抹灰',
-    status: 'active',
     startDay: 44,
     endDay: 49,
     cost: 89000,
@@ -323,7 +298,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 21,
     name: '外墙涂料施工',
-    status: 'active',
     startDay: 50,
     endDay: 53,
     cost: 67000,
@@ -335,7 +309,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 22,
     name: '地面找平',
-    status: 'active',
     startDay: 54,
     endDay: 56,
     cost: 43000,
@@ -347,7 +320,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 23,
     name: '室内装修',
-    status: 'active',
     startDay: 57,
     endDay: 67,
     cost: 235000,
@@ -359,7 +331,6 @@ const mockTasks: TaskItem[] = [
   {
     id: 24,
     name: '竣工验收',
-    status: 'active',
     startDay: 68,
     endDay: 70,
     cost: 25000,
