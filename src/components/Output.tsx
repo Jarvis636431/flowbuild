@@ -8,8 +8,7 @@ interface OutputProps {
 
 const Output: React.FC<OutputProps> = ({ currentProject }) => {
   const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
-  const [, setStartDate] = useState('2025-07-01');
-  const [, setEndDate] = useState('2025-09-10');
+
   const [activeTab, setActiveTab] = useState('甘特图模式');
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,10 +62,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
       
       setTasks(tasksData);
       
-      // 自动设置天数范围
-      const { minDay, maxDay } = getTasksDayRange(tasksData);
-      setStartDate(`第${minDay}天`);
-      setEndDate(`第${maxDay}天`);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取数据失败');
     } finally {
@@ -383,7 +379,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
       </div>
       <div className="output-header">
         <div className="project-info">
-          <h2 className="project-title">标准层测试项目1</h2>
+          <h2 className="project-title">{currentProject?.name || '未选择项目'}</h2>
           <span className="project-date">总计{getTotalDays()}天</span>
         </div>
         <div className="header-controls">

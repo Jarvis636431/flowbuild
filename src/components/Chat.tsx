@@ -2,15 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
 import { chatAPI, type ChatMessage, type ChatRequest, type Project } from '../services/api';
 
-// 使用API中定义的接口
-type Message = ChatMessage;
+
 
 interface ChatProps {
   currentProject: Project | null;
 }
 
 const Chat: React.FC<ChatProps> = ({ currentProject }) => {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
       text: '你好！我是AI助手，有什么可以帮你的吗？',
@@ -50,7 +49,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   const handleSendMessage = async () => {
     if (inputValue.trim() === '') return;
 
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: Date.now(),
       text: inputValue,
       sender: 'user',
@@ -66,7 +65,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       // 调用API获取AI回复
       const aiResponseText = await getAIResponse(currentInput);
       
-      const aiResponse: Message = {
+      const aiResponse: ChatMessage = {
         id: Date.now() + 1,
         text: aiResponseText,
         sender: 'ai',
@@ -78,7 +77,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       console.error('发送消息失败:', error);
       
       // 显示错误消息
-      const errorResponse: Message = {
+      const errorResponse: ChatMessage = {
         id: Date.now() + 1,
         text: '抱歉，发送消息时出现错误，请稍后再试。',
         sender: 'ai',
@@ -117,8 +116,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             </div>
           </div>
           <div className="project-stats">
-            <span className="stat-item">💰 {(currentProject.totalCost / 10000).toFixed(1)}万</span>
-            <span className="stat-item">📅 {currentProject.totalDays}天</span>
+            <span className="stat-item">成本: {(currentProject.totalCost / 10000).toFixed(1)}万</span>
+            <span className="stat-item">工期: {currentProject.totalDays}天</span>
           </div>
         </div>
       )}
