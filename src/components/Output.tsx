@@ -198,8 +198,8 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
   };
 
   const getStatusColor = () => {
-  return '#4CAF50'; // 所有任务都使用绿色表示活跃状态
-};
+    return '#4CAF50'; // 所有任务都使用绿色表示活跃状态
+  };
 
   // 计算任务在甘特图中的位置和宽度
   const getTaskPosition = (taskStartDay: number, taskEndDay: number) => {
@@ -457,7 +457,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                       onClick={(e) => handleTaskClick(task, e)}
                     >
                       <div className="task-info">
-                        <span className={`status-dot ${task.status}`}></span>
+                        <span className="status-dot"></span>
                         <span className="task-name">{task.name}</span>
                       </div>
                       <div className="task-timeline" style={{

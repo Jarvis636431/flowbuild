@@ -769,19 +769,7 @@
   text-align: justify;
 }
 
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
 
-.status-badge {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4CAF50;
-  border: 1px solid #4CAF50;
-}
 
 /* 操作记录模式样式 */
 .operation-log-mode {

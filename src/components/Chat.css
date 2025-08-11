@@ -23,32 +23,7 @@
   margin: 0;
 }
 
-.project-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #999;
-}
 
-.status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.status-indicator.active {
-  background: #34c759;
-}
-
-.status-indicator.paused {
-  background: #ff9500;
-}
-
-.status-indicator.completed {
-  background: #007aff;
-}
 
 .project-stats {
   display: flex;

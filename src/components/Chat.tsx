@@ -109,11 +109,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         <div className="project-header">
           <div className="project-info">
             <div className="project-name">{currentProject.name}</div>
-            <div className="project-status">
-              <span className={`status-indicator ${currentProject.status}`}></span>
-              {currentProject.status === 'active' ? '进行中' : 
-               currentProject.status === 'paused' ? '暂停' : '已完成'}
-            </div>
+
           </div>
           <div className="project-stats">
             <span className="stat-item">成本: {(currentProject.totalCost / 10000).toFixed(1)}万</span>

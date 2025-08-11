@@ -33,12 +33,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </button>
       </div>
       <div className="popup-content">
-        <div className="detail-item">
-          <span className="detail-label">状态:</span>
-          <span className={`status-badge ${task.status}`}>
-            活跃
-          </span>
-        </div>
+
         <div className="detail-item">
           <span className="detail-label">开始时间:</span>
           <span>第{task.startDay}天</span>
