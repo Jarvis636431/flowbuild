@@ -87,7 +87,7 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
     
     // 第一行是表头
     const headers = jsonData[0] as string[];
-    const dataRows = jsonData.slice(1);
+    const dataRows = jsonData.slice(1) as any[][];
     
     // 转换数据为TaskItem格式
     const tasks: TaskItem[] = [];
@@ -109,33 +109,52 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
           // 根据字段类型进行数据转换
           switch (mappedField) {
             case 'startDay':
+              task.startDay = parseTimeString(value);
+              break;
             case 'endDay':
-              (task as TaskItem)[mappedField as keyof TaskItem] = parseTimeString(value);
+              task.endDay = parseTimeString(value);
               break;
             case '是否加班':
-              (task as TaskItem)[mappedField as keyof TaskItem] = parseOvertime(value);
+              task.是否加班 = parseOvertime(value);
               break;
             case '直接依赖工种':
-              (task as TaskItem)[mappedField as keyof TaskItem] = parseDependencies(value);
+              task.直接依赖工种 = parseDependencies(value);
               break;
             case '序号':
+              task.序号 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+              break;
             case '施工人数':
+              task.施工人数 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+              break;
             case '工程量':
-              (task as TaskItem)[mappedField as keyof TaskItem] = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
+              task.工程量 = typeof value === 'number' ? value : (parseInt(String(value)) || 0);
               break;
             case 'cost':
               // 特殊处理价格字段，可能是数字或文本
               if (typeof value === 'number') {
-                (task as TaskItem)[mappedField as keyof TaskItem] = value;
+                task.cost = value;
               } else if (typeof value === 'string' && !isNaN(parseFloat(value))) {
-                (task as TaskItem)[mappedField as keyof TaskItem] = parseFloat(value);
+                task.cost = parseFloat(value);
               } else {
                 // 如果价格是文本或空，设为0
-                (task as TaskItem)[mappedField as keyof TaskItem] = 0;
+                task.cost = 0;
               }
               break;
+            case 'name':
+              task.name = String(value);
+              break;
+            case '施工方式':
+              task.施工方式 = String(value);
+              break;
+            case '工种':
+              task.工种 = String(value);
+              break;
+            case '单位':
+              task.单位 = String(value);
+              break;
             default:
-              (task as TaskItem)[mappedField as keyof TaskItem] = value;
+              // 对于其他字段，直接赋值
+              (task as any)[mappedField] = value;
           }
         }
       });
