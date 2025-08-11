@@ -50,7 +50,7 @@
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .upload-section {
     margin-bottom: 20px;
   }
@@ -84,12 +84,12 @@
 }
 
 .file-upload-area.has-file {
-  border-color: #4CAF50;
+  border-color: #4caf50;
   background-color: #2d3a2d;
 }
 
 .file-upload-area.has-file:hover {
-  border-color: #66BB6A;
+  border-color: #66bb6a;
   background-color: #3a4a3a;
 }
 
@@ -218,8 +218,10 @@
 
 .project-info {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 15px;
+  flex-wrap: nowrap;
+  gap: 12px;
 }
 
 .project-title {
@@ -227,11 +229,20 @@
   font-weight: 600;
   margin: 0;
   color: #fff;
+  display: inline-block;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .project-date {
-  font-size: 14px;
-  color: #999;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .header-controls {
@@ -239,8 +250,6 @@
   align-items: center;
   gap: 12px;
 }
-
-
 
 .export-btn {
   background: #007aff;
@@ -270,8 +279,6 @@
   box-sizing: border-box;
 }
 
-
-
 .view-tabs {
   display: flex;
   gap: 10px;
@@ -300,8 +307,6 @@
 .tab-btn:hover {
   background: #444;
 }
-
-
 
 /* 甘特图容器样式 */
 .gantt-container {
@@ -421,7 +426,7 @@
 }
 
 .status-dot {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 /* 加载状态样式 */
@@ -494,20 +499,29 @@
 }
 
 /* Progress Table Styles */
-.progress-table {
+.progress-table-wrapper {
   width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.progress-table {
+  width: 1270px;
+  min-width: 1270px;
   border: 1px solid #444;
   border-radius: 8px;
-  overflow: hidden;
-  margin-top: 20px;
+  overflow-y: hidden;
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 240px);
+  margin-top: 20px;
 }
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 80px 200px 120px 100px 100px 120px 150px 100px 100px 150px;
   background-color: #2a2a2a;
   border-bottom: 1px solid #444;
   flex-shrink: 0;
@@ -521,7 +535,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 80px 200px 120px 100px 100px 120px 150px 100px 100px 150px;
   border-bottom: 1px solid #333;
   transition: background-color 0.2s ease;
 }
@@ -543,6 +557,9 @@
   border-right: 1px solid #333;
   min-height: 48px;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table-cell:last-child {
@@ -550,15 +567,44 @@
 }
 
 .header-cell {
-  font-weight: 600;
+  padding: 12px 16px;
   color: #cccccc;
+  font-size: 14px;
+  font-weight: 600;
   background-color: #2a2a2a;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid #333;
+  min-height: 48px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-cell:last-child {
+  border-right: none;
 }
 
 .task-name-cell {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.task-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.overtime-row {
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+.overtime-row:hover {
+  background-color: rgba(255, 107, 107, 0.2);
 }
 
 .notes-cell {
@@ -633,7 +679,7 @@
     flex-direction: row;
     gap: 20px;
   }
-  
+
   .chart-section {
     flex: 1;
   }
@@ -641,24 +687,44 @@
 
 /* 滚动条样式 */
 .tasks-container::-webkit-scrollbar,
-.table-body::-webkit-scrollbar {
+.table-body::-webkit-scrollbar,
+.progress-table::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .tasks-container::-webkit-scrollbar-track,
-.table-body::-webkit-scrollbar-track {
+.table-body::-webkit-scrollbar-track,
+.progress-table::-webkit-scrollbar-track {
   background: #2a2a2a;
   border-radius: 3px;
 }
 
 .tasks-container::-webkit-scrollbar-thumb,
-.table-body::-webkit-scrollbar-thumb {
+.table-body::-webkit-scrollbar-thumb,
+.progress-table::-webkit-scrollbar-thumb,
+.progress-table-wrapper::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 3px;
 }
 
 .tasks-container::-webkit-scrollbar-thumb:hover,
-.table-body::-webkit-scrollbar-thumb:hover {
+.table-body::-webkit-scrollbar-thumb:hover,
+.progress-table::-webkit-scrollbar-thumb:hover,
+.progress-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+.tasks-container::-webkit-scrollbar-thumb,
+.table-body::-webkit-scrollbar-thumb,
+.progress-table::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.tasks-container::-webkit-scrollbar-thumb:hover,
+.table-body::-webkit-scrollbar-thumb:hover,
+.progress-table::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
 
@@ -778,8 +844,6 @@
   text-align: justify;
 }
 
-
-
 /* 操作记录模式样式 */
 .operation-log-mode {
   width: 100%;
@@ -833,7 +897,7 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: #4caf50;
 }
 
 .log-list {
@@ -866,7 +930,7 @@
 }
 
 .log-action {
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 600;
   font-size: 14px;
 }
@@ -890,11 +954,11 @@
     gap: 8px;
     text-align: left;
   }
-  
+
   .log-user {
     text-align: left;
   }
-  
+
   .log-header {
     flex-direction: column;
     gap: 15px;

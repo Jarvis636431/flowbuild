@@ -5,8 +5,8 @@ export interface Project {
   description: string;
   createdAt: Date;
   updatedAt: Date;
-  totalCost: number;
-  totalDays: number;
+  totalCost?: number; // 可选字段，将通过任务数据动态计算
+  totalDays?: number; // 可选字段，将通过任务数据动态计算
   color: string; // 项目主题色
 }
 
