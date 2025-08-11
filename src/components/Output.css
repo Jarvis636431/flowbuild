@@ -782,3 +782,125 @@
   color: #4CAF50;
   border: 1px solid #4CAF50;
 }
+
+/* 操作记录模式样式 */
+.operation-log-mode {
+  width: 100%;
+  padding: 20px;
+}
+
+.log-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #2a2a2a;
+  border-radius: 8px;
+  border: 1px solid #444;
+  overflow: hidden;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #333;
+  border-bottom: 1px solid #444;
+}
+
+.log-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.log-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-select {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-select:hover {
+  border-color: #777;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.log-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.log-item {
+  display: grid;
+  grid-template-columns: 150px 100px 1fr 120px;
+  gap: 15px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  transition: background-color 0.2s ease;
+  align-items: center;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-item:hover {
+  background-color: #333;
+}
+
+.log-time {
+  color: #888;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.log-action {
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.log-description {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.log-user {
+  color: #ccc;
+  font-size: 13px;
+  text-align: right;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .log-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: left;
+  }
+  
+  .log-user {
+    text-align: left;
+  }
+  
+  .log-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+}

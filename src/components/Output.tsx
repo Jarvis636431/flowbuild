@@ -372,7 +372,7 @@ const Output: React.FC = () => {
       
       <div className="date-controls">
         <div className="view-tabs">
-          {['甘特图模式', '进度表模式', '资金物料模式'].map(tab => (
+          {['甘特图模式', '进度表模式', '资金物料模式', '操作记录'].map(tab => (
             <button 
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
@@ -600,6 +600,56 @@ const Output: React.FC = () => {
                       <circle cx="320" cy="65" r="3" fill="#FF9800" />
                       <circle cx="360" cy="55" r="3" fill="#FF9800" />
                     </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === '操作记录' && (
+            <div className="operation-log-mode">
+              <div className="log-container">
+                <div className="log-header">
+                  <h3 className="log-title">项目操作记录</h3>
+                  <div className="log-filters">
+                    <select className="filter-select">
+                      <option value="all">全部操作</option>
+                      <option value="create">创建</option>
+                      <option value="update">更新</option>
+                      <option value="delete">删除</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="log-list">
+                  <div className="log-item">
+                    <div className="log-time">2025-01-01 10:30:15</div>
+                    <div className="log-action">创建项目</div>
+                    <div className="log-description">创建了新项目"标准层测试项目1"</div>
+                    <div className="log-user">系统管理员</div>
+                  </div>
+                  <div className="log-item">
+                    <div className="log-time">2025-01-01 11:15:22</div>
+                    <div className="log-action">添加任务</div>
+                    <div className="log-description">添加了任务"基础施工"</div>
+                    <div className="log-user">项目经理</div>
+                  </div>
+                  <div className="log-item">
+                    <div className="log-time">2025-01-01 14:20:08</div>
+                    <div className="log-action">更新进度</div>
+                    <div className="log-description">更新了任务"基础施工"的进度状态</div>
+                    <div className="log-user">施工负责人</div>
+                  </div>
+                  <div className="log-item">
+                    <div className="log-time">2025-01-01 16:45:33</div>
+                    <div className="log-action">修改计划</div>
+                    <div className="log-description">调整了任务"主体结构"的时间安排</div>
+                    <div className="log-user">项目经理</div>
+                  </div>
+                  <div className="log-item">
+                    <div className="log-time">2025-01-02 09:10:45</div>
+                    <div className="log-action">导出报告</div>
+                    <div className="log-description">导出了项目进度报告</div>
+                    <div className="log-user">项目经理</div>
                   </div>
                 </div>
               </div>
