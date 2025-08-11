@@ -240,24 +240,7 @@
   gap: 12px;
 }
 
-.nav-btn {
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 10px 12px;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-}
 
-.nav-btn:hover {
-  background: #444;
-  border-color: #666;
-}
 
 .export-btn {
   background: #007aff;
@@ -287,35 +270,7 @@
   box-sizing: border-box;
 }
 
-.date-input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
-.date-input-group input {
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 6px;
-  padding: 8px 8px;
-  font-size: 14px;
-}
-
-.date-input-group span {
-  color: #ccc;
-  font-size: 14px;
-}
-
-.day-range-display {
-  padding: 8px 20px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
-  min-width: 200px;
-  text-align: center;
-}
 
 .view-tabs {
   display: flex;
@@ -346,52 +301,7 @@
   background: #444;
 }
 
-.search-section {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 15px;
-  padding: 0 20px;
-  width: 100%;
-  box-sizing: border-box;
-}
 
-.search-container {
-  position: relative;
-  margin-left: auto;
-  width: 200px;
-}
-
-.search-input {
-  width: 100%;
-  background: #333;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 10px 40px 10px 12px;
-  color: #fff;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  height: 30px;
-  box-sizing: border-box;
-}
-
-.search-input::placeholder {
-  color: #666;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #007aff;
-  background: #444;
-}
-
-.search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-  pointer-events: none;
-}
 
 /* 甘特图容器样式 */
 .gantt-container {
