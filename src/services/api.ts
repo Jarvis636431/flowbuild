@@ -1,3 +1,5 @@
+import { readAllProjectsFromExcel } from './excelReader';
+
 // 定义接口类型
 export interface Project {
   id: number;
@@ -7,7 +9,8 @@ export interface Project {
   updatedAt: Date;
   totalCost?: number; // 可选字段，将通过任务数据动态计算
   totalDays?: number; // 可选字段，将通过任务数据动态计算
-  color: string; // 项目主题色
+  color?: string; // 项目主题色
+  tasks?: TaskItem[]; // 项目包含的任务列表
 }
 
 export interface TaskItem {
@@ -44,42 +47,43 @@ export interface ChatResponse {
   timestamp: Date;
 }
 
-// 模拟项目数据
-const mockProjects: Project[] = [
-  {
-    id: 1,
-    name: '住宅楼建设项目',
-    description: '某小区住宅楼建设工程，包含地基、主体结构、装修等全流程施工',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-15'),
-    totalCost: 2500000,
-    totalDays: 70,
-    color: '#007aff'
-  },
-  {
-    id: 2,
-    name: '办公楼改造项目',
-    description: '老旧办公楼现代化改造，包含外立面、内部装修、设备更新',
-    createdAt: new Date('2023-12-01'),
-    updatedAt: new Date('2024-01-10'),
-    totalCost: 1800000,
-    totalDays: 45,
-    color: '#34c759'
-  },
-  {
-    id: 3,
-    name: '商业综合体项目',
-    description: '大型商业综合体建设，包含购物中心、写字楼、酒店等',
-    createdAt: new Date('2023-06-01'),
-    updatedAt: new Date('2023-12-31'),
-    totalCost: 8500000,
-    totalDays: 180,
-    color: '#ff9500'
-  }
-];
+// 初始化数据变量
+let mockProjects: Project[] = [];
+let mockTasks: TaskItem[] = [];
 
-// 模拟任务数据
-const mockTasks: TaskItem[] = [
+// 异步加载Excel数据
+const loadExcelData = async () => {
+  try {
+    const projects = await readAllProjectsFromExcel();
+    if (projects.length > 0) {
+      mockProjects = projects;
+      // 从项目中提取任务
+      mockTasks = projects.flatMap(project => project.tasks || []);
+      console.log('Excel数据加载成功');
+    } else {
+      throw new Error('没有找到Excel数据');
+    }
+  } catch (error) {
+    console.error('Excel数据读取失败，使用备用数据:', error);
+    // 备用项目数据
+    mockProjects = [
+    {
+      id: 1,
+      name: '备用项目',
+      description: 'Excel数据读取失败时的备用项目',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      totalCost: 0,
+      totalDays: 1,
+      color: '#007aff'
+    }
+  ];
+  }
+
+  // 如果Excel读取失败，使用备用任务数据
+   if (mockTasks.length === 0) {
+     console.warn('Excel任务数据读取失败，使用备用数据');
+     mockTasks = [
   {
     id: 1,
     序号: 1,
@@ -464,7 +468,9 @@ const mockTasks: TaskItem[] = [
     直接依赖工种: ['装修工'],
     projectId: 1
   }
-];
+  ];
+   }
+};
 
 // 聊天模拟数据
 const mockChatResponses = {
@@ -619,6 +625,9 @@ export const taskAPI = {
     }
   }
 };
+
+// 初始化Excel数据
+loadExcelData();
 
 // 聊天API函数
 export const chatAPI = {

@@ -1,9 +1,7 @@
 # TODO:
 
-- [x] install-echarts: 使用pnpm安装echarts和echarts-for-react依赖包 (priority: High)
-- [x] modify-layout: 修改Output.css中图表布局为上下排列（垂直布局） (priority: High)
-- [x] import-echarts: 在Output.tsx中引入ECharts并创建图表组件 (priority: High)
-- [x] replace-svg: 用ECharts图表替换现有的SVG静态图表 (priority: High)
-- [x] fund-calculation: 实现基于任务数据的资金投入趋势动态计算逻辑 (priority: Medium)
-- [x] material-calculation: 实现基于任务数据的物料消耗趋势动态计算逻辑 (priority: Medium)
-- [x] test-charts: 测试图表交互性和响应式设计 (priority: Low)
+- [x] check-excel-structure: 查看data/output.xlsx文件的内容结构，了解Excel表格的列名和数据格式 (priority: High)
+- [x] install-xlsx: 安装xlsx库用于解析Excel文件 (priority: High)
+- [x] create-excel-reader: 创建Excel文件读取函数，解析项目和任务数据 (priority: High)
+- [x] modify-api-service: 修改src/services/api.ts，将硬编码mockdata替换为Excel数据读取 (priority: High)
+- [x] test-excel-integration: 测试Excel数据读取功能，确保API接口正常工作 (priority: Medium)
