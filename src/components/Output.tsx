@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { taskAPI, type TaskItem } from '../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { taskAPI, type TaskItem, type Project } from '../services/api';
 import './Output.css';
 
-const Output: React.FC = () => {
+interface OutputProps {
+  currentProject: Project | null;
+}
+
+const Output: React.FC<OutputProps> = ({ currentProject }) => {
   const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
-  const [startDate, setStartDate] = useState('2025-07-01');
-  const [endDate, setEndDate] = useState('2025-09-10');
+  const [, setStartDate] = useState('2025-07-01');
+  const [, setEndDate] = useState('2025-09-10');
   const [activeTab, setActiveTab] = useState('甘特图模式');
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,11 +46,21 @@ const Output: React.FC = () => {
   };
 
   // 获取任务数据
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const tasksData = await taskAPI.getTasks();
+      
+      let tasksData: TaskItem[];
+      if (currentProject) {
+        // 根据项目ID获取任务
+        tasksData = await taskAPI.getTasks();
+        tasksData = tasksData.filter(task => task.projectId === currentProject.id);
+      } else {
+        // 获取所有任务
+        tasksData = await taskAPI.getTasks();
+      }
+      
       setTasks(tasksData);
       
       // 自动设置天数范围
@@ -58,14 +72,21 @@ const Output: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentProject]);
 
   // 组件挂载时获取数据
   useEffect(() => {
     if (viewMode === 'output') {
       fetchTasks();
     }
-  }, [viewMode]);
+  }, [viewMode, fetchTasks]);
+
+  // 监听项目变化，重新获取任务数据
+  useEffect(() => {
+    if (viewMode === 'output' && currentProject) {
+      fetchTasks();
+    }
+  }, [currentProject, viewMode, fetchTasks]);
 
   // 处理文档文件上传
   const handleDocumentUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

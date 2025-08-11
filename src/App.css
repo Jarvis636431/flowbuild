@@ -1,14 +1,147 @@
+/* 主应用容器 */
 .app-container {
   display: flex;
   height: 100vh;
+  background: #1a1a1a;
+  overflow: hidden;
 }
 
+/* 主内容区域 */
+.main-content {
+  display: flex;
+  flex: 1;
+  min-width: 0; /* 防止flex子元素溢出 */
+}
+
+/* 聊天面板 */
 .chat-panel {
-  width: 25%;
+  width: 30%;
+  min-width: 300px;
+  max-width: 400px;
   flex-shrink: 0;
+  border-right: 1px solid #333;
 }
 
+/* 输出面板 */
 .output-panel {
-  width: 75%;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 侧边栏折叠状态下的布局调整 */
+.app-container.sidebar-collapsed .chat-panel {
+  width: 25%;
+}
+
+.app-container.sidebar-collapsed .output-panel {
+  flex: 1;
+}
+
+/* 加载状态 */
+.app-container.loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-spinner {
+  color: #999;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .chat-panel {
+    width: 35%;
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .chat-panel {
+    width: 100%;
+    height: 40%;
+    min-width: unset;
+    max-width: unset;
+    border-right: none;
+    border-bottom: 1px solid #333;
+  }
+  
+  .output-panel {
+    width: 100%;
+    height: 60%;
+    flex: 1;
+  }
+  
+  /* 移动端侧边栏覆盖层 */
+  .app-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .app-container:not(.sidebar-collapsed)::before {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-panel {
+    height: 35%;
+  }
+  
+  .output-panel {
+    height: 65%;
+  }
+}
+
+/* 平滑过渡动画 */
+.main-content {
+  transition: all 0.3s ease;
+}
+
+.chat-panel,
+.output-panel {
+  transition: all 0.3s ease;
+}
+
+/* 确保内容不会溢出 */
+.chat-panel,
+.output-panel {
+  overflow: hidden;
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    background: #1a1a1a;
+  }
+  
+  .chat-panel {
+    border-right-color: #333;
+  }
+  
+  @media (max-width: 768px) {
+    .chat-panel {
+      border-bottom-color: #333;
+    }
+  }
 }
