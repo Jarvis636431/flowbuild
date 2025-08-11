@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { taskAPI, type TaskItem, type Project } from "../services/api";
+import ReactECharts from "echarts-for-react";
 import "./Output.css";
 import TaskDetailModal from "./shared/TaskDetailModal";
 
@@ -48,7 +49,251 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     return maxDay - minDay + 1;
   };
 
-  // 获取任务数据
+  // 计算资金投入趋势数据
+   const calculateFundingTrend = (tasks: TaskItem[]) => {
+     const totalDays = getTotalDays();
+     const dailyFunding: number[] = new Array(totalDays).fill(0);
+     
+     tasks.forEach(task => {
+       const startDay = task.startDay - 1; // 转为0索引
+       const duration = task.endDay - task.startDay + 1;
+       const cost = task.cost || 0;
+       const dailyCost = cost / duration;
+       
+       for (let i = 0; i < duration && (startDay + i) < totalDays; i++) {
+         dailyFunding[startDay + i] += dailyCost;
+       }
+     });
+     
+     // 计算累积资金投入
+     const cumulativeFunding: number[] = [];
+     let total = 0;
+     for (let i = 0; i < totalDays; i++) {
+       total += dailyFunding[i];
+       cumulativeFunding.push(total);
+     }
+     
+     return cumulativeFunding;
+   };
+
+  // 计算物料消耗趋势数据
+   const calculateMaterialTrend = (tasks: TaskItem[]) => {
+     const totalDays = getTotalDays();
+     const dailyMaterial: number[] = new Array(totalDays).fill(0);
+     
+     tasks.forEach(task => {
+       const startDay = task.startDay - 1; // 转为0索引
+       const duration = task.endDay - task.startDay + 1;
+       const workload = task.工程量 || 0;
+       const dailyMaterialAmount = workload / duration;
+       
+       for (let i = 0; i < duration && (startDay + i) < totalDays; i++) {
+         dailyMaterial[startDay + i] += dailyMaterialAmount;
+       }
+     });
+     
+     // 计算累积物料消耗
+     const cumulativeMaterial: number[] = [];
+     let total = 0;
+     for (let i = 0; i < totalDays; i++) {
+       total += dailyMaterial[i];
+       cumulativeMaterial.push(total);
+     }
+     
+     return cumulativeMaterial;
+   };
+
+  // 生成资金投入趋势图表配置
+  const getFundingChartOption = () => {
+    const fundingData = calculateFundingTrend(tasks);
+    const totalDays = getTotalDays();
+    const xAxisData = Array.from({ length: totalDays }, (_, i) => `第${i + 1}天`);
+    
+    return {
+      title: {
+        text: '资金投入趋势',
+        left: 'center',
+        textStyle: {
+          color: '#fff',
+          fontSize: 16
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        formatter: (params: Array<{name: string, value: number}>) => {
+          const data = params[0];
+          return `${data.name}<br/>累积投入: ${data.value.toFixed(2)}万元`;
+        }
+      },
+      grid: {
+        left: '10%',
+        right: '10%',
+        bottom: '15%',
+        top: '20%'
+      },
+      xAxis: {
+        type: 'category',
+        data: xAxisData,
+        axisLabel: {
+          color: '#888',
+          interval: Math.floor(totalDays / 5) || 1
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#333'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '资金(万元)',
+        nameTextStyle: {
+          color: '#888'
+        },
+        axisLabel: {
+          color: '#888',
+          formatter: '{value}万'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#333'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#333',
+            opacity: 0.3
+          }
+        }
+      },
+      series: [{
+        name: '累积资金投入',
+        type: 'line',
+        data: fundingData,
+        smooth: true,
+        lineStyle: {
+          color: '#4CAF50',
+          width: 2
+        },
+        itemStyle: {
+          color: '#4CAF50'
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [{
+              offset: 0,
+              color: 'rgba(76, 175, 80, 0.3)'
+            }, {
+              offset: 1,
+              color: 'rgba(76, 175, 80, 0.1)'
+            }]
+          }
+        }
+      }]
+    };
+  };
+
+  // 生成物料消耗趋势图表配置
+  const getMaterialChartOption = () => {
+    const materialData = calculateMaterialTrend(tasks);
+    const totalDays = getTotalDays();
+    const xAxisData = Array.from({ length: totalDays }, (_, i) => `第${i + 1}天`);
+    
+    return {
+      title: {
+        text: '物料消耗趋势',
+        left: 'center',
+        textStyle: {
+          color: '#fff',
+          fontSize: 16
+        }
+      },
+      tooltip: {
+         trigger: 'axis',
+         formatter: (params: Array<{name: string, value: number}>) => {
+           const data = params[0];
+           return `${data.name}<br/>累积消耗: ${data.value.toFixed(2)}万立方米`;
+         }
+       },
+      grid: {
+        left: '10%',
+        right: '10%',
+        bottom: '15%',
+        top: '20%'
+      },
+      xAxis: {
+        type: 'category',
+        data: xAxisData,
+        axisLabel: {
+          color: '#888',
+          interval: Math.floor(totalDays / 5) || 1
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#333'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '物料(吨)',
+        nameTextStyle: {
+          color: '#888'
+        },
+        axisLabel: {
+          color: '#888',
+          formatter: '{value}吨'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#333'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#333',
+            opacity: 0.3
+          }
+        }
+      },
+      series: [{
+        name: '累积物料消耗',
+        type: 'line',
+        data: materialData,
+        smooth: true,
+        lineStyle: {
+          color: '#FF9800',
+          width: 2
+        },
+        itemStyle: {
+          color: '#FF9800'
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [{
+              offset: 0,
+              color: 'rgba(255, 152, 0, 0.3)'
+            }, {
+              offset: 1,
+              color: 'rgba(255, 152, 0, 0.1)'
+            }]
+          }
+        }
+      }]
+    };
+  };
+
+    // 获取任务数据
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
@@ -627,144 +872,22 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             <div className="material-mode">
               <div className="charts-container">
                 <div className="chart-section">
-                  <h3 className="chart-title">资金投入趋势</h3>
-                  <div className="line-chart">
-                    <svg width="100%" height="200" viewBox="0 0 400 200">
-                      {/* 网格线 */}
-                      <defs>
-                        <pattern
-                          id="grid"
-                          width="40"
-                          height="20"
-                          patternUnits="userSpaceOnUse"
-                        >
-                          <path
-                            d="M 40 0 L 0 0 0 20"
-                            fill="none"
-                            stroke="#333"
-                            strokeWidth="0.5"
-                            opacity="0.3"
-                          />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#grid)" />
-
-                      {/* Y轴标签 */}
-                      <text x="15" y="25" fill="#888" fontSize="12">
-                        100万
-                      </text>
-                      <text x="15" y="65" fill="#888" fontSize="12">
-                        50万
-                      </text>
-                      <text x="15" y="105" fill="#888" fontSize="12">
-                        25万
-                      </text>
-                      <text x="15" y="145" fill="#888" fontSize="12">
-                        10万
-                      </text>
-                      <text x="15" y="185" fill="#888" fontSize="12">
-                        0
-                      </text>
-
-                      {/* X轴标签 */}
-                      <text x="50" y="195" fill="#888" fontSize="10">
-                        第1天
-                      </text>
-                      <text x="120" y="195" fill="#888" fontSize="10">
-                        第5天
-                      </text>
-                      <text x="190" y="195" fill="#888" fontSize="10">
-                        第10天
-                      </text>
-                      <text x="260" y="195" fill="#888" fontSize="10">
-                        第15天
-                      </text>
-                      <text x="330" y="195" fill="#888" fontSize="10">
-                        第20天
-                      </text>
-
-                      {/* 折线图 */}
-                      <polyline
-                        fill="none"
-                        stroke="#4CAF50"
-                        strokeWidth="2"
-                        points="50,160 80,140 120,120 160,100 200,80 240,70 280,60 320,50 360,40"
-                      />
-
-                      {/* 数据点 */}
-                      <circle cx="50" cy="160" r="3" fill="#4CAF50" />
-                      <circle cx="80" cy="140" r="3" fill="#4CAF50" />
-                      <circle cx="120" cy="120" r="3" fill="#4CAF50" />
-                      <circle cx="160" cy="100" r="3" fill="#4CAF50" />
-                      <circle cx="200" cy="80" r="3" fill="#4CAF50" />
-                      <circle cx="240" cy="70" r="3" fill="#4CAF50" />
-                      <circle cx="280" cy="60" r="3" fill="#4CAF50" />
-                      <circle cx="320" cy="50" r="3" fill="#4CAF50" />
-                      <circle cx="360" cy="40" r="3" fill="#4CAF50" />
-                    </svg>
+                  <div className="echarts-container">
+                    <ReactECharts
+                      option={getFundingChartOption()}
+                      style={{ height: '300px', width: '100%' }}
+                      theme="dark"
+                    />
                   </div>
                 </div>
 
                 <div className="chart-section">
-                  <h3 className="chart-title">物料消耗趋势</h3>
-                  <div className="line-chart">
-                    <svg width="100%" height="200" viewBox="0 0 400 200">
-                      {/* 网格线 */}
-                      <rect width="100%" height="100%" fill="url(#grid)" />
-
-                      {/* Y轴标签 */}
-                      <text x="15" y="25" fill="#888" fontSize="12">
-                        1000吨
-                      </text>
-                      <text x="15" y="65" fill="#888" fontSize="12">
-                        750吨
-                      </text>
-                      <text x="15" y="105" fill="#888" fontSize="12">
-                        500吨
-                      </text>
-                      <text x="15" y="145" fill="#888" fontSize="12">
-                        250吨
-                      </text>
-                      <text x="15" y="185" fill="#888" fontSize="12">
-                        0吨
-                      </text>
-
-                      {/* X轴标签 */}
-                      <text x="50" y="195" fill="#888" fontSize="10">
-                        第1天
-                      </text>
-                      <text x="120" y="195" fill="#888" fontSize="10">
-                        第5天
-                      </text>
-                      <text x="190" y="195" fill="#888" fontSize="10">
-                        第10天
-                      </text>
-                      <text x="260" y="195" fill="#888" fontSize="10">
-                        第15天
-                      </text>
-                      <text x="330" y="195" fill="#888" fontSize="10">
-                        第20天
-                      </text>
-
-                      {/* 折线图 */}
-                      <polyline
-                        fill="none"
-                        stroke="#FF9800"
-                        strokeWidth="2"
-                        points="50,170 80,150 120,130 160,110 200,95 240,85 280,75 320,65 360,55"
-                      />
-
-                      {/* 数据点 */}
-                      <circle cx="50" cy="170" r="3" fill="#FF9800" />
-                      <circle cx="80" cy="150" r="3" fill="#FF9800" />
-                      <circle cx="120" cy="130" r="3" fill="#FF9800" />
-                      <circle cx="160" cy="110" r="3" fill="#FF9800" />
-                      <circle cx="200" cy="95" r="3" fill="#FF9800" />
-                      <circle cx="240" cy="85" r="3" fill="#FF9800" />
-                      <circle cx="280" cy="75" r="3" fill="#FF9800" />
-                      <circle cx="320" cy="65" r="3" fill="#FF9800" />
-                      <circle cx="360" cy="55" r="3" fill="#FF9800" />
-                    </svg>
+                  <div className="echarts-container">
+                    <ReactECharts
+                      option={getMaterialChartOption()}
+                      style={{ height: '300px', width: '100%' }}
+                      theme="dark"
+                    />
                   </div>
                 </div>
               </div>
