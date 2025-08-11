@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import { chatAPI, type ChatMessage, type ChatRequest } from '../services/api';
+import { chatAPI, type ChatMessage, type ChatRequest, type Project } from '../services/api';
 
 // 使用API中定义的接口
 type Message = ChatMessage;
 
-const Chat: React.FC = () => {
+interface ChatProps {
+  currentProject: Project | null;
+}
+
+const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -102,6 +106,22 @@ const Chat: React.FC = () => {
 
   return (
     <div className="chat-panel">
+      {currentProject && (
+        <div className="project-header">
+          <div className="project-info">
+            <div className="project-name">{currentProject.name}</div>
+            <div className="project-status">
+              <span className={`status-indicator ${currentProject.status}`}></span>
+              {currentProject.status === 'active' ? '进行中' : 
+               currentProject.status === 'paused' ? '暂停' : '已完成'}
+            </div>
+          </div>
+          <div className="project-stats">
+            <span className="stat-item">💰 {(currentProject.totalCost / 10000).toFixed(1)}万</span>
+            <span className="stat-item">📅 {currentProject.totalDays}天</span>
+          </div>
+        </div>
+      )}
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>

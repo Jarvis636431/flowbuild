@@ -1,4 +1,16 @@
 // 定义接口类型
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  status: 'active' | 'completed' | 'paused';
+  createdAt: Date;
+  updatedAt: Date;
+  totalCost: number;
+  totalDays: number;
+  color: string; // 项目主题色
+}
+
 export interface TaskItem {
   id: number;
   name: string;
@@ -9,6 +21,7 @@ export interface TaskItem {
   personnel: string;
   notes: string;
   details: string;
+  projectId: number; // 关联的项目ID
 }
 
 export interface ChatMessage {
@@ -28,7 +41,44 @@ export interface ChatResponse {
   timestamp: Date;
 }
 
-// 模拟数据
+// 模拟项目数据
+const mockProjects: Project[] = [
+  {
+    id: 1,
+    name: '住宅楼建设项目',
+    description: '某小区住宅楼建设工程，包含地基、主体结构、装修等全流程施工',
+    status: 'active',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-15'),
+    totalCost: 2500000,
+    totalDays: 70,
+    color: '#007aff'
+  },
+  {
+    id: 2,
+    name: '办公楼改造项目',
+    description: '老旧办公楼现代化改造，包含外立面、内部装修、设备更新',
+    status: 'paused',
+    createdAt: new Date('2023-12-01'),
+    updatedAt: new Date('2024-01-10'),
+    totalCost: 1800000,
+    totalDays: 45,
+    color: '#34c759'
+  },
+  {
+    id: 3,
+    name: '商业综合体项目',
+    description: '大型商业综合体建设，包含购物中心、写字楼、酒店等',
+    status: 'completed',
+    createdAt: new Date('2023-06-01'),
+    updatedAt: new Date('2023-12-31'),
+    totalCost: 8500000,
+    totalDays: 180,
+    color: '#ff9500'
+  }
+];
+
+// 模拟任务数据
 const mockTasks: TaskItem[] = [
   {
     id: 1,
@@ -39,7 +89,8 @@ const mockTasks: TaskItem[] = [
     cost: 22400,
     personnel: '张三',
     notes: '铝模板',
-    details: '地面支撑工程采用铝合金模板系统，包括底板支撑、侧模安装等工序。施工面积约200平方米，使用铝模板可重复利用，提高施工效率。'
+    details: '地面支撑工程采用铝合金模板系统，包括底板支撑、侧模安装等工序。施工面积约200平方米，使用铝模板可重复利用，提高施工效率。',
+    projectId: 1
   },
   {
     id: 2,
@@ -50,7 +101,8 @@ const mockTasks: TaskItem[] = [
     cost: 64000,
     personnel: '李四',
     notes: '图片',
-    details: '地面混凝土浇筑采用C30商品混凝土，浇筑厚度150mm。施工过程中需要控制混凝土坍落度，确保浇筑质量。浇筑完成后需要及时养护。'
+    details: '地面混凝土浇筑采用C30商品混凝土，浇筑厚度150mm。施工过程中需要控制混凝土坍落度，确保浇筑质量。浇筑完成后需要及时养护。',
+    projectId: 1
   },
   {
     id: 3,
@@ -61,7 +113,8 @@ const mockTasks: TaskItem[] = [
     cost: 18000,
     personnel: '张三',
     notes: '无',
-    details: '混凝土达到拆模强度后进行拆模作业。拆模时需要小心操作，避免损坏混凝土表面。拆下的模板需要清理并妥善保管，以备下次使用。'
+    details: '混凝土达到拆模强度后进行拆模作业。拆模时需要小心操作，避免损坏混凝土表面。拆下的模板需要清理并妥善保管，以备下次使用。',
+    projectId: 1
   },
   {
     id: 4,
@@ -72,7 +125,8 @@ const mockTasks: TaskItem[] = [
     cost: 18000,
     personnel: '王五',
     notes: '铝模板',
-    details: '钢筋混凝土柱支撑采用铝合金模板系统，确保柱子截面尺寸准确。支撑系统需要承受混凝土浇筑时的侧压力，施工时需要严格按照设计要求进行。'
+    details: '钢筋混凝土柱支撑采用铝合金模板系统，确保柱子截面尺寸准确。支撑系统需要承受混凝土浇筑时的侧压力，施工时需要严格按照设计要求进行。',
+    projectId: 1
   },
   {
     id: 5,
@@ -83,7 +137,8 @@ const mockTasks: TaskItem[] = [
     cost: 96600,
     personnel: '唐六',
     notes: 'C30，4%',
-    details: '柱子混凝土浇筑采用C30强度等级混凝土，钢筋保护层厚度25mm。浇筑过程中需要分层浇筑，每层厚度不超过500mm，并使用振动棒充分振捣。'
+    details: '柱子混凝土浇筑采用C30强度等级混凝土，钢筋保护层厚度25mm。浇筑过程中需要分层浇筑，每层厚度不超过500mm，并使用振动棒充分振捣。',
+    projectId: 1
   },
   {
     id: 6,
@@ -94,7 +149,8 @@ const mockTasks: TaskItem[] = [
     cost: 12000,
     personnel: '张三',
     notes: '无',
-    details: '柱子拆模需要在混凝土强度达到设计强度的70%以上时进行。拆模时要小心操作，避免损坏柱子棱角。拆模后需要对柱子表面进行检查和修补。'
+    details: '柱子拆模需要在混凝土强度达到设计强度的70%以上时进行。拆模时要小心操作，避免损坏柱子棱角。拆模后需要对柱子表面进行检查和修补。',
+    projectId: 1
   },
   {
     id: 7,
@@ -105,7 +161,8 @@ const mockTasks: TaskItem[] = [
     cost: 14400,
     personnel: '王五',
     notes: '铝模板',
-    details: '承重墙支撑系统采用铝合金大模板，墙厚200mm。支撑系统包括内外侧模板、拉杆、支撑架等，确保墙体垂直度和平整度符合要求。'
+    details: '承重墙支撑系统采用铝合金大模板，墙厚200mm。支撑系统包括内外侧模板、拉杆、支撑架等，确保墙体垂直度和平整度符合要求。',
+    projectId: 1
   },
   {
     id: 8,
@@ -116,7 +173,8 @@ const mockTasks: TaskItem[] = [
     cost: 124500,
     personnel: '唐六',
     notes: 'C30，4%',
-    details: '承重墙混凝土浇筑采用C30混凝土，墙厚200mm。浇筑时需要控制浇筑速度，避免产生蜂窝、麻面等质量缺陷。浇筑完成后需要及时覆盖养护。'
+    details: '承重墙混凝土浇筑采用C30混凝土，墙厚200mm。浇筑时需要控制浇筑速度，避免产生蜂窝、麻面等质量缺陷。浇筑完成后需要及时覆盖养护。',
+    projectId: 1
   },
   {
     id: 9,
@@ -127,7 +185,8 @@ const mockTasks: TaskItem[] = [
     cost: 15000,
     personnel: '王五',
     notes: '无',
-    details: '承重墙拆模需要在混凝土强度达到要求后进行。拆模顺序应先拆非承重侧模板，再拆承重侧模板。拆模后需要检查墙体质量，及时处理表面缺陷。'
+    details: '承重墙拆模需要在混凝土强度达到要求后进行。拆模顺序应先拆非承重侧模板，再拆承重侧模板。拆模后需要检查墙体质量，及时处理表面缺陷。',
+    projectId: 1
   },
   {
     id: 10,
@@ -138,7 +197,8 @@ const mockTasks: TaskItem[] = [
     cost: 85000,
     personnel: '赵七',
     notes: 'HRB400钢筋',
-    details: '楼板钢筋绑扎采用HRB400级钢筋，按设计图纸进行配筋。钢筋间距需要严格控制，保护层厚度15mm。绑扎完成后需要进行隐蔽工程验收。'
+    details: '楼板钢筋绑扎采用HRB400级钢筋，按设计图纸进行配筋。钢筋间距需要严格控制，保护层厚度15mm。绑扎完成后需要进行隐蔽工程验收。',
+    projectId: 1
   },
   {
     id: 11,
@@ -149,7 +209,8 @@ const mockTasks: TaskItem[] = [
     cost: 32000,
     personnel: '张三',
     notes: '木模板',
-    details: '楼板模板采用18mm厚胶合板，支撑系统采用钢管脚手架。模板安装前需要检查支撑系统的稳定性，确保模板平整度符合要求。'
+    details: '楼板模板采用18mm厚胶合板，支撑系统采用钢管脚手架。模板安装前需要检查支撑系统的稳定性，确保模板平整度符合要求。',
+    projectId: 1
   },
   {
     id: 12,
@@ -160,7 +221,8 @@ const mockTasks: TaskItem[] = [
     cost: 128000,
     personnel: '李四',
     notes: 'C30混凝土',
-    details: '楼板混凝土浇筑采用C30商品混凝土，板厚120mm。浇筑时需要控制浇筑顺序，避免冷缝产生。浇筑完成后需要及时进行表面处理和养护。'
+    details: '楼板混凝土浇筑采用C30商品混凝土，板厚120mm。浇筑时需要控制浇筑顺序，避免冷缝产生。浇筑完成后需要及时进行表面处理和养护。',
+    projectId: 1
   },
   {
     id: 13,
@@ -171,29 +233,32 @@ const mockTasks: TaskItem[] = [
     cost: 18000,
     personnel: '张三',
     notes: '养护7天后',
-    details: '楼板拆模需要在混凝土强度达到设计强度的75%以上时进行，通常需要养护7天。拆模时应先拆侧模，再拆底模，避免损坏楼板。'
+    details: '楼板拆模需要在混凝土强度达到设计强度的75%以上时进行，通常需要养护7天。拆模时应先拆侧模，再拆底模，避免损坏楼板。',
+    projectId: 1
   },
   {
     id: 14,
-    name: '外墙砌筑',
+    name: '外立面清洗',
     status: 'active',
-    startDay: 17,
-    endDay: 20,
-    cost: 76000,
+    startDay: 1,
+    endDay: 3,
+    cost: 25000,
     personnel: '孙八',
-    notes: '加气混凝土砌块',
-    details: '外墙砌筑采用加气混凝土砌块，规格为600×200×200mm。砌筑时需要控制砂浆饱满度，水平灰缝厚度10-15mm，竖向灰缝宽度8-12mm。'
+    notes: '高压水枪清洗',
+    details: '办公楼外立面清洗，去除污垢和老化涂层，为后续改造工程做准备。使用高压水枪和专业清洁剂，确保清洗彻底。',
+    projectId: 2
   },
   {
     id: 15,
-    name: '内墙砌筑',
+    name: '外墙保温拆除',
     status: 'active',
-    startDay: 21,
-    endDay: 24,
-    cost: 54000,
+    startDay: 4,
+    endDay: 7,
+    cost: 45000,
     personnel: '孙八',
-    notes: '轻质隔墙板',
-    details: '内墙砌筑采用轻质隔墙板，厚度100mm。安装时需要确保板材垂直度和平整度，板缝处需要用专用胶粘剂填充密实。'
+    notes: '旧保温材料拆除',
+    details: '拆除老旧的外墙保温材料，检查墙体结构状况。拆除过程中注意安全防护，妥善处理废料。',
+    projectId: 2
   },
   {
     id: 16,
@@ -204,7 +269,8 @@ const mockTasks: TaskItem[] = [
     cost: 95000,
     personnel: '周九',
     notes: 'SBS改性沥青防水卷材',
-    details: '屋面防水采用SBS改性沥青防水卷材，厚度4mm。施工前需要清理基层，确保干燥平整。卷材铺设时需要控制搭接宽度，热熔施工确保粘结牢固。'
+    details: '屋面防水采用SBS改性沥青防水卷材，厚度4mm。施工前需要清理基层，确保干燥平整。卷材铺设时需要控制搭接宽度，热熔施工确保粘结牢固。',
+    projectId: 2
   },
   {
     id: 17,
@@ -215,7 +281,8 @@ const mockTasks: TaskItem[] = [
     cost: 112000,
     personnel: '吴十',
     notes: 'EPS外墙保温系统',
-    details: 'EPS外墙保温系统包括保温板、粘结砂浆、抗裂砂浆、耐碱玻纤维网格布等。施工时需要控制保温板拼缝，确保系统整体性和保温效果。'
+    details: 'EPS外墙保温系统包括保温板、粘结砂浆、抗裂砂浆、耐碱玻纤维网格布等。施工时需要控制保温板拼缝，确保系统整体性和保温效果。',
+    projectId: 2
   },
   {
     id: 18,
@@ -226,7 +293,8 @@ const mockTasks: TaskItem[] = [
     cost: 168000,
     personnel: '郑十一',
     notes: '断桥铝合金门窗',
-    details: '门窗采用断桥铝合金材质，具有良好的保温隔热性能。安装时需要控制门窗框的垂直度和水平度，密封胶条安装要到位，确保气密性和水密性。'
+    details: '门窗采用断桥铝合金材质，具有良好的保温隔热性能。安装时需要控制门窗框的垂直度和水平度，密封胶条安装要到位，确保气密性和水密性。',
+    projectId: 2
   },
   {
     id: 19,
@@ -237,7 +305,8 @@ const mockTasks: TaskItem[] = [
     cost: 145000,
     personnel: '王十二',
     notes: 'PVC管线预埋',
-    details: '水电预埋包括给排水管道、电气线路等。采用PVC管材，管径根据设计要求选择。预埋时需要注意管线走向，避免交叉冲突，预留检修口。'
+    details: '水电预埋包括给排水管道、电气线路等。采用PVC管材，管径根据设计要求选择。预埋时需要注意管线走向，避免交叉冲突，预留检修口。',
+    projectId: 2
   },
   {
     id: 20,
@@ -248,7 +317,8 @@ const mockTasks: TaskItem[] = [
     cost: 89000,
     personnel: '李十三',
     notes: '水泥砂浆抹灰',
-    details: '内墙抹灰采用1:3水泥砂浆，分两遍施工。第一遍粗抹找平，第二遍精抹压光。抹灰厚度控制在15-20mm，表面平整度偏差不超过4mm。'
+    details: '内墙抹灰采用1:3水泥砂浆，分两遍施工。第一遍粗抹找平，第二遍精抹压光。抹灰厚度控制在15-20mm，表面平整度偏差不超过4mm。',
+    projectId: 2
   },
   {
     id: 21,
@@ -259,7 +329,8 @@ const mockTasks: TaskItem[] = [
     cost: 67000,
     personnel: '张十四',
     notes: '弹性外墙涂料',
-    details: '外墙涂料采用弹性涂料，具有良好的耐候性和装饰效果。施工前需要处理基层，刮腻子找平。涂料施工分底漆和面漆两遍，确保涂膜厚度均匀。'
+    details: '外墙涂料采用弹性涂料，具有良好的耐候性和装饰效果。施工前需要处理基层，刮腻子找平。涂料施工分底漆和面漆两遍，确保涂膜厚度均匀。',
+    projectId: 2
   },
   {
     id: 22,
@@ -270,7 +341,8 @@ const mockTasks: TaskItem[] = [
     cost: 43000,
     personnel: '赵十五',
     notes: '自流平水泥',
-    details: '地面找平采用自流平水泥，厚度3-5mm。施工前需要清理基层，涂刷界面剂。自流平施工需要控制流动性，确保表面平整度达到要求。'
+    details: '地面找平采用自流平水泥，厚度3-5mm。施工前需要清理基层，涂刷界面剂。自流平施工需要控制流动性，确保表面平整度达到要求。',
+    projectId: 2
   },
   {
     id: 23,
@@ -281,7 +353,8 @@ const mockTasks: TaskItem[] = [
     cost: 235000,
     personnel: '孙十六',
     notes: '精装修标准',
-    details: '室内装修按精装修标准执行，包括地面铺装、墙面装饰、吊顶安装、灯具安装等。材料选用环保产品，施工工艺要求精细，确保装修质量和效果。'
+    details: '室内装修按精装修标准执行，包括地面铺装、墙面装饰、吊顶安装、灯具安装等。材料选用环保产品，施工工艺要求精细，确保装修质量和效果。',
+    projectId: 2
   },
   {
     id: 24,
@@ -292,7 +365,8 @@ const mockTasks: TaskItem[] = [
     cost: 25000,
     personnel: '项目经理',
     notes: '质量验收',
-    details: '竣工验收包括工程质量检查、安全检查、环保检查等。需要准备完整的工程资料，包括施工记录、检测报告、隐蔽工程验收记录等，确保工程符合验收标准。'
+    details: '竣工验收包括工程质量检查、安全检查、环保检查等。需要准备完整的工程资料，包括施工记录、检测报告、隐蔽工程验收记录等，确保工程符合验收标准。',
+    projectId: 1
   }
 ];
 
@@ -506,6 +580,102 @@ export const chatAPI = {
     } catch (error) {
       console.error('获取聊天历史失败:', error);
       throw new Error('获取聊天历史失败');
+    }
+  }
+};
+
+// 项目API函数
+export const projectAPI = {
+  // 获取所有项目
+  getProjects: async (): Promise<Project[]> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      return mockProjects;
+    } catch (error) {
+      console.error('获取项目列表失败:', error);
+      throw new Error('获取项目列表失败');
+    }
+  },
+
+  // 根据ID获取单个项目
+  getProjectById: async (id: number): Promise<Project | null> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const project = mockProjects.find(project => project.id === id);
+      return project || null;
+    } catch (error) {
+      console.error('获取项目详情失败:', error);
+      throw new Error('获取项目详情失败');
+    }
+  },
+
+  // 创建新项目
+  createProject: async (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Promise<Project> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const newProject: Project = {
+        ...project,
+        id: Math.max(...mockProjects.map(p => p.id)) + 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      mockProjects.push(newProject);
+      return newProject;
+    } catch (error) {
+      console.error('创建项目失败:', error);
+      throw new Error('创建项目失败');
+    }
+  },
+
+  // 更新项目
+  updateProject: async (id: number, updates: Partial<Omit<Project, 'id' | 'createdAt'>>): Promise<Project> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const projectIndex = mockProjects.findIndex(project => project.id === id);
+      if (projectIndex === -1) {
+        throw new Error('项目不存在');
+      }
+      mockProjects[projectIndex] = {
+        ...mockProjects[projectIndex],
+        ...updates,
+        updatedAt: new Date()
+      };
+      return mockProjects[projectIndex];
+    } catch (error) {
+      console.error('更新项目失败:', error);
+      throw new Error('更新项目失败');
+    }
+  },
+
+  // 删除项目
+  deleteProject: async (id: number): Promise<void> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const projectIndex = mockProjects.findIndex(project => project.id === id);
+      if (projectIndex === -1) {
+        throw new Error('项目不存在');
+      }
+      // 同时删除该项目下的所有任务
+      for (let i = mockTasks.length - 1; i >= 0; i--) {
+        if (mockTasks[i].projectId === id) {
+          mockTasks.splice(i, 1);
+        }
+      }
+      mockProjects.splice(projectIndex, 1);
+    } catch (error) {
+      console.error('删除项目失败:', error);
+      throw new Error('删除项目失败');
+    }
+  },
+
+  // 根据项目ID获取任务列表
+  getTasksByProjectId: async (projectId: number): Promise<TaskItem[]> => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return mockTasks.filter(task => task.projectId === projectId);
+    } catch (error) {
+      console.error('获取项目任务失败:', error);
+      throw new Error('获取项目任务失败');
     }
   }
 };
