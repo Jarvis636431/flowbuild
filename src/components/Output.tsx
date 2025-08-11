@@ -818,7 +818,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                   <div className="table-cell header-cell">施工人数</div>
                   <div className="table-cell header-cell">工种</div>
                   <div className="table-cell header-cell">价格</div>
-                  <div className="table-cell header-cell">工程量与单位</div>
+                  <div className="table-cell header-cell">工程量</div>
                   <div className="table-cell header-cell">开始时间</div>
                   <div className="table-cell header-cell">结束时间</div>
                   <div className="table-cell header-cell">直接依赖工种</div>
@@ -848,7 +848,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                       <div className="table-cell">{task.施工人数}人</div>
                       <div className="table-cell">{task.工种}</div>
                       <div className="table-cell">
-                        ¥{task.cost.toLocaleString()}
+                        {task.cost.toLocaleString()}
                       </div>
                       <div className="table-cell">
                         {task.工程量}

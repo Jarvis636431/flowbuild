@@ -9,7 +9,6 @@ const COLUMN_MAPPING: Record<string, string> = {
   '施工人数': '施工人数',
   '工种': '工种',
   '价格': 'cost',
-  '人工定额': 'cost',
   '工程量': '工程量',
   '工程量单位': '单位',
   '开始时间': 'startDay',
@@ -87,7 +86,7 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
     
     // 第一行是表头
     const headers = jsonData[0] as string[];
-    const dataRows = jsonData.slice(1) as any[][];
+    const dataRows = jsonData.slice(1) as (string)[][];
     
     // 转换数据为TaskItem格式
     const tasks: TaskItem[] = [];
@@ -163,7 +162,7 @@ export async function readProjectFromExcel(fileName: string): Promise<Project | 
       if (!task.cost) task.cost = 0;
       if (!task.startDay) task.startDay = 1;
       if (!task.endDay) task.endDay = 1;
-      if (!task.施工人数) task.施工人数 = 1;
+      if (!task.施工人数) task.施工人数 = 0;
       if (!task.序号) task.序号 = rowIndex + 1;
       if (!task.是否加班) task.是否加班 = false;
       if (!task.直接依赖工种) task.直接依赖工种 = [];
