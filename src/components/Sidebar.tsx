@@ -75,12 +75,21 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   if (loading) {
     return (
-      <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-header">
+        {isCollapsed ? (
           <button className="toggle-btn" onClick={onToggle}>
-            {isCollapsed ? '▶' : '◀'}
+            ▶
           </button>
-        </div>
+        ) : (
+          <>
+            <span className="header-title">项目列表</span>
+            <button className="toggle-btn" onClick={onToggle}>
+              ◀
+            </button>
+          </>
+        )}
+      </div>
         {!isCollapsed && (
           <div className="sidebar-content">
             <div className="loading">加载中...</div>
@@ -93,9 +102,18 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        <button className="toggle-btn" onClick={onToggle}>
-          {isCollapsed ? '▶' : '◀'}
-        </button>
+        {isCollapsed ? (
+          <button className="toggle-btn" onClick={onToggle}>
+            ▶
+          </button>
+        ) : (
+          <>
+            <span className="header-title">项目列表</span>
+            <button className="toggle-btn" onClick={onToggle}>
+              ◀
+            </button>
+          </>
+        )}
       </div>
       
       <div className="sidebar-content">

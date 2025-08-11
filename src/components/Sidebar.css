@@ -10,7 +10,6 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 100;
-  border-radius: 0 16px 16px 0;
 }
 
 .sidebar.collapsed {
@@ -21,13 +20,22 @@
 /* 侧边栏头部 */
 .sidebar-header {
   padding: 20px 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%);
+  justify-content: space-between;
   backdrop-filter: blur(10px);
   border-radius: 0 16px 0 0;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.header-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
 }
 
 .toggle-btn {
@@ -267,12 +275,12 @@
     z-index: 1000;
     transform: translateX(-100%);
   }
-  
+
   .sidebar:not(.collapsed) {
     transform: translateX(0);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
   }
-  
+
   .sidebar.collapsed {
     transform: translateX(-100%);
   }
@@ -300,17 +308,17 @@
     background: #1a1a1a;
     border-right-color: #333;
   }
-  
+
   .sidebar-header {
     background: #2a2a2a;
     border-bottom-color: #333;
   }
-  
+
   .project-item {
     background: #2a2a2a;
     border-color: #333;
   }
-  
+
   .project-item:hover {
     background: #333;
   }
