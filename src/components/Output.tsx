@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { type Project } from '../services/api';
 import TaskDetailModal from './shared/TaskDetailModal';
-import GanttChart from './shared/GanttChart';
-import ProgressTable from './shared/ProgressTable';
-import MaterialCharts from './shared/MaterialCharts';
-import OperationLog from './shared/OperationLog';
+import GanttChart from './GanttChart';
+import ProgressTable from './ProgressTable';
+import MaterialCharts from './MaterialCharts';
+import OperationLog from './OperationLog';
+import IfcModel from './IfcModel';
 import FileUploadSection from './shared/FileUploadSection';
-import IfcModel from './shared/IfcModel';
 
 import { useTaskManagement } from '../hooks/useTaskManagement';
 import { useFileUpload } from '../hooks/useFileUpload';

@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import type { TaskItem } from '../../services/api';
-import TaskBar from './TaskBar';
+import type { TaskItem } from '../services/api';
 
 interface GanttChartProps {
   tasks: TaskItem[];
@@ -120,13 +119,41 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
           {tasks.map((task) => {
             const position = getTaskPosition(task.startDay, task.endDay);
             return (
-              <TaskBar
+              <div
                 key={task.id}
-                task={task}
-                position={position}
-                timelineDaysLength={timelineDays.length}
-                onClick={onTaskClick}
-              />
+                className="task-row"
+                style={{
+                  minWidth:
+                    timelineDays.length > 14
+                      ? `${200 + 32 + timelineDays.length * 60}px`
+                      : '400px',
+                }}
+              >
+                <div className="task-info">
+                  <span className="status-dot"></span>
+                  <span className="task-name">{task.name}</span>
+                </div>
+                <div
+                  className="task-timeline"
+                  style={{
+                    width:
+                      timelineDays.length > 14
+                        ? `${timelineDays.length * 60}px`
+                        : 'auto',
+                    flex: timelineDays.length > 14 ? 'none' : '1',
+                  }}
+                >
+                  <div
+                    className="task-bar"
+                    style={{
+                      left: position.left,
+                      width: position.width,
+                      backgroundColor: task.isOvertime ? '#ff6b6b' : '#4CAF50',
+                    }}
+                    onClick={(e) => onTaskClick(task, e)}
+                  ></div>
+                </div>
+              </div>
             );
           })}
         </div>
