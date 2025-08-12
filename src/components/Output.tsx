@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { taskAPI, type TaskItem, type Project } from "../services/api";
-import ReactECharts from "echarts-for-react";
-import "./Output.css";
-import TaskDetailModal from "./shared/TaskDetailModal";
+import React, { useState, useEffect, useCallback } from 'react';
+import { taskAPI, type TaskItem, type Project } from '../services/api';
+import ReactECharts from 'echarts-for-react';
+import './Output.css';
+import TaskDetailModal from './shared/TaskDetailModal';
 
 interface OutputProps {
   currentProject: Project | null;
 }
 
 const Output: React.FC<OutputProps> = ({ currentProject }) => {
-  const [viewMode, setViewMode] = useState<"upload" | "output">("upload");
+  const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
 
-  const [activeTab, setActiveTab] = useState("甘特图模式");
+  const [activeTab, setActiveTab] = useState('甘特图模式');
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +24,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
   // 新增状态：文件上传和项目创建
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [cadFile, setCadFile] = useState<File | null>(null);
-  const [projectName, setProjectName] = useState("");
+  const [projectName, setProjectName] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
 
   // 自动计算任务数据的天数范围
@@ -50,151 +50,159 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
   };
 
   // 计算资金投入趋势数据
-   const calculateFundingTrend = (tasks: TaskItem[]) => {
-     const totalDays = getTotalDays();
-     const dailyFunding: number[] = new Array(totalDays).fill(0);
-     
-     tasks.forEach(task => {
-       const startDay = task.startDay - 1; // 转为0索引
-       const duration = task.endDay - task.startDay + 1;
-       const cost = task.cost || 0;
-       const dailyCost = cost / duration;
-       
-       for (let i = 0; i < duration && (startDay + i) < totalDays; i++) {
-         dailyFunding[startDay + i] += dailyCost;
-       }
-     });
-     
-     // 计算累积资金投入
-     const cumulativeFunding: number[] = [];
-     let total = 0;
-     for (let i = 0; i < totalDays; i++) {
-       total += dailyFunding[i];
-       cumulativeFunding.push(total);
-     }
-     
-     return cumulativeFunding;
-   };
+  const calculateFundingTrend = (tasks: TaskItem[]) => {
+    const totalDays = getTotalDays();
+    const dailyFunding: number[] = new Array(totalDays).fill(0);
+
+    tasks.forEach((task) => {
+      const startDay = task.startDay - 1; // 转为0索引
+      const duration = task.endDay - task.startDay + 1;
+      const cost = task.cost || 0;
+      const dailyCost = cost / duration;
+
+      for (let i = 0; i < duration && startDay + i < totalDays; i++) {
+        dailyFunding[startDay + i] += dailyCost;
+      }
+    });
+
+    // 计算累积资金投入
+    const cumulativeFunding: number[] = [];
+    let total = 0;
+    for (let i = 0; i < totalDays; i++) {
+      total += dailyFunding[i];
+      cumulativeFunding.push(total);
+    }
+
+    return cumulativeFunding;
+  };
 
   // 计算物料消耗趋势数据
-   const calculateMaterialTrend = (tasks: TaskItem[]) => {
-     const totalDays = getTotalDays();
-     const dailyMaterial: number[] = new Array(totalDays).fill(0);
-     
-     tasks.forEach(task => {
-       const startDay = task.startDay - 1; // 转为0索引
-       const duration = task.endDay - task.startDay + 1;
-       const workload = task.workload || 0;
-       const dailyMaterialAmount = workload / duration;
-       
-       for (let i = 0; i < duration && (startDay + i) < totalDays; i++) {
-         dailyMaterial[startDay + i] += dailyMaterialAmount;
-       }
-     });
-     
-     // 计算累积物料消耗
-     const cumulativeMaterial: number[] = [];
-     let total = 0;
-     for (let i = 0; i < totalDays; i++) {
-       total += dailyMaterial[i];
-       cumulativeMaterial.push(total);
-     }
-     
-     return cumulativeMaterial;
-   };
+  const calculateMaterialTrend = (tasks: TaskItem[]) => {
+    const totalDays = getTotalDays();
+    const dailyMaterial: number[] = new Array(totalDays).fill(0);
+
+    tasks.forEach((task) => {
+      const startDay = task.startDay - 1; // 转为0索引
+      const duration = task.endDay - task.startDay + 1;
+      const workload = task.workload || 0;
+      const dailyMaterialAmount = workload / duration;
+
+      for (let i = 0; i < duration && startDay + i < totalDays; i++) {
+        dailyMaterial[startDay + i] += dailyMaterialAmount;
+      }
+    });
+
+    // 计算累积物料消耗
+    const cumulativeMaterial: number[] = [];
+    let total = 0;
+    for (let i = 0; i < totalDays; i++) {
+      total += dailyMaterial[i];
+      cumulativeMaterial.push(total);
+    }
+
+    return cumulativeMaterial;
+  };
 
   // 生成资金投入趋势图表配置
   const getFundingChartOption = () => {
     const fundingData = calculateFundingTrend(tasks);
     const totalDays = getTotalDays();
-    const xAxisData = Array.from({ length: totalDays }, (_, i) => `第${i + 1}天`);
-    
+    const xAxisData = Array.from(
+      { length: totalDays },
+      (_, i) => `第${i + 1}天`
+    );
+
     return {
       title: {
         text: '资金投入趋势',
         left: 'center',
         textStyle: {
           color: '#fff',
-          fontSize: 16
-        }
+          fontSize: 16,
+        },
       },
       tooltip: {
         trigger: 'axis',
-        formatter: (params: Array<{name: string, value: number}>) => {
+        formatter: (params: Array<{ name: string; value: number }>) => {
           const data = params[0];
           return `${data.name}<br/>累积投入: ${data.value.toFixed(2)}万元`;
-        }
+        },
       },
       grid: {
         left: '10%',
         right: '10%',
         bottom: '15%',
-        top: '20%'
+        top: '20%',
       },
       xAxis: {
         type: 'category',
         data: xAxisData,
         axisLabel: {
           color: '#888',
-          interval: Math.floor(totalDays / 5) || 1
+          interval: Math.floor(totalDays / 5) || 1,
         },
         axisLine: {
           lineStyle: {
-            color: '#333'
-          }
-        }
+            color: '#333',
+          },
+        },
       },
       yAxis: {
         type: 'value',
         name: '资金(万元)',
         nameTextStyle: {
-          color: '#888'
+          color: '#888',
         },
         axisLabel: {
           color: '#888',
-          formatter: '{value}万'
+          formatter: '{value}万',
         },
         axisLine: {
           lineStyle: {
-            color: '#333'
-          }
+            color: '#333',
+          },
         },
         splitLine: {
           lineStyle: {
             color: '#333',
-            opacity: 0.3
-          }
-        }
+            opacity: 0.3,
+          },
+        },
       },
-      series: [{
-        name: '累积资金投入',
-        type: 'line',
-        data: fundingData,
-        smooth: true,
-        lineStyle: {
-          color: '#4CAF50',
-          width: 2
+      series: [
+        {
+          name: '累积资金投入',
+          type: 'line',
+          data: fundingData,
+          smooth: true,
+          lineStyle: {
+            color: '#4CAF50',
+            width: 2,
+          },
+          itemStyle: {
+            color: '#4CAF50',
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: 'rgba(76, 175, 80, 0.3)',
+                },
+                {
+                  offset: 1,
+                  color: 'rgba(76, 175, 80, 0.1)',
+                },
+              ],
+            },
+          },
         },
-        itemStyle: {
-          color: '#4CAF50'
-        },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [{
-              offset: 0,
-              color: 'rgba(76, 175, 80, 0.3)'
-            }, {
-              offset: 1,
-              color: 'rgba(76, 175, 80, 0.1)'
-            }]
-          }
-        }
-      }]
+      ],
     };
   };
 
@@ -202,98 +210,106 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
   const getMaterialChartOption = () => {
     const materialData = calculateMaterialTrend(tasks);
     const totalDays = getTotalDays();
-    const xAxisData = Array.from({ length: totalDays }, (_, i) => `第${i + 1}天`);
-    
+    const xAxisData = Array.from(
+      { length: totalDays },
+      (_, i) => `第${i + 1}天`
+    );
+
     return {
       title: {
         text: '物料消耗趋势',
         left: 'center',
         textStyle: {
           color: '#fff',
-          fontSize: 16
-        }
+          fontSize: 16,
+        },
       },
       tooltip: {
-         trigger: 'axis',
-         formatter: (params: Array<{name: string, value: number}>) => {
-           const data = params[0];
-           return `${data.name}<br/>累积消耗: ${data.value.toFixed(2)}万立方米`;
-         }
-       },
+        trigger: 'axis',
+        formatter: (params: Array<{ name: string; value: number }>) => {
+          const data = params[0];
+          return `${data.name}<br/>累积消耗: ${data.value.toFixed(2)}万立方米`;
+        },
+      },
       grid: {
         left: '10%',
         right: '10%',
         bottom: '15%',
-        top: '20%'
+        top: '20%',
       },
       xAxis: {
         type: 'category',
         data: xAxisData,
         axisLabel: {
           color: '#888',
-          interval: Math.floor(totalDays / 5) || 1
+          interval: Math.floor(totalDays / 5) || 1,
         },
         axisLine: {
           lineStyle: {
-            color: '#333'
-          }
-        }
+            color: '#333',
+          },
+        },
       },
       yAxis: {
         type: 'value',
         name: '物料(吨)',
         nameTextStyle: {
-          color: '#888'
+          color: '#888',
         },
         axisLabel: {
           color: '#888',
-          formatter: '{value}吨'
+          formatter: '{value}吨',
         },
         axisLine: {
           lineStyle: {
-            color: '#333'
-          }
+            color: '#333',
+          },
         },
         splitLine: {
           lineStyle: {
             color: '#333',
-            opacity: 0.3
-          }
-        }
+            opacity: 0.3,
+          },
+        },
       },
-      series: [{
-        name: '累积物料消耗',
-        type: 'line',
-        data: materialData,
-        smooth: true,
-        lineStyle: {
-          color: '#FF9800',
-          width: 2
+      series: [
+        {
+          name: '累积物料消耗',
+          type: 'line',
+          data: materialData,
+          smooth: true,
+          lineStyle: {
+            color: '#FF9800',
+            width: 2,
+          },
+          itemStyle: {
+            color: '#FF9800',
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: 'rgba(255, 152, 0, 0.3)',
+                },
+                {
+                  offset: 1,
+                  color: 'rgba(255, 152, 0, 0.1)',
+                },
+              ],
+            },
+          },
         },
-        itemStyle: {
-          color: '#FF9800'
-        },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [{
-              offset: 0,
-              color: 'rgba(255, 152, 0, 0.3)'
-            }, {
-              offset: 1,
-              color: 'rgba(255, 152, 0, 0.1)'
-            }]
-          }
-        }
-      }]
+      ],
     };
   };
 
-    // 获取任务数据
+  // 获取任务数据
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
@@ -313,7 +329,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
 
       setTasks(tasksData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "获取数据失败");
+      setError(err instanceof Error ? err.message : '获取数据失败');
     } finally {
       setLoading(false);
     }
@@ -321,14 +337,14 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
 
   // 组件挂载时获取数据
   useEffect(() => {
-    if (viewMode === "output") {
+    if (viewMode === 'output') {
       fetchTasks();
     }
   }, [viewMode, fetchTasks]);
 
   // 监听项目变化，重新获取任务数据
   useEffect(() => {
-    if (viewMode === "output" && currentProject) {
+    if (viewMode === 'output' && currentProject) {
       fetchTasks();
     }
   }, [currentProject, viewMode, fetchTasks]);
@@ -338,7 +354,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       setDocumentFile(files[0]);
-      console.log("上传的文档文件:", files[0]);
+      console.log('上传的文档文件:', files[0]);
     }
   };
 
@@ -347,7 +363,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       setCadFile(files[0]);
-      console.log("上传的CAD文件:", files[0]);
+      console.log('上传的CAD文件:', files[0]);
     }
   };
 
@@ -357,7 +373,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     const files = event.dataTransfer.files;
     if (files && files.length > 0) {
       setDocumentFile(files[0]);
-      console.log("拖拽的文档文件:", files[0]);
+      console.log('拖拽的文档文件:', files[0]);
     }
   };
 
@@ -367,26 +383,26 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     const files = event.dataTransfer.files;
     if (files && files.length > 0) {
       setCadFile(files[0]);
-      console.log("拖拽的CAD文件:", files[0]);
+      console.log('拖拽的CAD文件:', files[0]);
     }
   };
 
   // 创建项目
   const handleCreateProject = async () => {
     if (!projectName.trim()) {
-      alert("请输入项目名称");
+      alert('请输入项目名称');
       return;
     }
 
     if (!documentFile && !cadFile) {
-      alert("请至少上传一个文件");
+      alert('请至少上传一个文件');
       return;
     }
 
     setIsCreatingProject(true);
     try {
       // 这里可以调用API创建项目
-      console.log("创建项目:", {
+      console.log('创建项目:', {
         name: projectName,
         documentFile,
         cadFile,
@@ -396,17 +412,17 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 创建成功后切换到输出模式
-      setViewMode("output");
+      setViewMode('output');
     } catch (error) {
-      console.error("创建项目失败:", error);
-      alert("创建项目失败，请重试");
+      console.error('创建项目失败:', error);
+      alert('创建项目失败，请重试');
     } finally {
       setIsCreatingProject(false);
     }
   };
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === "upload" ? "output" : "upload");
+    setViewMode(viewMode === 'upload' ? 'output' : 'upload');
   };
 
   // 处理任务行点击事件
@@ -414,7 +430,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     event.preventDefault();
     event.stopPropagation();
 
-    console.log("Task clicked:", task.name); // 调试信息
+    console.log('Task clicked:', task.name); // 调试信息
 
     const rect = event.currentTarget.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
@@ -432,7 +448,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     setSelectedTask(task);
     setPopupPosition({ x, y });
 
-    console.log("Popup position set:", { x, y }, "Viewport:", {
+    console.log('Popup position set:', { x, y }, 'Viewport:', {
       viewportWidth,
       viewportHeight,
     }); // 调试信息
@@ -498,7 +514,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
     return days;
   };
 
-  if (viewMode === "upload") {
+  if (viewMode === 'upload') {
     return (
       <div className="output-panel">
         <div className="top-header">
@@ -519,11 +535,11 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             <div className="upload-section">
               <h3 className="upload-section-title">上传项目文档</h3>
               <div
-                className={`file-upload-area ${documentFile ? "has-file" : ""}`}
+                className={`file-upload-area ${documentFile ? 'has-file' : ''}`}
                 onDrop={handleDocumentDrop}
                 onDragOver={handleDragOver}
                 onClick={() =>
-                  document.getElementById("document-input")?.click()
+                  document.getElementById('document-input')?.click()
                 }
               >
                 <div className="upload-icon">
@@ -570,7 +586,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                   type="file"
                   accept=".pdf,.doc,.docx,.txt"
                   onChange={handleDocumentUpload}
-                  style={{ display: "none" }}
+                  style={{ display: 'none' }}
                 />
               </div>
             </div>
@@ -579,10 +595,10 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             <div className="upload-section">
               <h3 className="upload-section-title">上传CAD文件</h3>
               <div
-                className={`file-upload-area ${cadFile ? "has-file" : ""}`}
+                className={`file-upload-area ${cadFile ? 'has-file' : ''}`}
                 onDrop={handleCadDrop}
                 onDragOver={handleDragOver}
-                onClick={() => document.getElementById("cad-input")?.click()}
+                onClick={() => document.getElementById('cad-input')?.click()}
               >
                 <div className="upload-icon">
                   <svg
@@ -637,7 +653,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                   type="file"
                   accept=".dwg,.dwf,.dxf,.gbq,.gbd"
                   onChange={handleCadUpload}
-                  style={{ display: "none" }}
+                  style={{ display: 'none' }}
                 />
               </div>
             </div>
@@ -662,7 +678,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
               onClick={handleCreateProject}
               disabled={isCreatingProject || !projectName.trim()}
             >
-              {isCreatingProject ? "创建中..." : "确认创建项目"}
+              {isCreatingProject ? '创建中...' : '确认创建项目'}
             </button>
           </div>
         </div>
@@ -680,7 +696,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
       <div className="output-header">
         <div className="project-info">
           <div className="project-title">
-            {currentProject?.name || "未选择项目"}
+            {currentProject?.name || '未选择项目'}
           </div>
           <div className="project-date">总计{getTotalDays()}天</div>
         </div>
@@ -691,11 +707,11 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
 
       <div className="date-controls">
         <div className="view-tabs">
-          {["甘特图模式", "进度表模式", "资金物料模式", "操作记录"].map(
+          {['甘特图模式', '进度表模式', '资金物料模式', '操作记录'].map(
             (tab) => (
               <button
                 key={tab}
-                className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+                className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -726,7 +742,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
       {/* 数据内容 */}
       {!loading && !error && (
         <>
-          {activeTab === "甘特图模式" && (
+          {activeTab === '甘特图模式' && (
             <div className="gantt-container">
               <div
                 className="gantt-header"
@@ -734,7 +750,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                   minWidth:
                     getTimelineDays().length > 14
                       ? `${200 + 32 + getTimelineDays().length * 60}px`
-                      : "400px",
+                      : '400px',
                 }}
               >
                 <div className="task-label-header">任务名称</div>
@@ -744,7 +760,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                     width:
                       getTimelineDays().length > 14
                         ? `${getTimelineDays().length * 60}px`
-                        : "auto",
+                        : 'auto',
                   }}
                 >
                   {getTimelineDays().map((day, index) => (
@@ -752,7 +768,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                       key={index}
                       className="timeline-date"
                       style={{
-                        width: getTimelineDays().length > 14 ? "60px" : "auto",
+                        width: getTimelineDays().length > 14 ? '60px' : 'auto',
                         flexShrink: getTimelineDays().length > 14 ? 0 : 1,
                       }}
                     >
@@ -772,7 +788,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                         minWidth:
                           getTimelineDays().length > 14
                             ? `${200 + 32 + getTimelineDays().length * 60}px`
-                            : "400px",
+                            : '400px',
                       }}
                       onClick={(e) => handleTaskClick(task, e)}
                     >
@@ -786,8 +802,8 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                           width:
                             getTimelineDays().length > 14
                               ? `${getTimelineDays().length * 60}px`
-                              : "auto",
-                          flex: getTimelineDays().length > 14 ? "none" : "1",
+                              : 'auto',
+                          flex: getTimelineDays().length > 14 ? 'none' : '1',
                         }}
                       >
                         <div
@@ -796,8 +812,8 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                             left: position.left,
                             width: position.width,
                             backgroundColor: task.isOvertime
-                              ? "#ff6b6b"
-                              : "#4CAF50",
+                              ? '#ff6b6b'
+                              : '#4CAF50',
                           }}
                         ></div>
                       </div>
@@ -808,7 +824,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             </div>
           )}
 
-          {activeTab === "进度表模式" && (
+          {activeTab === '进度表模式' && (
             <div className="progress-table-wrapper">
               <div className="progress-table">
                 <div className="table-header">
@@ -829,7 +845,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                     <div
                       key={task.id}
                       className={`table-row clickable-row ${
-                        task.isOvertime ? "overtime-row" : ""
+                        task.isOvertime ? 'overtime-row' : ''
                       }`}
                       onClick={(e) => handleTaskClick(task, e)}
                     >
@@ -839,8 +855,8 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                           className="task-status-dot"
                           style={{
                             backgroundColor: task.isOvertime
-                              ? "#ff6b6b"
-                              : "#4CAF50",
+                              ? '#ff6b6b'
+                              : '#4CAF50',
                           }}
                         ></div>
                         <span>{task.name}</span>
@@ -849,10 +865,14 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                         {task.workload}
                         {task.unit}
                       </div>
-                      <div className="table-cell">{task.constructionMethod}</div>
+                      <div className="table-cell">
+                        {task.constructionMethod}
+                      </div>
                       <div className="table-cell">第{task.startDay}天</div>
                       <div className="table-cell">第{task.endDay}天</div>
-                      <div className="table-cell">{task.endDay - task.startDay + 1}天</div>
+                      <div className="table-cell">
+                        {task.endDay - task.startDay + 1}天
+                      </div>
                       <div className="table-cell">{task.workerCount}人</div>
                       <div className="table-cell">{task.workType}</div>
                       <div className="table-cell">
@@ -860,8 +880,8 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
                       </div>
                       <div className="table-cell">
                         {task.dependencies.length > 0
-                          ? task.dependencies.join(", ")
-                          : "无"}
+                          ? task.dependencies.join(', ')
+                          : '无'}
                       </div>
                     </div>
                   ))}
@@ -870,7 +890,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             </div>
           )}
 
-          {activeTab === "资金物料模式" && (
+          {activeTab === '资金物料模式' && (
             <div className="material-mode">
               <div className="charts-container">
                 <div className="chart-section">
@@ -896,7 +916,7 @@ const Output: React.FC<OutputProps> = ({ currentProject }) => {
             </div>
           )}
 
-          {activeTab === "操作记录" && (
+          {activeTab === '操作记录' && (
             <div className="operation-log-mode">
               <div className="log-container">
                 <div className="log-header">

@@ -16,7 +16,7 @@ const Modal: React.FC<ModalProps> = ({
   children,
   position,
   className = '',
-  showOverlay = true
+  showOverlay = true,
 }) => {
   if (!isOpen) return null;
 
@@ -25,19 +25,14 @@ const Modal: React.FC<ModalProps> = ({
         position: 'fixed' as const,
         left: `${position.x}px`,
         top: `${position.y}px`,
-        transform: 'translate(-50%, -100%)'
+        transform: 'translate(-50%, -100%)',
       }
     : {};
 
   return (
     <>
-      {showOverlay && (
-        <div className="modal-overlay" onClick={onClose}></div>
-      )}
-      <div 
-        className={`modal-content ${className}`}
-        style={modalStyle}
-      >
+      {showOverlay && <div className="modal-overlay" onClick={onClose}></div>}
+      <div className={`modal-content ${className}`} style={modalStyle}>
         {children}
       </div>
     </>

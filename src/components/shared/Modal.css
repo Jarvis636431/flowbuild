@@ -100,19 +100,17 @@
   color: #ddd;
 }
 
-
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .task-detail-popup {
     width: 280px;
   }
-  
+
   .popup-header,
   .popup-content {
     padding: 12px 16px;
   }
-  
+
   .detail-label {
     min-width: 70px;
   }

@@ -23,8 +23,6 @@
   margin: 0;
 }
 
-
-
 .project-stats {
   display: flex;
   gap: 12px;
@@ -194,7 +192,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

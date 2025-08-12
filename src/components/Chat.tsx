@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import { chatAPI, projectAPI, type ChatMessage, type ChatRequest, type Project, type TaskItem } from '../services/api';
-
-
+import {
+  chatAPI,
+  projectAPI,
+  type ChatMessage,
+  type ChatRequest,
+  type Project,
+  type TaskItem,
+} from '../services/api';
 
 interface ChatProps {
   currentProject: Project | null;
@@ -14,8 +19,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       id: 1,
       text: '你好！我是AI助手，有什么可以帮你的吗？',
       sender: 'ai',
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -57,8 +62,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   // 计算项目总工期
   const calculateTotalDays = () => {
     if (projectTasks.length === 0) return 0;
-    const maxEndDay = Math.max(...projectTasks.map(task => task.endDay));
-    const minStartDay = Math.min(...projectTasks.map(task => task.startDay));
+    const maxEndDay = Math.max(...projectTasks.map((task) => task.endDay));
+    const minStartDay = Math.min(...projectTasks.map((task) => task.startDay));
     return maxEndDay - minStartDay + 1;
   };
 
@@ -67,9 +72,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     try {
       const request: ChatRequest = {
         message: userMessage,
-        history: messages.slice(-10) // 发送最近10条消息作为上下文
+        history: messages.slice(-10), // 发送最近10条消息作为上下文
       };
-      
+
       const response = await chatAPI.sendMessage(request);
       return response.text;
     } catch (error) {
@@ -86,38 +91,38 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       id: Date.now(),
       text: inputValue,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const currentInput = inputValue; // 保存当前输入值
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
 
     try {
       // 调用API获取AI回复
       const aiResponseText = await getAIResponse(currentInput);
-      
+
       const aiResponse: ChatMessage = {
         id: Date.now() + 1,
         text: aiResponseText,
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, aiResponse]);
+
+      setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
       console.error('发送消息失败:', error);
-      
+
       // 显示错误消息
       const errorResponse: ChatMessage = {
         id: Date.now() + 1,
         text: '抱歉，发送消息时出现错误，请稍后再试。',
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, errorResponse]);
+
+      setMessages((prev) => [...prev, errorResponse]);
     } finally {
       setIsTyping(false);
     }
@@ -130,9 +135,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('zh-CN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -142,10 +147,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         <div className="project-header">
           <div className="project-info">
             <div className="project-name">{currentProject.name}</div>
-
           </div>
           <div className="project-stats">
-            <span className="stat-item">成本: {(calculateTotalCost() / 10000).toFixed(1)}万</span>
+            <span className="stat-item">
+              成本: {(calculateTotalCost() / 10000).toFixed(1)}万
+            </span>
             <span className="stat-item">工期: {calculateTotalDays()}天</span>
           </div>
         </div>
@@ -155,7 +161,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           <div key={message.id} className={`message ${message.sender}`}>
             <div className="message-content">
               <span className="message-text">{message.text}</span>
-              <span className="message-time">{formatTime(message.timestamp)}</span>
+              <span className="message-time">
+                {formatTime(message.timestamp)}
+              </span>
             </div>
           </div>
         ))}
@@ -170,21 +178,27 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       </div>
       <div className="input-area">
         <div className="input-container">
-          <textarea 
-             placeholder="输入你的消息..." 
-             value={inputValue}
-             onChange={(e) => setInputValue(e.target.value)}
-             onKeyPress={handleKeyPress}
-             disabled={isTyping}
-             rows={4}
-           />
-          <button 
-            onClick={handleSendMessage} 
+          <textarea
+            placeholder="输入你的消息..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isTyping}
+            rows={4}
+          />
+          <button
+            onClick={handleSendMessage}
             disabled={isTyping || inputValue.trim() === ''}
             className="send-button"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
             </svg>
           </button>
         </div>
