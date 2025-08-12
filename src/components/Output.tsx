@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { type Project } from '../services/api';
 import TaskDetailModal from './shared/TaskDetailModal';
-import GanttChart from './GanttChart';
-import ProgressTable from './ProgressTable';
-import MaterialCharts from './MaterialCharts';
-import OperationLog from './OperationLog';
-import IfcModel from './IfcModel';
+import GanttChart from './charts/GanttChart';
+import ProgressTable from './charts/ProgressTable';
+import MaterialCharts from './charts/MaterialCharts';
+import OperationLog from './charts/OperationLog';
+import IfcModel from './charts/IfcModel';
 import FileUploadSection from './shared/FileUploadSection';
 
 import { useTaskManagement } from '../hooks/useTaskManagement';
@@ -31,6 +31,7 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
   // 缓存计算结果
   const memoizedTabButtons = useMemo(() => {
     return [
+      '项目信息',
       '甘特图模式',
       '进度表模式',
       '资金物料模式',
@@ -89,6 +90,17 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
     }
 
     switch (activeTab) {
+      case '项目信息':
+        return (
+          <div>
+            <div className="project-info">
+              <div className="project-title">
+                {currentProject?.name || '未选择项目'}
+              </div>
+              <div className="project-date">总计{chartData.totalDays}天</div>
+            </div>
+          </div>
+        );
       case '甘特图模式':
         return (
           <GanttChart

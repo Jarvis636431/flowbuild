@@ -1,5 +1,5 @@
 import React from 'react';
-import type { TaskItem } from '../services/api';
+import type { TaskItem } from '../../services/api';
 
 interface ProgressTableProps {
   tasks: TaskItem[];
