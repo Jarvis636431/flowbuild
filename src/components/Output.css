@@ -510,8 +510,8 @@
 }
 
 .progress-table {
-  width: 1270px;
-  min-width: 1270px;
+  width: 100%;
+  min-width: 1200px;
   border: 1px solid #444;
   border-radius: 8px;
   overflow-y: hidden;
@@ -523,7 +523,7 @@
 
 .table-header {
   display: grid;
-  grid-template-columns: 80px 200px 120px 100px 100px 120px 150px 100px 100px 150px;
+  grid-template-columns: 60px 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1.2fr;
   background-color: #2a2a2a;
   border-bottom: 1px solid #444;
   flex-shrink: 0;
@@ -537,7 +537,7 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 80px 200px 120px 100px 100px 120px 150px 100px 100px 150px;
+  grid-template-columns: 60px 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1.2fr;
   border-bottom: 1px solid #333;
   transition: background-color 0.2s ease;
 }
