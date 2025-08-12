@@ -60,11 +60,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
         <div className="detail-item">
           <span className="detail-label">开始时间:</span>
-          <span>第{task.startDay}天</span>
+          <span>
+            {task.startTime
+              ? `第${task.startTime.day}天 ${task.startTime.hour.toString().padStart(2, '0')}:00`
+              : `第${task.startDay}天`}
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">结束时间:</span>
-          <span>第{task.endDay}天</span>
+          <span>
+            {task.endTime
+              ? `第${task.endTime.day}天 ${task.endTime.hour.toString().padStart(2, '0')}:00`
+              : `第${task.endDay}天`}
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">是否加班:</span>

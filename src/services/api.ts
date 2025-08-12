@@ -1,5 +1,12 @@
 import { readAllProjectsFromExcel } from './excelReader';
 
+// 定义时间接口
+export interface TaskTime {
+  day: number; // 天数
+  hour: number; // 小时 (0-23)
+  totalHours: number; // 总小时数 (便于计算)
+}
+
 // 定义接口类型
 export interface Project {
   id: number;
@@ -23,8 +30,10 @@ export interface TaskItem {
   cost: number; // 价格
   workload: number; // 工程量
   unit: string; // 单位
-  startDay: number; // 开始时间
-  endDay: number; // 结束时间
+  startDay: number; // 开始天数 (保持向后兼容)
+  endDay: number; // 结束天数 (保持向后兼容)
+  startTime?: TaskTime; // 详细开始时间
+  endTime?: TaskTime; // 详细结束时间
   isOvertime: boolean; // 是否加班
   dependencies: string[]; // 直接依赖工种
   projectId: number; // 关联的项目ID

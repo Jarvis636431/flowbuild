@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { Project, TaskItem } from './api';
+import type { Project, TaskItem, TaskTime } from './api';
 
 // Excel列名映射到TaskItem字段
 const COLUMN_MAPPING: Record<string, string> = {
@@ -18,22 +18,57 @@ const COLUMN_MAPPING: Record<string, string> = {
 };
 
 /**
- * 解析时间字符串，提取天数
- * 例如："第1天 08:00" -> 1
+ * 解析时间字符串，提取天数和小时信息
+ * 例如："第1天 08:00" -> { day: 1, hour: 8, totalHours: 32 }
+ * 例如："第2天 14:30" -> { day: 2, hour: 14, totalHours: 62 }
  */
-function parseTimeString(timeStr: string | number): number {
-  if (!timeStr || timeStr === '') return 1;
+function parseTimeString(timeStr: string | number): TaskTime {
+  if (!timeStr || timeStr === '') {
+    return { day: 1, hour: 0, totalHours: 24 };
+  }
 
   const str = String(timeStr);
+  let day = 1;
+  let hour = 0;
+
   // 匹配'第X天'格式
   const dayMatch = str.match(/第(\d+)天/);
   if (dayMatch) {
-    return parseInt(dayMatch[1]);
+    day = parseInt(dayMatch[1]);
+  } else {
+    // 如果是纯数字，当作天数处理
+    const parsed = parseInt(str);
+    if (!isNaN(parsed)) {
+      day = parsed;
+    }
   }
 
-  // 如果是纯数字
-  const parsed = parseInt(str);
-  return isNaN(parsed) ? 1 : parsed;
+  // 匹配时间格式 HH:MM 或 HH
+  const timeMatch = str.match(/(\d{1,2}):(\d{2})|(\d{1,2})(?!天)/);
+  if (timeMatch) {
+    if (timeMatch[1] && timeMatch[2]) {
+      // HH:MM 格式
+      hour = parseInt(timeMatch[1]);
+      const minute = parseInt(timeMatch[2]);
+      // 将分钟转换为小时的小数部分，但这里我们只保留整数小时
+      if (minute >= 30) hour += 1; // 四舍五入到最近的小时
+    } else if (timeMatch[3]) {
+      // 单独的小时数
+      const hourValue = parseInt(timeMatch[3]);
+      if (hourValue <= 23) {
+        // 确保是有效的小时值
+        hour = hourValue;
+      }
+    }
+  }
+
+  // 确保小时在有效范围内
+  hour = Math.max(0, Math.min(23, hour));
+
+  // 计算总小时数 (从第1天0点开始计算)
+  const totalHours = (day - 1) * 24 + hour;
+
+  return { day, hour, totalHours };
 }
 
 /**
@@ -117,10 +152,12 @@ export async function readProjectFromExcel(
           // 根据字段类型进行数据转换
           switch (mappedField) {
             case 'startDay':
-              task.startDay = parseTimeString(value);
+              task.startTime = parseTimeString(value);
+              task.startDay = task.startTime.day; // 保持向后兼容
               break;
             case 'endDay':
-              task.endDay = parseTimeString(value);
+              task.endTime = parseTimeString(value);
+              task.endDay = task.endTime.day; // 保持向后兼容
               break;
             case 'isOvertime':
               task.isOvertime = parseOvertime(value);
@@ -183,6 +220,8 @@ export async function readProjectFromExcel(
       if (!task.cost) task.cost = 0;
       if (!task.startDay) task.startDay = 1;
       if (!task.endDay) task.endDay = 1;
+      if (!task.startTime) task.startTime = { day: 1, hour: 0, totalHours: 24 };
+      if (!task.endTime) task.endTime = { day: 1, hour: 0, totalHours: 24 };
       if (!task.workerCount) task.workerCount = 0;
       if (!task.serialNumber) task.serialNumber = rowIndex + 1;
       if (!task.isOvertime) task.isOvertime = false;
