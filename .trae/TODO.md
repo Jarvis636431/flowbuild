@@ -1,6 +1,8 @@
 # TODO:
 
-- [x] 1: 修改parseTimeString函数，使其能够解析天数和小时信息 (priority: High)
-- [x] 2: 更新TaskItem接口，添加小时信息字段或修改时间字段类型 (priority: High)
-- [x] 3: 修改甘特图和进度表组件，支持显示小时级别的时间 (priority: Medium)
-- [x] 4: 测试时间解析功能，确保兼容性 (priority: Medium)
+- [x] 1: 安装socket.io-client依赖 (priority: High)
+- [x] 2: 创建socketService.ts封装Socket连接和消息处理 (priority: High)
+- [x] 3: 创建socketUtils.ts提供常用工具函数 (priority: High)
+- [x] 4: 添加Socket相关的TypeScript类型定义 (priority: Medium)
+- [x] 5: 实现断线重连和心跳检测功能 (priority: Medium)
+- [x] 6: 运行代码质量检查 (priority: Low)
