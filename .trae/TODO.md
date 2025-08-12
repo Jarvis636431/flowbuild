@@ -1,8 +1,9 @@
 # TODO:
 
-- [x] 1: 分析package.json中的当前依赖情况 (priority: High)
-- [x] 2: 检查代码中实际使用的依赖，识别未使用的包 (priority: High)
-- [x] 3: 优化ECharts按需引入，减少包大小 (priority: Medium)
-- [x] 4: 添加开发工具依赖（prettier、husky等） (priority: Medium)
-- [x] 5: 更新package.json脚本，添加依赖分析命令 (priority: Low)
-- [x] 6: 检查依赖版本兼容性并更新 (priority: Low)
+- [x] 1: 使用pnpm安装axios依赖 (priority: High)
+- [x] 2: 创建src/services/http.ts文件，封装axios实例 (priority: High)
+- [x] 3: 配置请求和响应拦截器，添加统一错误处理 (priority: High)
+- [x] 4: 添加TypeScript类型定义和接口 (priority: Medium)
+- [x] 5: 实现常用HTTP方法(GET、POST、PUT、DELETE)和文件上传功能 (priority: Medium)
+- [x] 6: 添加请求超时、重试机制和请求取消功能 (priority: Medium)
+- [x] 7: 更新api.ts文件，使用新的http模块替换模拟数据 (priority: Low)
