@@ -81,7 +81,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
     return (
       <div
         className="gantt-container"
-        style={{ height: '500px', overflowY: 'auto' }}
+        style={{ height: '700px', overflowY: 'auto' }}
       >
         <div
           className="gantt-header"

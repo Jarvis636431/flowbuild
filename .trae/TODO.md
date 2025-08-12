@@ -13,3 +13,6 @@
 - [x] 8: 创建FileUploadSection.tsx文件上传组件 (priority: Medium)
 - [x] 9: 创建useTaskManagement.ts自定义Hook (priority: Medium)
 - [x] 10: 创建useFileUpload.ts和useChartData.ts自定义Hooks (priority: Low)
+- [ ] 14: 创建IfcModel.tsx组件 (**IN PROGRESS**) (priority: High)
+- [ ] 15: 修改Output.tsx添加IFC模型标签页 (priority: High)
+- [ ] 16: 运行代码质量检查 (priority: Medium)

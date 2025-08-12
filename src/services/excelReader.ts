@@ -5,7 +5,7 @@ import type { Project, TaskItem } from './api';
 const COLUMN_MAPPING: Record<string, string> = {
   序号: 'serialNumber',
   施工工序: 'name',
-  施工方式: 'constructionMethod',
+  选定施工方式: 'constructionMethod',
   施工人数: 'workerCount',
   工种: 'workType',
   价格: 'cost',
