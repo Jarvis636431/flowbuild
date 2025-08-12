@@ -45,7 +45,9 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div
+      className={`app-container ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
+    >
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={handleSidebarToggle}
@@ -53,9 +55,9 @@ function App() {
         onProjectSelect={handleProjectSelect}
       />
       <div className="main-content">
-          <Chat currentProject={currentProject} />
-          <Output currentProject={currentProject} />
-        </div>
+        <Chat currentProject={currentProject} />
+        <Output currentProject={currentProject} />
+      </div>
     </div>
   );
 }

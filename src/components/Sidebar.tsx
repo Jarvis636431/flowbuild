@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { type Project, projectAPI } from "../services/api";
-import "./Sidebar.css";
+import React, { useState, useEffect, useCallback } from 'react';
+import { type Project, projectAPI } from '../services/api';
+import './Sidebar.css';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -31,12 +31,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         onProjectSelect(projectList[0]);
       }
     } catch (err) {
-      setError("加载项目列表失败");
-      console.error("加载项目失败:", err);
+      setError('加载项目列表失败');
+      console.error('加载项目失败:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentProject, onProjectSelect]);
 
   useEffect(() => {
     loadProjects();
@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   ) => {
     event.stopPropagation();
 
-    if (!confirm("确定要删除这个项目吗？这将同时删除项目下的所有任务。")) {
+    if (!confirm('确定要删除这个项目吗？这将同时删除项目下的所有任务。')) {
       return;
     }
 
@@ -66,8 +66,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
       }
     } catch (err) {
-      setError("删除项目失败");
-      console.error("删除项目失败:", err);
+      setError('删除项目失败');
+      console.error('删除项目失败:', err);
     }
   };
 
@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   if (loading) {
     return (
-      <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+      <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           {isCollapsed ? (
             <button className="toggle-btn" onClick={onToggle}>
@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         {isCollapsed ? (
           <button className="toggle-btn" onClick={onToggle}>
@@ -132,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div
               key={project.id}
               className={`project-item ${
-                currentProject?.id === project.id ? "active" : ""
+                currentProject?.id === project.id ? 'active' : ''
               }`}
               onClick={() => onProjectSelect(project)}
               title={project.name}

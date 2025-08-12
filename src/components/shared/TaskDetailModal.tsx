@@ -13,7 +13,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isOpen,
   onClose,
   task,
-  position
+  position,
 }) => {
   if (!task) return null;
 
@@ -28,7 +28,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         <h3>{task.name}</h3>
         <button className="close-btn" onClick={onClose}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path
+              d="M18 6L6 18M6 6L18 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </svg>
         </button>
       </div>
@@ -55,7 +60,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
         <div className="detail-item">
           <span className="detail-label">工程量:</span>
-          <span>{task.workload}{task.unit}</span>
+          <span>
+            {task.workload}
+            {task.unit}
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">开始时间:</span>
@@ -73,7 +81,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
         <div className="detail-item">
           <span className="detail-label">直接依赖工种:</span>
-          <span>{task.dependencies?.length > 0 ? task.dependencies.join(', ') : '无'}</span>
+          <span>
+            {task.dependencies?.length > 0
+              ? task.dependencies.join(', ')
+              : '无'}
+          </span>
         </div>
       </div>
     </Modal>

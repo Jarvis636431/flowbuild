@@ -1,7 +1,8 @@
 # TODO:
 
-- [x] 1: 查看Output.tsx文件中进度表模式的表格头部和数据行结构 (priority: High)
-- [x] 2: 修改表格头部列顺序：序号，施工工序，工程量，施工方式，开始时间，结束时间，持续时长，施工人数，工种，价格，直接依赖任务 (priority: High)
-- [x] 3: 修改表格数据行的列顺序，确保与头部对应 (priority: High)
-- [x] 4: 新增持续时长列，计算公式为 endDay - startDay + 1，显示格式为"X天" (priority: High)
-- [x] 5: 运行npm run check测试修改后的代码 (priority: Medium)
+- [x] 1: 分析package.json中的当前依赖情况 (priority: High)
+- [x] 2: 检查代码中实际使用的依赖，识别未使用的包 (priority: High)
+- [x] 3: 优化ECharts按需引入，减少包大小 (priority: Medium)
+- [x] 4: 添加开发工具依赖（prettier、husky等） (priority: Medium)
+- [x] 5: 更新package.json脚本，添加依赖分析命令 (priority: Low)
+- [x] 6: 检查依赖版本兼容性并更新 (priority: Low)
