@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { type Project, projectAPI } from '../services/api';
+import { useAsyncState } from '../hooks/useAsyncState';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -15,28 +16,27 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentProject,
   onProjectSelect,
 }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: projects,
+    loading,
+    error,
+    execute,
+    setError,
+  } = useAsyncState<Project[]>([]);
 
   // 加载项目列表
   const loadProjects = useCallback(async () => {
-    try {
-      setLoading(true);
+    await execute(async () => {
       const projectList = await projectAPI.getProjects();
-      setProjects(projectList);
 
       // 如果没有当前项目且有项目列表，选择第一个项目
       if (!currentProject && projectList.length > 0) {
         onProjectSelect(projectList[0]);
       }
-    } catch (err) {
-      setError('加载项目列表失败');
-      console.error('加载项目失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentProject, onProjectSelect]);
+
+      return projectList;
+    });
+  }, [currentProject, onProjectSelect, execute]);
 
   useEffect(() => {
     loadProjects();
@@ -52,23 +52,21 @@ const Sidebar: React.FC<SidebarProps> = ({
       return;
     }
 
-    try {
+    await execute(async () => {
       await projectAPI.deleteProject(projectId);
-      const updatedProjects = projects.filter((p) => p.id !== projectId);
-      setProjects(updatedProjects);
+      const updatedProjects = (projects || []).filter(
+        (p) => p.id !== projectId
+      );
 
       // 如果删除的是当前项目，选择第一个可用项目
       if (currentProject?.id === projectId) {
         if (updatedProjects.length > 0) {
           onProjectSelect(updatedProjects[0]);
-        } else {
-          // 没有项目时不选择任何项目
         }
       }
-    } catch (err) {
-      setError('删除项目失败');
-      console.error('删除项目失败:', err);
-    }
+
+      return updatedProjects;
+    });
   };
 
   // 获取项目图标（首字母）
@@ -128,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <div className="projects-list">
-          {projects.map((project) => (
+          {(projects || []).map((project) => (
             <div
               key={project.id}
               className={`project-item ${
@@ -156,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ))}
 
-          {projects.length === 0 && (
+          {(projects || []).length === 0 && (
             <div className="empty-state">
               <p>暂无项目</p>
             </div>
