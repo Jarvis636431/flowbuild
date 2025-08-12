@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import type { TaskItem } from '../services/api';
+import type { TaskItem } from '../../services/api';
 
 interface MaterialChartsProps {
   tasks: TaskItem[];

@@ -1,9 +1,10 @@
 # TODO:
 
-- [x] 1: 查看TaskBar.tsx组件的代码内容 (priority: High)
-- [x] 2: 查看TaskTableRow.tsx组件的代码内容 (priority: High)
-- [x] 3: 将TaskBar组件代码内联到GanttChart.tsx中 (priority: High)
-- [x] 4: 将TaskTableRow组件代码内联到ProgressTable.tsx中 (priority: High)
-- [x] 5: 删除TaskBar.tsx和TaskTableRow.tsx文件 (priority: Medium)
-- [x] 6: 更新所有相关的import语句 (priority: Medium)
-- [x] 7: 运行代码检查确保重构后功能正常 (priority: Low)
+- [x] 1: 创建src/components/charts目录用于存放数据可视化组件 (priority: High)
+- [x] 2: 将GanttChart.tsx移动到charts目录 (priority: High)
+- [x] 3: 将ProgressTable.tsx移动到charts目录 (priority: High)
+- [x] 4: 将MaterialCharts.tsx移动到charts目录 (priority: High)
+- [x] 7: 更新Output.tsx中的所有import路径 (priority: High)
+- [x] 5: 将IfcModel.tsx移动到charts目录 (priority: Medium)
+- [x] 6: 将OperationLog.tsx移动到charts目录 (priority: Medium)
+- [x] 8: 运行代码检查确保重构后项目正常运行 (priority: Medium)
