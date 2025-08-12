@@ -8,6 +8,7 @@ import {
   type Project,
   type TaskItem,
 } from '../services/api';
+import { useAsyncState } from '../hooks/useAsyncState';
 
 interface ChatProps {
   currentProject: Project | null;
@@ -24,7 +25,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [projectTasks, setProjectTasks] = useState<TaskItem[]>([]);
+  const { data: projectTasks, execute: fetchProjectTasks } = useAsyncState<
+    TaskItem[]
+  >([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -37,31 +40,22 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   // 获取项目任务数据
   useEffect(() => {
-    const fetchProjectTasks = async () => {
-      if (currentProject) {
-        try {
-          const tasks = await projectAPI.getTasksByProjectId(currentProject.id);
-          setProjectTasks(tasks);
-        } catch (error) {
-          console.error('获取项目任务失败:', error);
-          setProjectTasks([]);
-        }
-      } else {
-        setProjectTasks([]);
-      }
-    };
-
-    fetchProjectTasks();
-  }, [currentProject]);
+    if (currentProject) {
+      fetchProjectTasks(async () => {
+        const tasks = await projectAPI.getTasksByProjectId(currentProject.id);
+        return tasks;
+      });
+    }
+  }, [currentProject, fetchProjectTasks]);
 
   // 计算项目总成本
   const calculateTotalCost = () => {
-    return projectTasks.reduce((total, task) => total + task.cost, 0);
+    return (projectTasks || []).reduce((total, task) => total + task.cost, 0);
   };
 
   // 计算项目总工期
   const calculateTotalDays = () => {
-    if (projectTasks.length === 0) return 0;
+    if (!projectTasks || projectTasks.length === 0) return 0;
     const maxEndDay = Math.max(...projectTasks.map((task) => task.endDay));
     const minStartDay = Math.min(...projectTasks.map((task) => task.startDay));
     return maxEndDay - minStartDay + 1;

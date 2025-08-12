@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { taskAPI } from '../services/api';
 import type { TaskItem, Project } from '../services/api';
+import { useAsyncState } from './useAsyncState';
 
 export interface UseTaskManagementReturn {
   tasks: TaskItem[];
@@ -18,17 +19,17 @@ export interface UseTaskManagementReturn {
 export const useTaskManagement = (
   currentProject: Project | null
 ): UseTaskManagementReturn => {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: tasks,
+    loading,
+    error,
+    execute,
+  } = useAsyncState<TaskItem[]>([]);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
 
   // 获取任务数据
   const fetchTasks = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+    await execute(async () => {
       let tasksData: TaskItem[];
       if (currentProject) {
         // 如果有当前项目，获取项目的任务数据
@@ -40,16 +41,9 @@ export const useTaskManagement = (
         // 否则获取默认任务数据
         tasksData = await taskAPI.getTasks();
       }
-
-      setTasks(tasksData);
-    } catch (err) {
-      console.error('获取任务数据失败:', err);
-      setError('获取任务数据失败，请重试');
-      setTasks([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentProject]);
+      return tasksData;
+    });
+  }, [currentProject, execute]);
 
   // 处理任务行点击事件
   const handleTaskClick = useCallback(
@@ -70,7 +64,7 @@ export const useTaskManagement = (
   }, []);
 
   return {
-    tasks,
+    tasks: tasks || [],
     loading,
     error,
     selectedTask,
