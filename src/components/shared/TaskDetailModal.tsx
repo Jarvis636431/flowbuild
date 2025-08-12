@@ -6,24 +6,17 @@ interface TaskDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   task: TaskItem | null;
-  position: { x: number; y: number } | null;
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isOpen,
   onClose,
   task,
-  position,
 }) => {
   if (!task) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      position={position}
-      className="task-detail-popup"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} className="task-detail-popup">
       <div className="popup-header">
         <h3>{task.name}</h3>
         <button className="close-btn" onClick={onClose}>

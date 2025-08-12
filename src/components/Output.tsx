@@ -184,7 +184,6 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
         isOpen={!!taskManagement.selectedTask}
         onClose={taskManagement.closePopup}
         task={taskManagement.selectedTask}
-        position={taskManagement.popupPosition}
       />
     </div>
   );
