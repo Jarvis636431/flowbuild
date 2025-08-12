@@ -7,7 +7,6 @@ export interface UseTaskManagementReturn {
   loading: boolean;
   error: string | null;
   selectedTask: TaskItem | null;
-  popupPosition: { x: number; y: number } | null;
   fetchTasks: () => Promise<void>;
   handleTaskClick: (
     task: TaskItem,
@@ -23,10 +22,6 @@ export const useTaskManagement = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
-  const [popupPosition, setPopupPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
 
   // 获取任务数据
   const fetchTasks = useCallback(async () => {
@@ -64,20 +59,7 @@ export const useTaskManagement = (
 
       console.log('Task clicked:', task.name); // 调试信息
 
-      const rect = event.currentTarget.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-
-      // 计算弹窗位置，确保在可视区域内
-      let x = rect.left + rect.width / 2;
-      let y = rect.top - 10;
-
-      // 防止弹窗超出屏幕边界
-      if (x < 200) x = 200;
-      if (x > viewportWidth - 200) x = viewportWidth - 200;
-      if (y < 100) y = rect.bottom + 10;
-
       setSelectedTask(task);
-      setPopupPosition({ x, y });
     },
     []
   );
@@ -85,7 +67,6 @@ export const useTaskManagement = (
   // 关闭弹窗
   const closePopup = useCallback(() => {
     setSelectedTask(null);
-    setPopupPosition(null);
   }, []);
 
   return {
@@ -93,7 +74,6 @@ export const useTaskManagement = (
     loading,
     error,
     selectedTask,
-    popupPosition,
     fetchTasks,
     handleTaskClick,
     closePopup,

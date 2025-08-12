@@ -1,11 +1,6 @@
 import React from 'react';
-import type { TaskItem } from '../../services/api';
 
-interface IfcModelProps {
-  tasks?: TaskItem[];
-}
-
-const IfcModel: React.FC<IfcModelProps> = React.memo(({ tasks }) => {
+const IfcModel: React.FC = React.memo(() => {
   return (
     <div className="ifc-model-container">
       <div className="ifc-model-header">
@@ -16,14 +11,12 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ tasks }) => {
           <button className="control-btn">导出模型</button>
         </div>
       </div>
-      
+
       <div className="ifc-viewer-wrapper">
         <div className="ifc-viewer">
           {/* IFC模型查看器区域 */}
           <div className="model-placeholder">
-            <div className="placeholder-icon">
-              📐
-            </div>
+            <div className="placeholder-icon">📐</div>
             <h4>IFC模型查看器</h4>
             <p>在这里将显示建筑信息模型(BIM)</p>
             <div className="model-info">
@@ -46,7 +39,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ tasks }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="model-sidebar">
           <div className="sidebar-section">
             <h4>模型树</h4>
@@ -81,7 +74,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ tasks }) => {
               </div>
             </div>
           </div>
-          
+
           <div className="sidebar-section">
             <h4>属性面板</h4>
             <div className="properties-panel">
