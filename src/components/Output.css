@@ -418,6 +418,7 @@
   transition: all 0.3s ease;
   min-width: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 
 /* 状态点样式 */
@@ -426,9 +427,6 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-.status-dot {
   background-color: #4caf50;
 }
 
