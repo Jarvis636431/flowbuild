@@ -6,6 +6,8 @@ import ProgressTable from './shared/ProgressTable';
 import MaterialCharts from './shared/MaterialCharts';
 import OperationLog from './shared/OperationLog';
 import FileUploadSection from './shared/FileUploadSection';
+import IfcModel from './shared/IfcModel';
+
 import { useTaskManagement } from '../hooks/useTaskManagement';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { useChartData } from '../hooks/useChartData';
@@ -28,17 +30,21 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
 
   // 缓存计算结果
   const memoizedTabButtons = useMemo(() => {
-    return ['甘特图模式', '进度表模式', '资金物料模式', '操作记录'].map(
-      (tab) => (
-        <button
-          key={tab}
-          className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-          onClick={() => setActiveTab(tab)}
-        >
-          {tab}
-        </button>
-      )
-    );
+    return [
+      '甘特图模式',
+      '进度表模式',
+      '资金物料模式',
+      '操作记录',
+      'Ifc模型',
+    ].map((tab) => (
+      <button
+        key={tab}
+        className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+        onClick={() => setActiveTab(tab)}
+      >
+        {tab}
+      </button>
+    ));
   }, [activeTab]);
 
   // 缓存事件处理函数
@@ -101,6 +107,8 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
         return <MaterialCharts tasks={taskManagement.tasks} />;
       case '操作记录':
         return <OperationLog />;
+      case 'Ifc模型':
+        return <IfcModel />;
       default:
         return null;
     }
