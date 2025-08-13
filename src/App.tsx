@@ -12,6 +12,18 @@ import {
 } from './services/socketService';
 import { FEATURE_FLAGS, ENV_CONFIG } from './config/features';
 
+// 调试环境变量
+console.log('🔍 环境变量调试信息:');
+console.log('VITE_ENABLE_SOCKET:', import.meta.env.VITE_ENABLE_SOCKET);
+console.log(
+  'VITE_ENABLE_SOCKET类型:',
+  typeof import.meta.env.VITE_ENABLE_SOCKET
+);
+console.log('FEATURE_FLAGS.ENABLE_SOCKET:', FEATURE_FLAGS.ENABLE_SOCKET);
+console.log('完整环境变量:', import.meta.env);
+console.log('完整FEATURE_FLAGS:', FEATURE_FLAGS);
+console.log('完整ENV_CONFIG:', ENV_CONFIG);
+
 function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -48,7 +60,16 @@ function App() {
 
   // 初始化Socket服务
   useEffect(() => {
-    if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
+    console.log('🔧 Socket useEffect被触发:', {
+      enableSocket: FEATURE_FLAGS.ENABLE_SOCKET,
+      currentProjectId: currentProject?.id,
+      isAuthenticated: isAuthenticated,
+    });
+
+    if (!FEATURE_FLAGS.ENABLE_SOCKET) {
+      console.log('❌ Socket功能未启用，跳过初始化');
+      return;
+    }
 
     const initSocket = async () => {
       try {
@@ -57,14 +78,22 @@ function App() {
         const token = AuthService.getToken();
 
         // 只有在用户已认证且有选中项目时才建立Socket连接
+        console.log('🔍 Socket连接条件检查:', {
+          hasUser: !!user,
+          hasToken: !!token,
+          hasProject: !!currentProject?.id,
+          currentProject: currentProject,
+          projectId: currentProject?.id,
+          projectIdType: typeof currentProject?.id,
+          isAuthenticated: isAuthenticated,
+        });
+
         if (!user || !token || !currentProject?.id) {
-          console.log('Socket连接条件不满足：', {
-            hasUser: !!user,
-            hasToken: !!token,
-            hasProject: !!currentProject?.id,
-          });
+          console.log('❌ Socket连接条件不满足，跳过连接');
           return;
         }
+
+        console.log('✅ Socket连接条件满足，开始建立连接...');
 
         // 构建Socket URL，包含项目ID和JWT令牌
         const baseUrl =
@@ -100,9 +129,15 @@ function App() {
         });
 
         // 建立Socket连接
+        console.log('🚀 开始建立Socket连接:', {
+          socketUrl: socketUrl,
+          projectId: projectId,
+          projectName: currentProject.name,
+        });
+
         await socketService.connect();
         console.log(
-          `Socket已连接到项目: ${currentProject.name} (ID: ${projectId})`
+          `🎉 Socket已连接到项目: ${currentProject.name} (ID: ${projectId})`
         );
       } catch (error) {
         console.error('Socket初始化失败:', error);
@@ -160,9 +195,23 @@ function App() {
   }, [isAuthenticated]);
 
   const handleProjectSelect = async (project: Project) => {
+    console.log('🔄 项目选择开始:', {
+      projectName: project.name,
+      projectId: project.id,
+      projectIdType: typeof project.id,
+      fullProject: project,
+    });
     setCurrentProject(project);
-    // Socket重连将由Socket初始化useEffect自动处理
-    console.log(`项目已切换到: ${project.name} (ID: ${project.id})`);
+    console.log(`✅ 项目已切换到: ${project.name} (ID: ${project.id})`);
+
+    // 强制触发Socket连接检查
+    console.log('🔄 强制触发Socket连接检查...');
+    setTimeout(() => {
+      console.log('⏰ 延迟检查Socket连接状态:', {
+        currentProjectAfterTimeout: project.id,
+        isAuthenticated: isAuthenticated,
+      });
+    }, 100);
   };
 
   const handleSidebarToggle = () => {
