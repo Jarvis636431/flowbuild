@@ -36,18 +36,32 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   // WebSocket连接管理
   useEffect(() => {
+    console.log('🔍 Chat组件 - useEffect触发，项目ID:', currentProject?.id);
+
     const socketService = getDefaultWebSocketService();
     if (!socketService) {
-      console.warn('WebSocket服务未初始化');
+      console.warn('❌ Chat组件 - WebSocket服务未初始化');
       return;
     }
+
+    console.log(
+      '✅ Chat组件 - 获取到WebSocket服务，当前状态:',
+      socketService.getStatus()
+    );
 
     // 监听连接状态变化
     const handleStatusChange = (...args: unknown[]) => {
       const status = args[0] as WebSocketStatus;
+      console.log('🔄 Chat组件 - 收到状态变化事件:', {
+        newStatus: status,
+        previousStatus: socketStatus,
+        isConnectedBefore: isConnected,
+        willBeConnected: status === 'connected',
+        timestamp: new Date().toISOString(),
+      });
+
       setSocketStatus(status);
       setIsConnected(status === 'connected');
-      console.log('Chat组件 - WebSocket状态变化:', status);
 
       // 连接建立后发送初始化消息
       if (status === 'connected') {
@@ -84,8 +98,31 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
     // 获取当前连接状态
     const currentStatus = socketService.getStatus();
+    console.log('📊 Chat组件 - 初始状态设置:', {
+      currentStatus,
+      isConnected: currentStatus === 'connected',
+      socketServiceExists: !!socketService,
+      projectId: currentProject?.id,
+    });
+
     setSocketStatus(currentStatus);
     setIsConnected(currentStatus === 'connected');
+
+    // 延迟检查确保状态同步
+    setTimeout(() => {
+      const latestStatus = socketService.getStatus();
+      console.log('⏰ Chat组件 - 延迟状态检查:', {
+        latestStatus,
+        currentDisplayStatus: socketStatus,
+        shouldUpdate: latestStatus !== currentStatus,
+      });
+
+      if (latestStatus !== currentStatus) {
+        console.log('🔄 Chat组件 - 状态不一致，强制更新');
+        setSocketStatus(latestStatus);
+        setIsConnected(latestStatus === 'connected');
+      }
+    }, 200);
 
     // 清理函数
     return () => {
@@ -93,7 +130,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       socketService.off('message', handleMessage);
       socketService.off('chat_response', handleMessage);
     };
-  }, []);
+  }, [currentProject?.id]);
 
   // 发送初始化消息
   const sendInitMessage = (): boolean => {

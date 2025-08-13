@@ -62,6 +62,13 @@ function App() {
   useEffect(() => {
     if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
 
+    console.log('🔍 useEffect触发 - Socket连接管理:', {
+      currentProjectId: currentProject?.id,
+      currentProjectName: currentProject?.name,
+      isAuthenticated: isAuthenticated,
+      timestamp: new Date().toISOString(),
+    });
+
     const initSocket = async () => {
       try {
         const token = AuthService.getToken();
@@ -80,7 +87,11 @@ function App() {
           return;
         }
 
-        console.log('✅ Socket连接条件满足，开始建立连接...');
+        console.log('✅ Socket连接条件满足，开始建立连接...', {
+          projectId: currentProject.id,
+          projectName: currentProject.name,
+          token: token ? '已获取' : '未获取',
+        });
 
         // 先断开现有连接
         const existingService = getDefaultWebSocketService();
@@ -183,23 +194,39 @@ function App() {
   }, [isAuthenticated]);
 
   const handleProjectSelect = async (project: Project) => {
+    const previousProject = currentProject;
     console.log('🔄 项目选择开始:', {
-      projectName: project.name,
-      projectId: project.id,
-      projectIdType: typeof project.id,
-      fullProject: project,
+      previousProject: {
+        id: previousProject?.id,
+        name: previousProject?.name,
+      },
+      newProject: {
+        id: project.id,
+        name: project.name,
+        idType: typeof project.id,
+      },
+      isAuthenticated: isAuthenticated,
+      timestamp: new Date().toISOString(),
     });
+
     setCurrentProject(project);
-    console.log(`✅ 项目已切换到: ${project.name} (ID: ${project.id})`);
+
+    console.log('✅ 项目状态已更新:', {
+      from: previousProject?.id,
+      to: project.id,
+      projectName: project.name,
+      shouldTriggerReconnect: previousProject?.id !== project.id,
+    });
 
     // 强制触发Socket连接检查
-    console.log('🔄 强制触发Socket连接检查...');
+    console.log('🔄 等待useEffect响应项目变化...');
     setTimeout(() => {
-      console.log('⏰ 延迟检查Socket连接状态:', {
-        currentProjectAfterTimeout: project.id,
+      console.log('⏰ 延迟检查 - 项目切换后状态:', {
+        currentProjectId: project.id,
         isAuthenticated: isAuthenticated,
+        expectedReconnection: true,
       });
-    }, 100);
+    }, 200);
   };
 
   const handleSidebarToggle = () => {
@@ -240,19 +267,11 @@ function App() {
   };
 
   if (authLoading) {
-    return (
-      <div className="app-container loading">
-        <div className="loading-spinner">正在验证身份...</div>
-      </div>
-    );
+    return <div className="app-container loading"></div>;
   }
 
   if (loading && isAuthenticated) {
-    return (
-      <div className="app-container loading">
-        <div className="loading-spinner">加载中...</div>
-      </div>
-    );
+    return <div className="app-container loading"></div>;
   }
 
   return (
