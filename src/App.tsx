@@ -6,6 +6,11 @@ import Sidebar from './components/Sidebar';
 import AuthModal from './components/auth/AuthModal';
 import { type Project, projectAPI } from './services/projectService';
 import { AuthService } from './services/authService';
+import {
+  initDefaultSocketService,
+  getDefaultSocketService,
+} from './services/socketService';
+import { FEATURE_FLAGS, ENV_CONFIG } from './config/features';
 
 function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -41,6 +46,80 @@ function App() {
     checkAuthStatus();
   }, []);
 
+  // 初始化Socket服务
+  useEffect(() => {
+    if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
+
+    const initSocket = async () => {
+      try {
+        // 获取用户认证信息
+        const user = AuthService.getCurrentUserSync();
+        const token = AuthService.getToken();
+
+        // 只有在用户已认证且有选中项目时才建立Socket连接
+        if (!user || !token || !currentProject?.id) {
+          console.log('Socket连接条件不满足：', {
+            hasUser: !!user,
+            hasToken: !!token,
+            hasProject: !!currentProject?.id,
+          });
+          return;
+        }
+
+        // 构建Socket URL，包含项目ID和JWT令牌
+        const baseUrl =
+          ENV_CONFIG.SOCKET_URL || 'ws://101.43.150.234:8003/ws/agent';
+        const projectId = currentProject.id;
+        const socketUrl = `${baseUrl}?project_id=${projectId}&token=${token}`;
+
+        // 初始化Socket服务
+        const socketService = initDefaultSocketService({
+          url: socketUrl,
+          options: {
+            autoConnect: false,
+            auth: {
+              token,
+              userId: user.user_id,
+              username: user.username,
+            },
+            query: {
+              project_id: projectId,
+              version: '1.0.0',
+            },
+          },
+        });
+
+        // 监听连接状态变化
+        socketService.on('statusChange', (status) => {
+          console.log(`Socket状态变化 [项目${projectId}]:`, status);
+        });
+
+        // 监听连接错误
+        socketService.on('error', (error) => {
+          console.error(`Socket连接错误 [项目${projectId}]:`, error);
+        });
+
+        // 建立Socket连接
+        await socketService.connect();
+        console.log(
+          `Socket已连接到项目: ${currentProject.name} (ID: ${projectId})`
+        );
+      } catch (error) {
+        console.error('Socket初始化失败:', error);
+      }
+    };
+
+    initSocket();
+
+    // 清理函数
+    return () => {
+      const socketService = getDefaultSocketService();
+      if (socketService) {
+        socketService.destroy();
+      }
+    };
+  }, [currentProject?.id, currentProject?.name, isAuthenticated]);
+
   // 初始化时加载第一个项目（仅在已认证时）
   useEffect(() => {
     if (!isAuthenticated || authLoading) return;
@@ -61,8 +140,29 @@ function App() {
     initializeApp();
   }, [isAuthenticated, authLoading]);
 
-  const handleProjectSelect = (project: Project) => {
+  // 监听认证状态变化，管理Socket连接
+  useEffect(() => {
+    if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
+
+    const socketService = getDefaultSocketService();
+    if (!socketService) return;
+
+    const handleAuthChange = async () => {
+      if (!isAuthenticated) {
+        // 用户登出时断开Socket连接
+        socketService.disconnect();
+        console.log('用户登出，Socket连接已断开');
+      }
+      // 用户登录时的Socket连接由Socket初始化useEffect处理
+    };
+
+    handleAuthChange();
+  }, [isAuthenticated]);
+
+  const handleProjectSelect = async (project: Project) => {
     setCurrentProject(project);
+    // Socket重连将由Socket初始化useEffect自动处理
+    console.log(`项目已切换到: ${project.name} (ID: ${project.id})`);
   };
 
   const handleSidebarToggle = () => {
