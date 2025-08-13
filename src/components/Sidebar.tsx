@@ -10,6 +10,7 @@ interface SidebarProps {
   currentProject: Project | null;
   onProjectSelect: (project: Project) => void;
   onNewProject: () => void;
+  viewMode?: 'upload' | 'output';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -18,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentProject,
   onProjectSelect,
   onNewProject,
+  viewMode,
 }) => {
   const {
     data: projects,
@@ -32,14 +34,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     await execute(async () => {
       const projectList = await projectAPI.getProjects();
 
-      // 如果没有当前项目且有项目列表，选择第一个项目
-      if (!currentProject && projectList.length > 0) {
+      // 只有在应用初始化时（非新建项目模式）且没有当前项目时，才自动选择第一个项目
+      if (!currentProject && projectList.length > 0 && viewMode !== 'upload') {
         onProjectSelect(projectList[0]);
       }
 
       return projectList;
     });
-  }, [currentProject, onProjectSelect, execute]);
+  }, [currentProject, onProjectSelect, execute, viewMode]);
 
   useEffect(() => {
     loadProjects();

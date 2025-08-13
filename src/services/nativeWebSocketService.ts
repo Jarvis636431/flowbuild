@@ -262,7 +262,7 @@ export class NativeWebSocketService {
       this.emitStatusChange();
       this.emitEvent(
         'error',
-        error.type || error.message || '未知WebSocket错误'
+        error.type || (error as ErrorEvent).message || '未知WebSocket错误'
       );
     };
 

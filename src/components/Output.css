@@ -1085,6 +1085,56 @@
   text-align: right;
 }
 
+/* 空状态样式 */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.empty-state h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.debug-info {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 20px;
+  text-align: left;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.debug-info p {
+  margin: 0 0 10px 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.debug-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.debug-info li {
+  margin: 5px 0;
+  color: #555;
+  font-family: monospace;
+  font-size: 12px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .log-item {
