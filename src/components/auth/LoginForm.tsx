@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { authService } from '../../services/authService';
+import { AuthService } from '../../services/authService';
+import './Auth.css';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -8,7 +9,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -31,14 +32,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     setError('');
 
     try {
-      await authService.login({
-        username: formData.email,
+      await AuthService.login({
+        username: formData.username,
         password: formData.password,
       });
       onSuccess();
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : '登录失败，请检查邮箱和密码';
+        err instanceof Error ? err.message : '登录失败，请检查用户名和密码';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -46,44 +47,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="auth-form">
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-error">{error}</div>}
 
-      {/* Email Field */}
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          邮箱
+      {/* Username Field */}
+      <div className="auth-field">
+        <label htmlFor="username" className="auth-label">
+          用户名
         </label>
         <input
-          type="email"
-          id="email"
-          name="email"
-          value={formData.email}
+          type="text"
+          id="username"
+          name="username"
+          value={formData.username}
           onChange={handleInputChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="请输入邮箱地址"
+          className="auth-input"
+          placeholder="请输入用户名"
           disabled={isLoading}
         />
       </div>
 
       {/* Password Field */}
-      <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+      <div className="auth-field">
+        <label htmlFor="password" className="auth-label">
           密码
         </label>
-        <div className="relative">
+        <div className="auth-password-container">
           <input
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -91,14 +82,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             value={formData.password}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="auth-input auth-password-input"
             placeholder="请输入密码"
             disabled={isLoading}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            className="auth-password-toggle"
             disabled={isLoading}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -109,12 +100,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isLoading || !formData.email || !formData.password}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+        disabled={isLoading || !formData.username || !formData.password}
+        className="auth-submit-btn"
       >
         {isLoading ? (
           <>
-            <Loader2 className="animate-spin mr-2" size={20} />
+            <Loader2 className="auth-loading-spinner" size={20} />
             登录中...
           </>
         ) : (
@@ -123,12 +114,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       </button>
 
       {/* Forgot Password Link */}
-      <div className="text-center">
-        <button
-          type="button"
-          className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-          disabled={isLoading}
-        >
+      <div className="auth-text-center">
+        <button type="button" className="auth-link" disabled={isLoading}>
           忘记密码？
         </button>
       </div>
