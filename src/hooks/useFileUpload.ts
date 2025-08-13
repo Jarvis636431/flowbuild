@@ -353,7 +353,7 @@ export const useFileUpload = (
               file: documentFile,
               project_id: projectId,
               uploaded_by: currentUser.user_id,
-              category: 'document',
+              category: 'workdescription',
               file_type: 'document',
             });
 
@@ -381,7 +381,7 @@ export const useFileUpload = (
               file: cadFile,
               project_id: projectId,
               uploaded_by: currentUser.user_id,
-              category: 'cad',
+              category: 'workvolume',
               file_type: 'cad',
             });
 
