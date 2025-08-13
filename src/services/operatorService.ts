@@ -148,15 +148,16 @@ export class OperatorService {
     try {
       console.log(`🏁 正在完成任务，项目ID: ${projectId}`);
 
+      const formData = new FormData();
+      formData.append('project_id', projectId);
+
       const response = await httpClient.post(
         `${OPERATOR_CONFIG.BASE_URL_OP}/finish`,
-        {
-          project_id: projectId,
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
+            // 移除 Content-Type，让浏览器自动设置为 multipart/form-data
           },
         }
       );
