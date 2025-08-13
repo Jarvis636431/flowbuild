@@ -2,33 +2,14 @@
 
 /* 认证模态框 */
 .auth-modal {
-  width: 100%;
-  max-width: 28rem;
-  margin: 0 1rem;
+  width: 28rem;
+  max-width: 90vw;
   background-color: #1f2937;
   border-radius: 0.5rem;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  position: relative;
-}
-
-/* 关闭按钮 */
-.auth-close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  color: #9ca3af;
-  transition: color 0.2s ease;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-}
-
-.auth-close-btn:hover {
-  color: #d1d5db;
+  color: #ffffff;
 }
 
 /* 模态框头部 */
