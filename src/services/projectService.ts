@@ -19,7 +19,7 @@ export interface Project {
 
 // 项目列表API响应接口
 export interface ProjectListResponse {
-  projects: ApiProject[];
+  result: ApiProject[];
 }
 
 // 后端API响应接口
@@ -117,8 +117,22 @@ export class ProjectService {
           `${ManagementServiceUrls.projectList()}?user_id=${currentUser.user_id}`
         );
 
-        // 从projects数组中提取数据并转换
-        return response.projects.map(convertApiProjectToProject);
+        // 验证API响应格式
+        console.log('API响应数据:', response);
+
+        // 检查response.result是否存在且为数组
+        if (!response || !response.result) {
+          console.error('API响应格式错误: result字段不存在', response);
+          throw new Error('API响应格式错误: 缺少result字段');
+        }
+
+        if (!Array.isArray(response.result)) {
+          console.error('API响应格式错误: result不是数组', response.result);
+          throw new Error('API响应格式错误: result字段不是数组');
+        }
+
+        // 从result数组中提取数据并转换
+        return response.result.map(convertApiProjectToProject);
       } else {
         // 使用模拟数据（保持向后兼容）
         await new Promise((resolve) => setTimeout(resolve, 400));
@@ -126,12 +140,24 @@ export class ProjectService {
       }
     } catch (error) {
       console.error('获取项目列表失败:', error);
-      // 降级到模拟数据
+
+      // 如果是使用真实API模式，降级到模拟数据
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
+        console.warn('API调用失败，降级到模拟数据。错误详情:', error);
+
+        // 确保模拟数据是数组
+        if (!Array.isArray(mockProjects)) {
+          console.warn('模拟数据不是数组，返回空数组');
+          return [];
+        }
+
         return mockProjects;
       }
-      throw new Error('获取项目列表失败');
+
+      // 如果是模拟数据模式，直接抛出错误
+      throw new Error(
+        `获取项目列表失败: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
