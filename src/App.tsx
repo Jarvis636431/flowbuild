@@ -14,6 +14,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
 
   // 检查用户认证状态
   useEffect(() => {
@@ -80,6 +81,15 @@ function App() {
     }
   };
 
+  const handleNewProject = () => {
+    setViewMode('upload');
+  };
+
+  const handlePrecreateProject = () => {
+    // 预创建项目逻辑
+    console.log('预创建项目');
+  };
+
   if (authLoading) {
     return (
       <div className="app-container loading">
@@ -106,10 +116,15 @@ function App() {
           onToggle={handleSidebarToggle}
           currentProject={currentProject}
           onProjectSelect={handleProjectSelect}
+          onNewProject={handleNewProject}
         />
         <div className="main-content">
           <Chat />
-          <Output currentProject={currentProject} />
+          <Output
+            currentProject={currentProject}
+            viewMode={viewMode}
+            onPrecreateProject={handlePrecreateProject}
+          />
         </div>
       </div>
 

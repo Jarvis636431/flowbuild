@@ -9,6 +9,7 @@ interface SidebarProps {
   onToggle: () => void;
   currentProject: Project | null;
   onProjectSelect: (project: Project) => void;
+  onNewProject: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -16,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   currentProject,
   onProjectSelect,
+  onNewProject,
 }) => {
   const {
     data: projects,
@@ -133,6 +135,23 @@ const Sidebar: React.FC<SidebarProps> = ({
             <button onClick={() => setError(null)}>×</button>
           </div>
         )}
+
+        {/* 新建项目按钮 */}
+        <div className="new-project-section">
+          {isCollapsed ? (
+            <button
+              className="new-project-btn collapsed"
+              onClick={onNewProject}
+              title="新建项目"
+            >
+              +
+            </button>
+          ) : (
+            <button className="new-project-btn" onClick={onNewProject}>
+              + 新建项目
+            </button>
+          )}
+        </div>
 
         <div className="projects-list">
           {(projects || []).map((project) => (
