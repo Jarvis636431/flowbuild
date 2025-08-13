@@ -7,9 +7,9 @@ import AuthModal from './components/auth/AuthModal';
 import { type Project, projectAPI } from './services/projectService';
 import { AuthService } from './services/authService';
 import {
-  initDefaultSocketService,
-  getDefaultSocketService,
-} from './services/socketService';
+  initDefaultWebSocketService,
+  getDefaultWebSocketService,
+} from './services/nativeWebSocketService';
 import { FEATURE_FLAGS, ENV_CONFIG } from './config/features';
 
 // 调试环境变量
@@ -95,27 +95,17 @@ function App() {
 
         console.log('✅ Socket连接条件满足，开始建立连接...');
 
-        // 构建Socket URL，包含项目ID和JWT令牌
-        const baseUrl =
-          ENV_CONFIG.SOCKET_URL || 'ws://101.43.150.234:8003/ws/agent';
+        // 构建WebSocket URL，包含认证参数
         const projectId = currentProject.id;
-        const socketUrl = `${baseUrl}?project_id=${projectId}&token=${token}`;
+        const wsUrl = `ws://101.43.150.234:8003/ws/agent?project_id=${projectId}&token=${token}`;
 
-        // 初始化Socket服务
-        const socketService = initDefaultSocketService({
-          url: socketUrl,
-          options: {
-            autoConnect: false,
-            auth: {
-              token,
-              userId: user.user_id,
-              username: user.username,
-            },
-            query: {
-              project_id: projectId,
-              version: '1.0.0',
-            },
-          },
+        // 初始化原生WebSocket服务
+        const socketService = initDefaultWebSocketService({
+          url: wsUrl,
+          reconnectAttempts: 5,
+          reconnectDelay: 1000,
+          heartbeatInterval: 30000,
+          connectionTimeout: 10000,
         });
 
         // 监听连接状态变化
@@ -128,19 +118,19 @@ function App() {
           console.error(`Socket连接错误 [项目${projectId}]:`, error);
         });
 
-        // 建立Socket连接
-        console.log('🚀 开始建立Socket连接:', {
-          socketUrl: socketUrl,
+        // 建立WebSocket连接
+        console.log('🚀 开始建立WebSocket连接:', {
+          wsUrl: wsUrl,
           projectId: projectId,
           projectName: currentProject.name,
         });
 
         await socketService.connect();
         console.log(
-          `🎉 Socket已连接到项目: ${currentProject.name} (ID: ${projectId})`
+          `🎉 WebSocket已连接到项目: ${currentProject.name} (ID: ${projectId})`
         );
       } catch (error) {
-        console.error('Socket初始化失败:', error);
+        console.error('WebSocket初始化失败:', error);
       }
     };
 
@@ -148,7 +138,7 @@ function App() {
 
     // 清理函数
     return () => {
-      const socketService = getDefaultSocketService();
+      const socketService = getDefaultWebSocketService();
       if (socketService) {
         socketService.destroy();
       }
@@ -179,14 +169,14 @@ function App() {
   useEffect(() => {
     if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
 
-    const socketService = getDefaultSocketService();
+    const socketService = getDefaultWebSocketService();
     if (!socketService) return;
 
     const handleAuthChange = async () => {
       if (!isAuthenticated) {
         // 用户登出时断开Socket连接
         socketService.disconnect();
-        console.log('用户登出，Socket连接已断开');
+        console.log('用户登出，WebSocket连接已断开');
       }
       // 用户登录时的Socket连接由Socket初始化useEffect处理
     };
