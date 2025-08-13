@@ -217,7 +217,7 @@ export const useFileUpload = (
             setPollingProgress(result.progress);
           }
 
-          if (result.status === 'completed') {
+          if (result.status === 'success') {
             console.log('项目处理完成，停止轮询');
             stopPolling();
 
