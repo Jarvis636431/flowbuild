@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import AuthModal from './components/auth/AuthModal';
 import { type Project, projectAPI } from './services/projectService';
 import { AuthService } from './services/authService';
+import { ManagementServiceUrls } from './services/apiConfig';
 import {
   initDefaultWebSocketService,
   getDefaultWebSocketService,
@@ -209,14 +210,48 @@ function App() {
       timestamp: new Date().toISOString(),
     });
 
-    setCurrentProject(project);
+    try {
+      // 调用/view接口
+      console.log('📡 调用/view接口，项目ID:', project.id);
+      const response = await fetch(
+        `${ManagementServiceUrls.view()}?project_id=${project.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${AuthService.getToken()}`,
+          },
+        }
+      );
 
-    console.log('✅ 项目状态已更新:', {
-      from: previousProject?.id,
-      to: project.id,
-      projectName: project.name,
-      shouldTriggerReconnect: previousProject?.id !== project.id,
-    });
+      if (!response.ok) {
+        throw new Error(
+          `API调用失败: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log('✅ /view接口调用成功:', data);
+
+      // 更新项目状态
+      setCurrentProject(project);
+
+      // 切换到输出模式
+      setViewMode('output');
+      console.log('🎯 已切换到输出模式');
+
+      console.log('✅ 项目状态已更新:', {
+        from: previousProject?.id,
+        to: project.id,
+        projectName: project.name,
+        shouldTriggerReconnect: previousProject?.id !== project.id,
+        viewMode: 'output',
+      });
+    } catch (error) {
+      console.error('❌ 项目切换失败:', error);
+      // 即使API调用失败，仍然更新项目状态
+      setCurrentProject(project);
+    }
 
     // 强制触发Socket连接检查
     console.log('🔄 等待useEffect响应项目变化...');
