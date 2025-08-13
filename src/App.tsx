@@ -85,9 +85,21 @@ function App() {
     setViewMode('upload');
   };
 
-  const handlePrecreateProject = () => {
-    // 预创建项目逻辑
-    console.log('预创建项目');
+  const handleProjectCreated = async () => {
+    // 项目创建成功后的回调
+    try {
+      // 刷新项目列表
+      const projects = await projectAPI.getProjects();
+      if (projects.length > 0) {
+        // 选择最新创建的项目（通常是列表中的最后一个）
+        const latestProject = projects[projects.length - 1];
+        setCurrentProject(latestProject);
+      }
+      // 切换到输出模式
+      setViewMode('output');
+    } catch (error) {
+      console.error('刷新项目列表失败:', error);
+    }
   };
 
   if (authLoading) {
@@ -123,7 +135,7 @@ function App() {
           <Output
             currentProject={currentProject}
             viewMode={viewMode}
-            onPrecreateProject={handlePrecreateProject}
+            onProjectCreated={handleProjectCreated}
           />
         </div>
       </div>

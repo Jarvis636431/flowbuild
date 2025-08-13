@@ -16,18 +16,16 @@ import './Output.css';
 interface OutputProps {
   currentProject: Project | null;
   viewMode: 'upload' | 'output';
-  onPrecreateProject: () => void;
+  onProjectCreated: () => void;
 }
 
 const Output: React.FC<OutputProps> = React.memo(
-  ({ currentProject, viewMode, onPrecreateProject }) => {
+  ({ currentProject, viewMode, onProjectCreated }) => {
     const [activeTab, setActiveTab] = useState('甘特图模式');
 
     // 使用自定义Hooks
     const taskManagement = useTaskManagement(currentProject);
-    const fileUpload = useFileUpload(() => {
-      setViewMode('output');
-    });
+    const fileUpload = useFileUpload(onProjectCreated);
     const chartData = useChartData(taskManagement.tasks);
 
     // 缓存计算结果
@@ -131,6 +129,8 @@ const Output: React.FC<OutputProps> = React.memo(
       taskManagement.error,
       taskManagement.handleTaskClick,
       taskManagement.fetchTasks,
+      chartData.totalDays,
+      currentProject?.name,
     ]);
 
     // 上传模式的渲染
@@ -142,14 +142,20 @@ const Output: React.FC<OutputProps> = React.memo(
             cadFile={fileUpload.cadFile}
             projectName={fileUpload.projectName}
             isCreatingProject={fileUpload.isCreatingProject}
+            isPrecreating={fileUpload.isPrecreating}
+            isUploading={fileUpload.isUploading}
+            uploadProgress={fileUpload.uploadProgress}
+            validationErrors={fileUpload.validationErrors}
+            projectId={fileUpload.projectId}
             onDocumentUpload={fileUpload.handleDocumentUpload}
             onCadUpload={fileUpload.handleCadUpload}
             onDocumentDrop={fileUpload.handleDocumentDrop}
             onCadDrop={fileUpload.handleCadDrop}
             onDragOver={fileUpload.handleDragOver}
             onProjectNameChange={handleProjectNameChange}
+            onPrecreateProject={fileUpload.handlePrecreateProject}
+            onUploadFiles={fileUpload.handleUploadFiles}
             onCreateProject={fileUpload.handleCreateProject}
-            onPrecreateProject={onPrecreateProject}
           />
         </div>
       );

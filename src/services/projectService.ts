@@ -80,28 +80,38 @@ export interface ProjectFinalizeRequest {
 export interface FileUploadConfig {
   file: File;
   project_id: string;
-  file_type: 'ifc' | 'excel' | 'workvolume';
+  file_type: 'document' | 'cad';
   name?: string;
   onProgress?: (progress: number) => void;
 }
 
 export interface FileUploadResponse {
-  uploaded_files: string[];
-  parse_ids: string[];
-  project_id: string;
-  status: 'success' | 'error';
+  success: boolean;
+  file_id?: string;
   message?: string;
+  uploaded_files?: string[];
+  parse_ids?: string[];
+  project_id?: string;
+  status?: 'success' | 'error';
 }
 
 export interface FileValidationResult {
   isValid: boolean;
   error?: string;
-  fileType?: 'ifc' | 'excel' | 'workvolume';
+  fileType?: 'document' | 'cad';
+}
+
+export interface FileUploadRequest {
+  project_id: string;
+  uploaded_by: string;
+  category: string;
+  file: File;
+  file_type: 'document' | 'cad';
 }
 
 // 支持的文件类型配置
 export const SUPPORTED_FILE_TYPES: Record<
-  'ifc' | 'excel' | 'workvolume',
+  'document' | 'cad',
   {
     extensions: string[];
     mimeTypes: string[];
@@ -109,30 +119,27 @@ export const SUPPORTED_FILE_TYPES: Record<
     description: string;
   }
 > = {
-  ifc: {
-    extensions: ['.ifc'],
-    mimeTypes: ['application/octet-stream', 'text/plain'],
-    maxSize: 100 * 1024 * 1024, // 100MB
-    description: 'IFC模型文件',
-  },
-  excel: {
-    extensions: ['.xlsx', '.xls'],
+  document: {
+    extensions: ['.doc', '.docx', '.pdf', '.txt'],
     mimeTypes: [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/pdf',
+      'text/plain',
     ],
     maxSize: 10 * 1024 * 1024, // 10MB
-    description: 'Excel文档文件',
+    description: '项目文档文件',
   },
-  workvolume: {
-    extensions: ['.xlsx', '.xls', '.csv'],
+  cad: {
+    extensions: ['.dwg', '.dwf', '.dxf', '.gbq', '.gbd'],
     mimeTypes: [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv',
+      'application/octet-stream',
+      'application/x-autocad',
+      'image/vnd.dwg',
+      'application/acad',
     ],
-    maxSize: 5 * 1024 * 1024, // 5MB
-    description: '工程量清单文件',
+    maxSize: 100 * 1024 * 1024, // 100MB
+    description: 'CAD文件或广联达模型文件',
   },
 };
 
@@ -249,39 +256,49 @@ export class ProjectService {
     }
   }
 
-  // 创建新项目（三步骤流程）
-  static async createProject(
-    project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<Project> {
+  // 预创建项目（获取project_id）
+  static async precreateProject(request: {
+    user_id: string;
+    project_name: string;
+  }): Promise<{ project_id: string }> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
-        // 步骤1: 项目预创建
-        const precreateResponse = await http.post<ProjectPrecreateResponse>(
+        const response = await http.post<{ project_id: string }>(
           ManagementServiceUrls.precreate(),
           {
-            project_name: project.name,
-            description: project.description,
+            user_id: request.user_id,
+            project_name: request.project_name,
           }
         );
+        return response;
+      } else {
+        // 模拟模式
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        return {
+          project_id: `project_${Date.now()}`,
+        };
+      }
+    } catch (error) {
+      console.error('预创建项目失败:', error);
+      throw error;
+    }
+  }
 
-        // 步骤2: 信息检查
-        await http.post(ManagementServiceUrls.infoCheck(), {
-          project_id: precreateResponse.project_id,
-          project_info: {
-            name: project.name,
-            description: project.description,
-            start_date: new Date().toISOString(),
-            end_date: new Date(
-              Date.now() + 30 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-          },
-        });
-
-        // 步骤3: 完成项目创建 - 添加完整的final_config参数
+  // 创建新项目（最终确认创建）
+  static async createProject(request: {
+    project_id: string;
+    project_name: string;
+    description?: string;
+  }): Promise<Project> {
+    try {
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        // 最终确认创建项目
         const finalResponse = await http.post<ApiProject>(
           ManagementServiceUrls.finalizeCreation(),
           {
-            project_id: precreateResponse.project_id,
+            project_id: request.project_id,
+            project_name: request.project_name,
+            description: request.description || '',
             final_config: {
               construction_methods: [],
               overtime_tasks: [],
@@ -308,8 +325,9 @@ export class ProjectService {
         // 模拟数据逻辑
         await new Promise((resolve) => setTimeout(resolve, 800));
         const newProject: Project = {
-          ...project,
           id: Math.max(...mockProjects.map((p) => p.id), 0) + 1,
+          name: request.project_name,
+          description: request.description || '',
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -417,7 +435,7 @@ export class ProjectService {
   // 文件验证方法
   static validateFile(
     file: File,
-    fileType: 'ifc' | 'excel' | 'workvolume'
+    fileType: 'document' | 'cad'
   ): FileValidationResult {
     const config = SUPPORTED_FILE_TYPES[fileType];
 
@@ -501,6 +519,7 @@ export class ProjectService {
 
         // 模拟响应
         return {
+          success: true,
           uploaded_files: [config.file.name],
           parse_ids: [`parse_${Date.now()}`],
           project_id: config.project_id,
@@ -535,6 +554,7 @@ export class ProjectService {
       } catch (error) {
         console.error(`文件 ${fileConfig.file.name} 上传失败:`, error);
         results.push({
+          success: false,
           uploaded_files: [],
           parse_ids: [],
           project_id: fileConfig.project_id,
@@ -547,20 +567,71 @@ export class ProjectService {
     return results;
   }
 
+  // 上传文件到指定项目
+  static async uploadFile(
+    request: FileUploadRequest
+  ): Promise<FileUploadResponse> {
+    if (FEATURE_FLAGS.USE_REAL_API) {
+      try {
+        const formData = new FormData();
+        formData.append('file', request.file);
+        formData.append('project_id', request.project_id);
+        formData.append('uploaded_by', request.uploaded_by);
+        formData.append('category', request.category);
+
+        const response = await http.post<FileUploadResponse>(
+          ManagementServiceUrls.uploads(request.file_type),
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+
+        return response;
+      } catch (error) {
+        console.error('文件上传失败:', error);
+        throw error;
+      }
+    } else {
+      // 模拟模式
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            success: true,
+            file_id: `file_${Date.now()}`,
+            message: '文件上传成功',
+          });
+        }, 1000);
+      });
+    }
+  }
+
   // 创建项目并上传文件的完整流程
   static async createProjectWithFiles(
     project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
     files?: {
       file: File;
-      fileType: 'ifc' | 'excel' | 'workvolume';
+      fileType: 'document' | 'cad';
       onProgress?: (progress: number) => void;
     }[]
   ): Promise<{ project: Project; uploadResults?: FileUploadResponse[] }> {
     try {
-      // 步骤1: 创建项目
-      const createdProject = await this.createProject(project);
+      // 步骤1: 预创建项目
+      const precreateResponse = await this.precreateProject({
+        user_id: 'current_user', // TODO: 从当前登录用户获取
+        project_name: project.name,
+      });
 
-      // 步骤2: 如果有文件，则上传文件
+      // 步骤2: 创建项目
+      const createdProject = await this.createProject({
+        project_id: precreateResponse.project_id,
+        project_name: project.name,
+        description: project.description,
+      });
+
+      // 步骤3: 如果有文件，则上传文件
       if (files && files.length > 0) {
         const uploadConfigs: FileUploadConfig[] = files.map(
           ({ file, fileType, onProgress }) => ({
@@ -596,8 +667,11 @@ export const projectAPI = {
   createProject: ProjectService.createProject,
   updateProject: ProjectService.updateProject,
   deleteProject: ProjectService.deleteProject,
+  // 预创建项目
+  precreateProject: ProjectService.precreateProject,
   // 文件上传相关方法
   validateFile: ProjectService.validateFile,
+  uploadFile: ProjectService.uploadFile,
   uploadDocuments: ProjectService.uploadDocuments,
   uploadMultipleDocuments: ProjectService.uploadMultipleDocuments,
   createProjectWithFiles: ProjectService.createProjectWithFiles,

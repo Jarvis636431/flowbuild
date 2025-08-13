@@ -27,14 +27,20 @@ interface FileUploadSectionProps {
   cadFile: File | null;
   projectName: string;
   isCreatingProject: boolean;
+  isPrecreating?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  validationErrors?: string[];
+  projectId?: string | null;
   onDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCadUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onDocumentDrop: (event: React.DragEvent<HTMLDivElement>) => void;
   onCadDrop: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onProjectNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onCreateProject: () => void;
   onPrecreateProject?: () => void;
+  onUploadFiles?: () => void;
+  onCreateProject: () => void;
 }
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
@@ -43,18 +49,66 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     cadFile,
     projectName,
     isCreatingProject,
+    isPrecreating = false,
+    isUploading = false,
+    uploadProgress = 0,
+    validationErrors = [],
+    projectId,
     onDocumentUpload,
     onCadUpload,
     onDocumentDrop,
     onCadDrop,
     onDragOver,
     onProjectNameChange,
-    onCreateProject,
     onPrecreateProject,
+    onUploadFiles,
+    onCreateProject,
   }) => {
     return (
       <div className="upload-container">
         <h2 className="upload-main-title">创建新项目</h2>
+
+        {/* 验证错误提示 */}
+        {validationErrors.length > 0 && (
+          <div className="validation-errors">
+            <h4>文件验证错误：</h4>
+            <ul>
+              {validationErrors.map((error, index) => (
+                <li key={index} className="error-item">
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 项目状态显示 */}
+        {projectId && (
+          <div className="project-status">
+            <div className="status-item">✅ 项目已预创建，ID: {projectId}</div>
+          </div>
+        )}
+
+        {/* 上传进度条 */}
+        {(isCreatingProject || isPrecreating || isUploading) &&
+          uploadProgress > 0 && (
+            <div className="upload-progress">
+              <div className="progress-label">
+                {isPrecreating
+                  ? '预创建项目中...'
+                  : isUploading
+                    ? '文件上传中...'
+                    : '创建项目中...'}
+                : {uploadProgress}%
+              </div>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
 
         {/* 上传区域容器 - 左右排列 */}
         <div className="upload-sections-container">
@@ -198,23 +252,49 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           />
         </div>
 
-        {/* 确认按钮 */}
+        {/* 三步骤按钮 */}
         <div className="create-project-section">
+          {/* 步骤1: 预创建项目 */}
           {onPrecreateProject && (
             <button
               className="precreate-project-btn"
               onClick={onPrecreateProject}
-              disabled={isCreatingProject || !projectName.trim()}
+              disabled={isCreatingProject || isPrecreating || !!projectId}
             >
-              预创建项目
+              {isPrecreating
+                ? '预创建中...'
+                : projectId
+                  ? '已预创建'
+                  : '1. 预创建项目'}
             </button>
           )}
+
+          {/* 步骤2: 上传文件 */}
+          {onUploadFiles && (
+            <button
+              className="upload-files-btn"
+              onClick={onUploadFiles}
+              disabled={
+                isCreatingProject ||
+                isPrecreating ||
+                isUploading ||
+                !projectId ||
+                (!documentFile && !cadFile)
+              }
+            >
+              {isUploading ? '上传中...' : '2. 上传文件'}
+            </button>
+          )}
+
+          {/* 步骤3: 确认创建 */}
           <button
             className="create-project-btn"
             onClick={onCreateProject}
-            disabled={isCreatingProject || !projectName.trim()}
+            disabled={
+              isCreatingProject || isPrecreating || isUploading || !projectId
+            }
           >
-            {isCreatingProject ? '创建中...' : '确认创建项目'}
+            {isCreatingProject ? '创建中...' : '3. 确认创建项目'}
           </button>
         </div>
       </div>
