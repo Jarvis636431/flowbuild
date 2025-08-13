@@ -11,6 +11,13 @@ interface GanttChartProps {
 
 const GanttChart: React.FC<GanttChartProps> = React.memo(
   ({ tasks, onTaskClick }) => {
+    console.log('📊 GanttChart组件接收到的数据:', {
+      tasksCount: tasks.length,
+      tasks: tasks.slice(0, 3), // 只显示前3个任务避免日志过长
+      firstTask: tasks[0],
+      hasOnTaskClick: typeof onTaskClick === 'function'
+    });
+    
     // 自动计算任务数据的天数范围
     const getTasksDayRange = useMemo(() => {
       if (tasks.length === 0) {

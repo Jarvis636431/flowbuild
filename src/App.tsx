@@ -33,6 +33,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
+  const [viewData, setViewData] = useState<ArrayBuffer | null>(null);
 
   // 检查用户认证状态
   useEffect(() => {
@@ -211,27 +212,99 @@ function App() {
     });
 
     try {
+      // 构建完整的API URL
+      const apiUrl = ManagementServiceUrls.view();
+      const token = AuthService.getToken();
+      
+      console.log('📡 /view接口详细信息:', {
+        url: apiUrl,
+        method: 'POST',
+        projectId: project.id,
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        requestBody: { project_id: project.id },
+      });
+
       // 调用/view接口
-      console.log('📡 调用/view接口，项目ID:', project.id);
-      const response = await fetch(
-        `${ManagementServiceUrls.view()}?project_id=${project.id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${AuthService.getToken()}`,
-          },
-        }
-      );
+      const startTime = Date.now();
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ project_id: project.id }),
+      });
+      
+      const responseTime = Date.now() - startTime;
+      
+      console.log('📥 /view接口响应详情:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        responseTime: `${responseTime}ms`,
+        headers: {
+          contentType: response.headers.get('content-type'),
+          contentLength: response.headers.get('content-length'),
+          contentDisposition: response.headers.get('content-disposition'),
+        },
+        url: response.url,
+      });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API响应错误详情:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
         throw new Error(
-          `API调用失败: ${response.status} ${response.statusText}`
+          `API调用失败: ${response.status} ${response.statusText}. 错误内容: ${errorText}`
         );
       }
 
-      const data = await response.json();
-      console.log('✅ /view接口调用成功:', data);
+      // 获取返回的Excel数据
+      const excelData = await response.arrayBuffer();
+      
+      // 详细检查Excel数据
+      const dataSize = excelData.byteLength;
+      const isValidSize = dataSize > 0;
+      const first4Bytes = new Uint8Array(excelData.slice(0, 4));
+      const first4BytesHex = Array.from(first4Bytes).map(b => b.toString(16).padStart(2, '0')).join(' ');
+      
+      // 检查是否为Excel文件格式
+      const isExcelFormat = (
+        // XLSX格式 (ZIP文件头)
+        (first4Bytes[0] === 0x50 && first4Bytes[1] === 0x4B) ||
+        // XLS格式 (OLE文件头)
+        (first4Bytes[0] === 0xD0 && first4Bytes[1] === 0xCF && first4Bytes[2] === 0x11 && first4Bytes[3] === 0xE0)
+      );
+      
+      console.log('📊 Excel数据详细分析:', {
+        dataSize: `${dataSize} bytes (${(dataSize / 1024).toFixed(2)} KB)`,
+        isValidSize,
+        first4BytesHex,
+        isExcelFormat,
+        possibleFormat: isExcelFormat ? 
+          (first4Bytes[0] === 0x50 ? 'XLSX (ZIP-based)' : 'XLS (OLE-based)') : 
+          '未知格式',
+        dataType: Object.prototype.toString.call(excelData),
+      });
+      
+      if (!isValidSize) {
+        throw new Error('接收到的Excel数据为空');
+      }
+      
+      if (!isExcelFormat) {
+        console.warn('⚠️ 警告: 接收到的数据可能不是有效的Excel格式');
+        // 尝试将前100字节转换为文本查看内容
+        const preview = new TextDecoder('utf-8', { fatal: false }).decode(excelData.slice(0, 100));
+        console.log('📄 数据预览 (前100字节):', preview);
+      }
+      
+      setViewData(excelData);
+      console.log('✅ /view接口调用成功，Excel数据已保存到状态');
 
       // 更新项目状态
       setCurrentProject(project);
@@ -246,9 +319,16 @@ function App() {
         projectName: project.name,
         shouldTriggerReconnect: previousProject?.id !== project.id,
         viewMode: 'output',
+        excelDataReady: !!excelData && dataSize > 0,
       });
     } catch (error) {
-      console.error('❌ 项目切换失败:', error);
+      console.error('❌ 项目切换失败:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        projectId: project.id,
+        projectName: project.name,
+        apiUrl: ManagementServiceUrls.view(),
+      });
       // 即使API调用失败，仍然更新项目状态
       setCurrentProject(project);
     }
@@ -281,7 +361,11 @@ function App() {
   };
 
   const handleNewProject = () => {
+    console.log('🆕 新建项目开始 - 清除当前项目状态');
     setViewMode('upload');
+    setCurrentProject(null);
+    setViewData(null);
+    console.log('✅ 新建项目状态已清除，可以切换到其他项目');
   };
 
   const handleProjectCreated = async () => {
@@ -293,6 +377,21 @@ function App() {
         // 选择最新创建的项目（通常是列表中的最后一个）
         const latestProject = projects[projects.length - 1];
         setCurrentProject(latestProject);
+        
+        // 检查是否有最新的Excel数据
+        const latestProjectData = (window as any).latestProjectData;
+        if (latestProjectData && latestProjectData.tasks) {
+          console.log('🎯 检测到最新的Excel数据，项目任务数量:', latestProjectData.tasks.length);
+          
+          // 将Excel数据转换为ArrayBuffer格式，以便传递给Output组件
+          // 这里我们创建一个标记，让useTaskManagement知道要从ProjectService获取数据
+          setViewData(new ArrayBuffer(0)); // 设置一个空的ArrayBuffer作为标记
+          
+          console.log('✅ Excel数据已准备就绪，将传递给图表组件');
+        } else {
+          console.log('⚠️ 未检测到Excel数据，使用默认数据源');
+          setViewData(null);
+        }
       }
       // 切换到输出模式
       setViewMode('output');
@@ -320,12 +419,14 @@ function App() {
           currentProject={currentProject}
           onProjectSelect={handleProjectSelect}
           onNewProject={handleNewProject}
+          viewMode={viewMode}
         />
         <div className="main-content">
           <Chat currentProject={currentProject} />
           <Output
             currentProject={currentProject}
             viewMode={viewMode}
+            viewData={viewData}
             onProjectCreated={handleProjectCreated}
           />
         </div>

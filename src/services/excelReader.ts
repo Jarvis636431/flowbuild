@@ -400,6 +400,31 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
 }
 
 /**
+ * 从ArrayBuffer读取Excel数据并返回原始数组
+ */
+export async function readExcelFromBuffer(
+  arrayBuffer: ArrayBuffer
+): Promise<unknown[][]> {
+  try {
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const sheetNames = workbook.SheetNames;
+
+    if (sheetNames.length === 0) {
+      throw new Error('Excel文件中没有工作表');
+    }
+
+    // 使用第一个工作表
+    const worksheet = workbook.Sheets[sheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    return jsonData as unknown[][];
+  } catch (error) {
+    console.error('解析Excel ArrayBuffer失败:', error);
+    throw error;
+  }
+}
+
+/**
  * 读取所有Excel文件并返回项目列表
  */
 export async function readAllProjectsFromExcel(): Promise<Project[]> {

@@ -15,11 +15,12 @@ import './Output.css';
 interface OutputProps {
   currentProject: Project | null;
   viewMode: 'upload' | 'output';
+  viewData?: ArrayBuffer | null;
   onProjectCreated: () => void;
 }
 
 const Output: React.FC<OutputProps> = React.memo(
-  ({ currentProject, viewMode, onProjectCreated }) => {
+  ({ currentProject, viewMode, viewData, onProjectCreated }) => {
     const [activeTab, setActiveTab] = useState('甘特图模式');
 
     // 使用自定义Hooks
@@ -57,9 +58,9 @@ const Output: React.FC<OutputProps> = React.memo(
     // 初始化数据
     useEffect(() => {
       if (viewMode === 'output') {
-        taskManagement.fetchTasks();
+        taskManagement.fetchTasks(viewData || undefined);
       }
-    }, [viewMode, taskManagement.fetchTasks]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [viewMode, viewData, taskManagement.fetchTasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 渲染内容
     const renderContent = useMemo(() => {
@@ -78,7 +79,7 @@ const Output: React.FC<OutputProps> = React.memo(
             <p className="error-message">❌ {taskManagement.error}</p>
             <button
               className="retry-button"
-              onClick={taskManagement.fetchTasks}
+              onClick={() => taskManagement.fetchTasks()}
             >
               重新加载
             </button>
@@ -783,6 +784,34 @@ const Output: React.FC<OutputProps> = React.memo(
             </div>
           );
         case '甘特图模式':
+          console.log('🎯 甘特图模式渲染 - 任务数据状态:', {
+            tasksLength: taskManagement.tasks.length,
+            tasks: taskManagement.tasks,
+            loading: taskManagement.loading,
+            error: taskManagement.error,
+            currentProject: currentProject?.name,
+            viewData: viewData ? 'Excel数据存在' : '无Excel数据'
+          });
+          
+          if (taskManagement.tasks.length === 0) {
+            return (
+              <div className="empty-state">
+                <h3>📊 甘特图</h3>
+                <p>暂无任务数据</p>
+                <div className="debug-info">
+                  <p>调试信息：</p>
+                  <ul>
+                    <li>任务数量: {taskManagement.tasks.length}</li>
+                    <li>加载状态: {taskManagement.loading ? '加载中' : '已完成'}</li>
+                    <li>错误信息: {taskManagement.error || '无'}</li>
+                    <li>当前项目: {currentProject?.name || '未选择'}</li>
+                    <li>Excel数据: {viewData ? '已加载' : '未加载'}</li>
+                  </ul>
+                </div>
+              </div>
+            );
+          }
+          
           return (
             <GanttChart
               tasks={taskManagement.tasks}
@@ -790,6 +819,34 @@ const Output: React.FC<OutputProps> = React.memo(
             />
           );
         case '进度表模式':
+          console.log('📋 进度表模式渲染 - 任务数据状态:', {
+            tasksLength: taskManagement.tasks.length,
+            tasks: taskManagement.tasks,
+            loading: taskManagement.loading,
+            error: taskManagement.error,
+            currentProject: currentProject?.name,
+            viewData: viewData ? 'Excel数据存在' : '无Excel数据'
+          });
+          
+          if (taskManagement.tasks.length === 0) {
+            return (
+              <div className="empty-state">
+                <h3>📋 进度表</h3>
+                <p>暂无任务数据</p>
+                <div className="debug-info">
+                  <p>调试信息：</p>
+                  <ul>
+                    <li>任务数量: {taskManagement.tasks.length}</li>
+                    <li>加载状态: {taskManagement.loading ? '加载中' : '已完成'}</li>
+                    <li>错误信息: {taskManagement.error || '无'}</li>
+                    <li>当前项目: {currentProject?.name || '未选择'}</li>
+                    <li>Excel数据: {viewData ? '已加载' : '未加载'}</li>
+                  </ul>
+                </div>
+              </div>
+            );
+          }
+          
           return (
             <ProgressTable
               tasks={taskManagement.tasks}

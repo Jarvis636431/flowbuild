@@ -244,9 +244,18 @@ export const useFileUpload = (
                   );
                   console.log('解析后的项目数据:', projectData);
 
+                  // 使用正确的项目ID更新项目数据
+                  if (projectId) {
+                    projectData.id = projectId;
+                    projectData.name = projectName || projectData.name;
+                  }
+
                   // 将解析后的数据设置为模拟数据，供其他组件使用
                   ProjectService.setMockProjects([projectData]);
-                  console.log('项目数据已更新到系统中');
+                  console.log('项目数据已更新到系统中，项目ID:', projectData.id);
+                  
+                  // 存储Excel数据以便后续使用
+                  window.latestProjectData = projectData;
                 } else {
                   console.warn('Excel文件解析失败或无有效数据');
                 }
