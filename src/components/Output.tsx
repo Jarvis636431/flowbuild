@@ -120,7 +120,7 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
       case '操作记录':
         return <OperationLog />;
       case 'Ifc模型':
-        return <IfcModel />;
+        return <IfcModel project={currentProject} />;
       default:
         return null;
     }
@@ -196,6 +196,9 @@ const Output: React.FC<OutputProps> = React.memo(({ currentProject }) => {
         isOpen={!!taskManagement.selectedTask}
         onClose={taskManagement.closePopup}
         task={taskManagement.selectedTask}
+        processInfo={taskManagement.processInfo}
+        processInfoLoading={taskManagement.processInfoLoading}
+        processInfoError={taskManagement.processInfoError}
       />
     </div>
   );
