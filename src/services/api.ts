@@ -1,23 +1,14 @@
 import { readAllProjectsFromExcel } from './excelReader';
+import { ProjectService } from './projectService';
+
+// 重新导出projectAPI和Project以保持向后兼容
+export { projectAPI, type Project } from './projectService';
 
 // 定义时间接口
 export interface TaskTime {
   day: number; // 天数
   hour: number; // 小时 (0-23)
   totalHours: number; // 总小时数 (便于计算)
-}
-
-// 定义接口类型
-export interface Project {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: Date;
-  updatedAt: Date;
-  totalCost?: number; // 可选字段，将通过任务数据动态计算
-  totalDays?: number; // 可选字段，将通过任务数据动态计算
-  color?: string; // 项目主题色
-  tasks?: TaskItem[]; // 项目包含的任务列表
 }
 
 export interface TaskItem {
@@ -57,7 +48,6 @@ export interface ChatResponse {
 }
 
 // 初始化数据变量
-let mockProjects: Project[] = [];
 let mockTasks: TaskItem[] = [];
 
 // 异步加载Excel数据
@@ -65,7 +55,8 @@ const loadExcelData = async () => {
   try {
     const projects = await readAllProjectsFromExcel();
     if (projects.length > 0) {
-      mockProjects = projects;
+      // 设置项目模拟数据到ProjectService
+      ProjectService.setMockProjects(projects);
       // 从项目中提取任务
       mockTasks = projects.flatMap((project) => project.tasks || []);
       console.log(
@@ -355,111 +346,6 @@ export const chatAPI = {
     } catch (error) {
       console.error('获取聊天历史失败:', error);
       throw new Error('获取聊天历史失败');
-    }
-  },
-};
-
-// 项目API函数
-export const projectAPI = {
-  // 获取所有项目
-  getProjects: async (): Promise<Project[]> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      return mockProjects;
-    } catch (error) {
-      console.error('获取项目列表失败:', error);
-      throw new Error('获取项目列表失败');
-    }
-  },
-
-  // 根据ID获取单个项目
-  getProjectById: async (id: number): Promise<Project | null> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const project = mockProjects.find((project) => project.id === id);
-      return project || null;
-    } catch (error) {
-      console.error('获取项目详情失败:', error);
-      throw new Error('获取项目详情失败');
-    }
-  },
-
-  // 创建新项目
-  createProject: async (
-    project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<Project> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const newProject: Project = {
-        ...project,
-        id: Math.max(...mockProjects.map((p) => p.id)) + 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockProjects.push(newProject);
-      return newProject;
-    } catch (error) {
-      console.error('创建项目失败:', error);
-      throw new Error('创建项目失败');
-    }
-  },
-
-  // 更新项目
-  updateProject: async (
-    id: number,
-    updates: Partial<Omit<Project, 'id' | 'createdAt'>>
-  ): Promise<Project> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      const projectIndex = mockProjects.findIndex(
-        (project) => project.id === id
-      );
-      if (projectIndex === -1) {
-        throw new Error('项目不存在');
-      }
-      mockProjects[projectIndex] = {
-        ...mockProjects[projectIndex],
-        ...updates,
-        updatedAt: new Date(),
-      };
-      return mockProjects[projectIndex];
-    } catch (error) {
-      console.error('更新项目失败:', error);
-      throw new Error('更新项目失败');
-    }
-  },
-
-  // 删除项目
-  deleteProject: async (id: number): Promise<void> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      const projectIndex = mockProjects.findIndex(
-        (project) => project.id === id
-      );
-      if (projectIndex === -1) {
-        throw new Error('项目不存在');
-      }
-      // 同时删除该项目下的所有任务
-      for (let i = mockTasks.length - 1; i >= 0; i--) {
-        if (mockTasks[i].projectId === id) {
-          mockTasks.splice(i, 1);
-        }
-      }
-      mockProjects.splice(projectIndex, 1);
-    } catch (error) {
-      console.error('删除项目失败:', error);
-      throw new Error('删除项目失败');
-    }
-  },
-
-  // 根据项目ID获取任务列表
-  getTasksByProjectId: async (projectId: number): Promise<TaskItem[]> => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return mockTasks.filter((task) => task.projectId === projectId);
-    } catch (error) {
-      console.error('获取项目任务失败:', error);
-      throw new Error('获取项目任务失败');
     }
   },
 };
