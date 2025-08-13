@@ -252,6 +252,154 @@ export async function readProjectFromExcel(
 }
 
 /**
+ * 从File对象读取项目数据（用于处理从API下载的Excel文件）
+ */
+export async function readProjectFromFile(file: File): Promise<Project | null> {
+  try {
+    // 将File对象转换为ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const sheetNames = workbook.SheetNames;
+
+    if (sheetNames.length === 0) {
+      throw new Error('Excel文件中没有工作表');
+    }
+
+    // 使用第一个工作表
+    const worksheet = workbook.Sheets[sheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    if (jsonData.length < 2) {
+      throw new Error('Excel文件数据不足');
+    }
+
+    // 第一行是表头
+    const headers = jsonData[0] as string[];
+    const dataRows = jsonData.slice(1) as string[][];
+
+    // 转换数据为TaskItem格式
+    const tasks: TaskItem[] = [];
+    let taskId = 1;
+
+    // 遍历每一行数据
+    dataRows.forEach((row, rowIndex) => {
+      const task: Partial<TaskItem> = {
+        id: taskId++,
+        projectId: 1, // 默认项目ID
+      };
+
+      // 遍历表头，映射字段
+      headers.forEach((header, colIndex) => {
+        const mappedField = COLUMN_MAPPING[header];
+        if (
+          mappedField &&
+          row[colIndex] !== undefined &&
+          row[colIndex] !== ''
+        ) {
+          const value = row[colIndex];
+
+          // 根据字段类型进行数据转换
+          switch (mappedField) {
+            case 'startDay':
+              task.startTime = parseTimeString(value);
+              task.startDay = task.startTime.day; // 保持向后兼容
+              break;
+            case 'endDay':
+              task.endTime = parseTimeString(value);
+              task.endDay = task.endTime.day; // 保持向后兼容
+              break;
+            case 'isOvertime':
+              task.isOvertime = parseOvertime(value);
+              break;
+            case 'dependencies':
+              task.dependencies = parseDependencies(value);
+              break;
+            case 'serialNumber':
+              task.serialNumber =
+                typeof value === 'number'
+                  ? value
+                  : parseInt(String(value)) || 0;
+              break;
+            case 'workerCount':
+              task.workerCount =
+                typeof value === 'number'
+                  ? value
+                  : parseInt(String(value)) || 0;
+              break;
+            case 'workload':
+              task.workload =
+                typeof value === 'number'
+                  ? value
+                  : parseInt(String(value)) || 0;
+              break;
+            case 'cost':
+              // 特殊处理价格字段，可能是数字或文本
+              if (typeof value === 'number') {
+                task.cost = value;
+              } else if (
+                typeof value === 'string' &&
+                !isNaN(parseFloat(value))
+              ) {
+                task.cost = parseFloat(value);
+              } else {
+                // 如果价格是文本或空，设为0
+                task.cost = 0;
+              }
+              break;
+            case 'name':
+              task.name = String(value);
+              break;
+            case 'constructionMethod':
+              task.constructionMethod = String(value);
+              break;
+            case 'workType':
+              task.workType = String(value);
+              break;
+            case 'unit':
+              task.unit = String(value);
+              break;
+            default:
+              // 对于其他字段，直接赋值
+              (task as Record<string, unknown>)[mappedField] = value;
+          }
+        }
+      });
+
+      // 设置默认值
+      if (!task.cost) task.cost = 0;
+      if (!task.startDay) task.startDay = 1;
+      if (!task.endDay) task.endDay = 1;
+      if (!task.startTime) task.startTime = { day: 1, hour: 0, totalHours: 24 };
+      if (!task.endTime) task.endTime = { day: 1, hour: 0, totalHours: 24 };
+      if (!task.workerCount) task.workerCount = 0;
+      if (!task.serialNumber) task.serialNumber = rowIndex + 1;
+      if (!task.isOvertime) task.isOvertime = false;
+      if (!task.dependencies) task.dependencies = [];
+
+      // 只添加有名称的任务
+      if (task.name && String(task.name).trim() !== '') {
+        tasks.push(task as TaskItem);
+      }
+    });
+
+    // 创建项目对象
+    const project: Project = {
+      id: 1,
+      name: file.name.replace('.xlsx', '') || '项目进度表',
+      description: '从Excel文件导入的项目数据',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      tasks: tasks,
+    };
+
+    return project;
+  } catch (error) {
+    console.error('读取Excel文件失败:', error);
+    return null;
+  }
+}
+
+/**
  * 读取所有Excel文件并返回项目列表
  */
 export async function readAllProjectsFromExcel(): Promise<Project[]> {
