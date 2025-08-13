@@ -161,6 +161,24 @@ export class NativeWebSocketService {
   }
 
   /**
+   * 直接发送原始数据
+   */
+  sendRaw(data: unknown): boolean {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket未连接，无法发送消息');
+      return false;
+    }
+
+    try {
+      this.ws.send(JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.error('发送原始消息失败:', error);
+      return false;
+    }
+  }
+
+  /**
    * 监听事件
    */
   on<K extends keyof WebSocketEventMap>(
@@ -236,6 +254,16 @@ export class NativeWebSocketService {
         console.error('消息解析失败:', error);
         this.emitEvent('message', event.data);
       }
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket错误:', error);
+      this.status = WebSocketStatus.ERROR;
+      this.emitStatusChange();
+      this.emitEvent(
+        'error',
+        error.type || error.message || '未知WebSocket错误'
+      );
     };
 
     this.ws.onclose = (event) => {

@@ -3,8 +3,14 @@ import './Chat.css';
 import { type ChatMessage } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
 import type { WebSocketStatus } from '../services/nativeWebSocketService';
+import { AuthService } from '../services/authService';
+import { type Project } from '../services/projectService';
 
-const Chat: React.FC = () => {
+interface ChatProps {
+  currentProject?: Project | null;
+}
+
+const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -42,6 +48,13 @@ const Chat: React.FC = () => {
       setSocketStatus(status);
       setIsConnected(status === 'connected');
       console.log('Chat组件 - WebSocket状态变化:', status);
+
+      // 连接建立后发送初始化消息
+      if (status === 'connected') {
+        setTimeout(() => {
+          sendInitMessage();
+        }, 100); // 稍微延迟确保连接稳定
+      }
     };
 
     // 监听接收到的消息
@@ -82,6 +95,47 @@ const Chat: React.FC = () => {
     };
   }, []);
 
+  // 发送初始化消息
+  const sendInitMessage = (): boolean => {
+    const socketService = getDefaultWebSocketService();
+    if (!socketService || !socketService.isConnected()) {
+      return false;
+    }
+
+    try {
+      const user = AuthService.getCurrentUserSync();
+      const token = AuthService.getToken();
+
+      if (!user || !token) {
+        return false;
+      }
+
+      let projectId: string | undefined;
+      if (currentProject?.id) {
+        projectId = currentProject.id;
+      } else if (user.projects && user.projects.length > 0) {
+        projectId = user.projects[0];
+      }
+
+      if (!projectId) {
+        return false;
+      }
+
+      const initData = {
+        type: 'init',
+        project_id: projectId,
+        token: token,
+      };
+
+      socketService.sendRaw(initData);
+      console.log('Chat组件 - 发送初始化消息:', initData);
+      return true;
+    } catch (error) {
+      console.error('发送初始化消息失败:', error);
+      return false;
+    }
+  };
+
   // 通过WebSocket发送消息
   const sendSocketMessage = (userMessage: string): boolean => {
     const socketService = getDefaultWebSocketService();
@@ -91,14 +145,41 @@ const Chat: React.FC = () => {
     }
 
     try {
+      // 获取当前用户和项目信息
+      const user = AuthService.getCurrentUserSync();
+      const token = AuthService.getToken();
+
+      if (!user || !token) {
+        console.error('用户未认证，无法发送消息');
+        return false;
+      }
+
+      // 获取项目ID
+      let projectId: string | undefined;
+
+      // 优先使用传入的currentProject
+      if (currentProject?.id) {
+        projectId = currentProject.id;
+      }
+      // 如果没有传入项目，尝试从用户项目中获取第一个
+      else if (user.projects && user.projects.length > 0) {
+        projectId = user.projects[0];
+      }
+
+      if (!projectId) {
+        console.error('无法获取项目ID，无法发送消息');
+        return false;
+      }
+
+      // 按照用户指定的格式构建消息
       const messageData = {
-        type: 'chat_message',
-        message: userMessage,
-        history: messages.slice(-10), // 发送最近10条消息作为上下文
-        timestamp: Date.now(),
+        type: 'user',
+        project_id: projectId,
+        token: token,
+        text: userMessage,
       };
 
-      socketService.emit('chat_message', messageData);
+      socketService.sendRaw(messageData);
       console.log('Chat组件 - 发送WebSocket消息:', messageData);
       return true;
     } catch (error) {

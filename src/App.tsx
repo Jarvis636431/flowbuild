@@ -58,42 +58,38 @@ function App() {
     checkAuthStatus();
   }, []);
 
-  // 初始化Socket服务
+  // 监听项目变化和认证状态，管理Socket连接
   useEffect(() => {
-    console.log('🔧 Socket useEffect被触发:', {
-      enableSocket: FEATURE_FLAGS.ENABLE_SOCKET,
-      currentProjectId: currentProject?.id,
-      isAuthenticated: isAuthenticated,
-    });
-
-    if (!FEATURE_FLAGS.ENABLE_SOCKET) {
-      console.log('❌ Socket功能未启用，跳过初始化');
-      return;
-    }
+    if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
 
     const initSocket = async () => {
       try {
-        // 获取用户认证信息
-        const user = AuthService.getCurrentUserSync();
         const token = AuthService.getToken();
-
-        // 只有在用户已认证且有选中项目时才建立Socket连接
-        console.log('🔍 Socket连接条件检查:', {
-          hasUser: !!user,
-          hasToken: !!token,
-          hasProject: !!currentProject?.id,
-          currentProject: currentProject,
-          projectId: currentProject?.id,
-          projectIdType: typeof currentProject?.id,
-          isAuthenticated: isAuthenticated,
-        });
-
-        if (!user || !token || !currentProject?.id) {
-          console.log('❌ Socket连接条件不满足，跳过连接');
+        if (!isAuthenticated || !currentProject || !token) {
+          console.log('❌ Socket连接条件不满足:', {
+            isAuthenticated,
+            hasCurrentProject: !!currentProject,
+            hasToken: !!token,
+          });
+          // 如果条件不满足，确保断开现有连接
+          const existingService = getDefaultWebSocketService();
+          if (existingService) {
+            console.log('🔌 断开现有WebSocket连接');
+            existingService.destroy();
+          }
           return;
         }
 
         console.log('✅ Socket连接条件满足，开始建立连接...');
+
+        // 先断开现有连接
+        const existingService = getDefaultWebSocketService();
+        if (existingService) {
+          console.log('🔌 断开现有WebSocket连接以建立新连接');
+          existingService.destroy();
+          // 等待一小段时间确保连接完全断开
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
 
         // 构建WebSocket URL，包含认证参数
         const projectId = currentProject.id;
@@ -136,18 +132,20 @@ function App() {
 
     initSocket();
 
-    // 清理函数
+    // 清理函数 - 只在组件卸载时执行
     return () => {
+      console.log('🧹 useEffect清理函数执行 - 项目切换或组件卸载');
       const socketService = getDefaultWebSocketService();
       if (socketService) {
+        console.log('🔌 清理函数中断开WebSocket连接');
         socketService.destroy();
       }
     };
-  }, [currentProject?.id, currentProject?.name, isAuthenticated]);
+  }, [currentProject?.id, isAuthenticated]);
 
   // 初始化时加载第一个项目（仅在已认证时）
   useEffect(() => {
-    if (!isAuthenticated || authLoading) return;
+    if (!isAuthenticated || authLoading || currentProject) return;
 
     const initializeApp = async () => {
       try {
@@ -163,7 +161,7 @@ function App() {
     };
 
     initializeApp();
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, currentProject]);
 
   // 监听认证状态变化，管理Socket连接
   useEffect(() => {
@@ -270,7 +268,7 @@ function App() {
           onNewProject={handleNewProject}
         />
         <div className="main-content">
-          <Chat />
+          <Chat currentProject={currentProject} />
           <Output
             currentProject={currentProject}
             viewMode={viewMode}
