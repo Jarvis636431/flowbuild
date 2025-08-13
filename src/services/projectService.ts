@@ -1,6 +1,7 @@
 import { FEATURE_FLAGS } from '../config/features';
 import { ManagementServiceUrls } from './apiConfig';
 import http from './http';
+import { AuthService } from './authService';
 import type { TaskItem } from './api';
 
 // 项目相关接口定义
@@ -105,9 +106,15 @@ export class ProjectService {
   static async getProjects(): Promise<Project[]> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
-        // 使用真实API - 处理正确的响应格式{projects: [...]}
+        // 获取当前用户的user_id
+        const currentUser = AuthService.getCurrentUserSync();
+        if (!currentUser || !currentUser.user_id) {
+          throw new Error('无法获取当前用户信息，请重新登录');
+        }
+
+        // 使用真实API - 添加user_id查询参数
         const response = await http.get<ProjectListResponse>(
-          ManagementServiceUrls.projectList()
+          `${ManagementServiceUrls.projectList()}?user_id=${currentUser.user_id}`
         );
 
         // 从projects数组中提取数据并转换
