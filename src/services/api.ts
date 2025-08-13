@@ -349,3 +349,64 @@ export const chatAPI = {
     }
   },
 };
+
+// 图表数据接口类型定义
+export interface CrewData {
+  name: string;
+  date: number[];
+  data: number[];
+}
+
+export interface BudgetData {
+  date: number[];
+  data: number[];
+}
+
+// 图表数据 API
+export const chartAPI = {
+  // 获取人员配置数据
+  getCrewData: async (projectId: string): Promise<CrewData[]> => {
+    try {
+      const response = await fetch(`/mgmt/crew?project_id=${projectId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('获取人员配置数据失败:', error);
+      throw new Error('获取人员配置数据失败');
+    }
+  },
+
+  // 获取预算数据
+  getBudgetData: async (projectId: string): Promise<BudgetData[]> => {
+    try {
+      const response = await fetch(`/mgmt/budget?project_id=${projectId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('获取预算数据失败:', error);
+      throw new Error('获取预算数据失败');
+    }
+  },
+};

@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { taskAPI } from '../services/api';
+import { projectAPI } from '../services/api';
 import type { TaskItem } from '../services/api';
-import type { Project } from '../services/projectService';
+import type { Project, ProcessInfoResponse } from '../services/projectService';
 import { useAsyncState } from './useAsyncState';
 
 export interface UseTaskManagementReturn {
@@ -9,11 +10,14 @@ export interface UseTaskManagementReturn {
   loading: boolean;
   error: string | null;
   selectedTask: TaskItem | null;
+  processInfo: ProcessInfoResponse | null;
+  processInfoLoading: boolean;
+  processInfoError: string | null;
   fetchTasks: () => Promise<void>;
   handleTaskClick: (
     task: TaskItem,
     event: React.MouseEvent<HTMLElement>
-  ) => void;
+  ) => Promise<void>;
   closePopup: () => void;
 }
 
@@ -27,6 +31,11 @@ export const useTaskManagement = (
     execute,
   } = useAsyncState<TaskItem[]>([]);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+  const [processInfo, setProcessInfo] = useState<ProcessInfoResponse | null>(
+    null
+  );
+  const [processInfoLoading, setProcessInfoLoading] = useState(false);
+  const [processInfoError, setProcessInfoError] = useState<string | null>(null);
 
   // 获取任务数据
   const fetchTasks = useCallback(async () => {
@@ -48,20 +57,45 @@ export const useTaskManagement = (
 
   // 处理任务行点击事件
   const handleTaskClick = useCallback(
-    (task: TaskItem, event: React.MouseEvent<HTMLElement>) => {
+    async (task: TaskItem, event: React.MouseEvent<HTMLElement>) => {
       event.preventDefault();
       event.stopPropagation();
 
       console.log('Task clicked:', task.name); // 调试信息
 
       setSelectedTask(task);
+
+      // 调用 getProcessInfo 接口获取工序信息
+      if (currentProject) {
+        try {
+          setProcessInfoLoading(true);
+          setProcessInfoError(null);
+
+          const processData = await projectAPI.getProcessInfo(
+            currentProject.id.toString(),
+            task.name
+          );
+
+          setProcessInfo(processData);
+          console.log('Process info fetched:', processData);
+        } catch (error) {
+          console.error('获取工序信息失败:', error);
+          setProcessInfoError(
+            error instanceof Error ? error.message : '获取工序信息失败'
+          );
+        } finally {
+          setProcessInfoLoading(false);
+        }
+      }
     },
-    []
+    [currentProject]
   );
 
   // 关闭弹窗
   const closePopup = useCallback(() => {
     setSelectedTask(null);
+    setProcessInfo(null);
+    setProcessInfoError(null);
   }, []);
 
   return {
@@ -69,6 +103,9 @@ export const useTaskManagement = (
     loading,
     error,
     selectedTask,
+    processInfo,
+    processInfoLoading,
+    processInfoError,
     fetchTasks,
     handleTaskClick,
     closePopup,
