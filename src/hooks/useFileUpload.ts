@@ -2,6 +2,9 @@ import { useState, useCallback, useRef } from 'react';
 import { projectAPI } from '../services/api';
 import { AuthService } from '../services/authService';
 import { ManagementServiceUrls } from '../services/apiConfig';
+import { operatorAPI } from '../services/operatorService';
+import { readProjectFromFile } from '../services/excelReader';
+import { ProjectService } from '../services/projectService';
 
 export interface UseFileUploadReturn {
   documentFile: File | null;
@@ -181,6 +184,17 @@ export const useFileUpload = (
       setPollingMessage('项目处理中，请稍候...');
       setPollingProgress(0);
 
+      // 启动轮询的同时，异步执行操作员操作
+      if (projectId && projectName) {
+        console.log('🤖 启动操作员自动操作...', { projectId, projectName });
+        operatorAPI.executeOperatorActionsAsync({
+          projectId,
+          projectName,
+        });
+      } else {
+        console.warn('⚠️ 缺少项目ID或项目名称，跳过操作员操作');
+      }
+
       // 设置5分钟超时
       pollingTimeoutRef.current = setTimeout(
         () => {
@@ -206,6 +220,41 @@ export const useFileUpload = (
           if (result.status === 'completed') {
             console.log('项目处理完成，停止轮询');
             stopPolling();
+
+            // 下载并解析Excel文件
+            try {
+              if (projectId) {
+                console.log('开始下载项目Excel文件:', projectId);
+                const excelFile =
+                  await projectAPI.downloadProjectExcel(projectId);
+                console.log('Excel文件下载成功:', excelFile.name);
+
+                // 解析Excel文件
+                console.log('开始解析Excel文件...');
+                const projectData = await readProjectFromFile(excelFile);
+
+                if (
+                  projectData &&
+                  projectData.tasks &&
+                  projectData.tasks.length > 0
+                ) {
+                  console.log(
+                    'Excel解析成功，任务数量:',
+                    projectData.tasks.length
+                  );
+                  console.log('解析后的项目数据:', projectData);
+
+                  // 将解析后的数据设置为模拟数据，供其他组件使用
+                  ProjectService.setMockProjects([projectData]);
+                  console.log('项目数据已更新到系统中');
+                } else {
+                  console.warn('Excel文件解析失败或无有效数据');
+                }
+              }
+            } catch (error) {
+              console.error('下载或解析Excel文件失败:', error);
+              // 即使Excel处理失败，也继续执行后续逻辑
+            }
 
             // 重置状态
             setDocumentFile(null);
@@ -239,7 +288,7 @@ export const useFileUpload = (
       // 每3秒轮询一次
       pollingIntervalRef.current = setInterval(pollProject, 3000);
     },
-    [stopPolling, onProjectCreated]
+    [stopPolling, onProjectCreated, projectId, projectName]
   );
 
   // 重置上传状态
