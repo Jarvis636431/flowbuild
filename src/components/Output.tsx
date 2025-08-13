@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { type Project } from '../services/api';
+import { type Project } from '../services/projectService';
 import TaskDetailModal from './modals/TaskDetailModal';
 import GanttChart from './charts/GanttChart';
 import ProgressTable from './charts/ProgressTable';

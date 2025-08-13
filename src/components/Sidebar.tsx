@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { type Project, projectAPI } from '../services/api';
+import { type Project, projectAPI } from '../services/projectService';
 import { useAsyncState } from '../hooks/useAsyncState';
 import { AuthService } from '../services/authService';
 import './Sidebar.css';

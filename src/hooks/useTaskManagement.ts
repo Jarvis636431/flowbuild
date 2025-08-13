@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { taskAPI } from '../services/api';
-import type { TaskItem, Project } from '../services/api';
+import type { TaskItem } from '../services/api';
+import type { Project } from '../services/projectService';
 import { useAsyncState } from './useAsyncState';
 
 export interface UseTaskManagementReturn {

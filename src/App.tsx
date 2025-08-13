@@ -4,7 +4,7 @@ import Chat from './components/Chat';
 import Output from './components/Output';
 import Sidebar from './components/Sidebar';
 import AuthModal from './components/auth/AuthModal';
-import { type Project, projectAPI } from './services/api';
+import { type Project, projectAPI } from './services/projectService';
 import { AuthService } from './services/authService';
 
 function App() {

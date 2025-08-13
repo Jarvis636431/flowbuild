@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
-import type { Project, TaskItem, TaskTime } from './api';
+import type { TaskItem, TaskTime } from './api';
+import type { Project } from './projectService';
 
 // Excel列名映射到TaskItem字段
 const COLUMN_MAPPING: Record<string, string> = {
