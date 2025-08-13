@@ -6,6 +6,7 @@ import type {
   CancelTokenSource,
   AxiosProgressEvent,
 } from 'axios';
+import { ENV_CONFIG } from '../config/features';
 
 // 基础响应接口
 export interface ApiResponse<T = unknown> {
@@ -45,14 +46,31 @@ class HttpClient {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-      timeout: 10000,
+      baseURL: this.getBaseURL(),
+      timeout: 15000, // 增加超时时间
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
     });
 
     this.setupInterceptors();
+
+    // 开发环境下输出配置信息
+    if (ENV_CONFIG.IS_DEVELOPMENT) {
+      console.log(
+        '🌐 HTTP Client initialized with baseURL:',
+        this.getBaseURL()
+      );
+    }
+  }
+
+  // 动态获取API基础URL
+  private getBaseURL(): string {
+    if (ENV_CONFIG.IS_DEVELOPMENT) {
+      return ENV_CONFIG.API_BASE_URL || 'http://localhost:3000/api';
+    }
+    return ENV_CONFIG.API_BASE_URL || '/api';
   }
 
   // 设置拦截器
