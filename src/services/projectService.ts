@@ -665,6 +665,50 @@ export class ProjectService {
     }
   }
 
+  // 下载项目Excel文件
+  static async downloadProjectExcel(projectId: string): Promise<File> {
+    try {
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        const response = await http.get(
+          `${ManagementServiceUrls.view()}?project_id=${projectId}`,
+          {
+            responseType: 'blob',
+          }
+        );
+
+        // 创建File对象
+        const blob = response as Blob;
+        const file = new File([blob], `project_${projectId}.xlsx`, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        return file;
+      } else {
+        // 模拟模式 - 创建一个模拟的Excel文件
+        const mockExcelData = new Uint8Array([
+          0x50,
+          0x4b,
+          0x03,
+          0x04, // ZIP文件头
+          // 这里是简化的Excel文件数据
+        ]);
+        const blob = new Blob([mockExcelData], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const file = new File([blob], `mock_project_${projectId}.xlsx`, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        return file;
+      }
+    } catch (error) {
+      console.error('下载项目Excel文件失败:', error);
+      throw new Error(
+        `下载项目Excel文件失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   // 创建项目并上传文件的完整流程
   static async createProjectWithFiles(
     project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
@@ -766,6 +810,8 @@ export const projectAPI = {
   precreateProject: ProjectService.precreateProject,
   // 轮询项目状态
   pollProjectStatus: ProjectService.pollProjectStatus,
+  // 下载项目Excel文件
+  downloadProjectExcel: ProjectService.downloadProjectExcel,
   // 文件上传相关方法
   validateFile: ProjectService.validateFile,
   uploadFile: ProjectService.uploadFile,
