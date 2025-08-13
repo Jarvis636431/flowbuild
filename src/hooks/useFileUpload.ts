@@ -9,6 +9,8 @@ export interface UseFileUploadReturn {
   projectName: string;
   isCreatingProject: boolean;
   isPrecreating: boolean;
+  isUploading: boolean;
+  uploadProgress: number;
   validationErrors: string[];
   projectId: string | null;
   handleDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -30,6 +32,8 @@ export const useFileUpload = (
   const [projectName, setProjectName] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [isPrecreating, setIsPrecreating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -147,6 +151,8 @@ export const useFileUpload = (
     setProjectName('');
     setIsCreatingProject(false);
     setIsPrecreating(false);
+    setIsUploading(false);
+    setUploadProgress(0);
     setValidationErrors([]);
     setProjectId(null);
   }, []);
@@ -154,7 +160,7 @@ export const useFileUpload = (
   // 最终确认创建项目
   const handleCreateProject = useCallback(async () => {
     if (!projectId) {
-      alert('请先预创建项目并上传文件');
+      alert('请先预创建项目');
       return;
     }
 
@@ -165,6 +171,83 @@ export const useFileUpload = (
         project_name: projectName,
       });
 
+      // 获取当前用户信息
+      const currentUser = AuthService.getCurrentUserSync();
+      if (!currentUser || !currentUser.user_id) {
+        alert('用户未登录，请先登录');
+        return;
+      }
+
+      // 如果有文件需要上传，先上传文件
+      const uploadResults: unknown[] = [];
+      if (documentFile || cadFile) {
+        setIsUploading(true);
+        setUploadProgress(0);
+        console.log('开始上传文件...');
+
+        const totalFiles = (documentFile ? 1 : 0) + (cadFile ? 1 : 0);
+        let completedFiles = 0;
+
+        // 上传文档文件
+        if (documentFile) {
+          try {
+            console.log('上传文档文件:', documentFile.name);
+            setUploadProgress(Math.round((completedFiles / totalFiles) * 50)); // 开始上传时显示进度
+
+            const docResult = await projectAPI.uploadFile({
+              file: documentFile,
+              project_id: projectId,
+              uploaded_by: currentUser.user_id,
+              category: 'document',
+              file_type: 'document',
+            });
+
+            uploadResults.push(docResult);
+            completedFiles++;
+            setUploadProgress(Math.round((completedFiles / totalFiles) * 80)); // 文件上传完成后更新进度
+            console.log('文档文件上传成功:', docResult);
+          } catch (error) {
+            console.error('文档文件上传失败:', error);
+            setIsUploading(false);
+            setUploadProgress(0);
+            throw new Error(
+              `文档文件上传失败: ${error instanceof Error ? error.message : '未知错误'}`
+            );
+          }
+        }
+
+        // 上传CAD文件
+        if (cadFile) {
+          try {
+            console.log('上传CAD文件:', cadFile.name);
+            setUploadProgress(Math.round((completedFiles / totalFiles) * 50)); // 开始上传时显示进度
+
+            const cadResult = await projectAPI.uploadFile({
+              file: cadFile,
+              project_id: projectId,
+              uploaded_by: currentUser.user_id,
+              category: 'cad',
+              file_type: 'cad',
+            });
+
+            uploadResults.push(cadResult);
+            completedFiles++;
+            setUploadProgress(Math.round((completedFiles / totalFiles) * 80)); // 文件上传完成后更新进度
+            console.log('CAD文件上传成功:', cadResult);
+          } catch (error) {
+            console.error('CAD文件上传失败:', error);
+            setIsUploading(false);
+            setUploadProgress(0);
+            throw new Error(
+              `CAD文件上传失败: ${error instanceof Error ? error.message : '未知错误'}`
+            );
+          }
+        }
+
+        setUploadProgress(90); // 所有文件上传完成
+        console.log('所有文件上传完成:', uploadResults);
+      }
+
       // 调用最终创建API
       const finalProject = await projectAPI.createProject({
         project_id: projectId,
@@ -172,6 +255,7 @@ export const useFileUpload = (
         description: `项目包含${documentFile ? '文档文件' : ''}${documentFile && cadFile ? '和' : ''}${cadFile ? 'CAD文件' : ''}`,
       });
 
+      setUploadProgress(100); // 项目创建完成
       console.log('项目创建成功:', finalProject);
       alert('项目创建成功！');
 
@@ -190,6 +274,8 @@ export const useFileUpload = (
       );
     } finally {
       setIsCreatingProject(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   }, [
     projectId,
@@ -300,6 +386,8 @@ export const useFileUpload = (
     projectName,
     isCreatingProject,
     isPrecreating,
+    isUploading,
+    uploadProgress,
     validationErrors,
     projectId,
     handleDocumentUpload,
