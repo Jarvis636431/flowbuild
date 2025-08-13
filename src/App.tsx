@@ -108,7 +108,7 @@ function App() {
           onProjectSelect={handleProjectSelect}
         />
         <div className="main-content">
-          <Chat currentProject={currentProject} />
+          <Chat />
           <Output currentProject={currentProject} />
         </div>
       </div>
