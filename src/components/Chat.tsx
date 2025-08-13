@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
 import {
   chatAPI,
-  projectAPI,
   type ChatMessage,
   type ChatRequest,
   type Project,
@@ -41,9 +40,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   // 获取项目任务数据
   useEffect(() => {
     if (currentProject) {
+      // 使用项目自带的任务数据，如果没有则为空数组
       fetchProjectTasks(async () => {
-        const tasks = await projectAPI.getTasksByProjectId(currentProject.id);
-        return tasks;
+        return currentProject.tasks || [];
       });
     }
   }, [currentProject, fetchProjectTasks]);

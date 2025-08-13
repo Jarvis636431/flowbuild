@@ -16,14 +16,20 @@ export interface Project {
   tasks?: TaskItem[]; // 项目包含的任务列表
 }
 
+// 项目列表API响应接口
+export interface ProjectListResponse {
+  projects: ApiProject[];
+}
+
 // 后端API响应接口
 export interface ApiProject {
   project_id: string;
-  project_name: string;
+  name: string; // 修正字段名：从project_name改为name
   description: string;
+  status: string; // 添加必需的status字段
   created_at: string;
-  updated_at: string;
-  status?: string;
+  updated_at?: string; // 改为可选字段
+  config?: Record<string, unknown>; // 项目配置
   total_cost?: number;
   total_days?: number;
   color?: string;
@@ -50,8 +56,23 @@ export interface ProjectInfoCheckRequest {
   };
 }
 
+// 项目最终配置接口
+export interface FinalConfig {
+  construction_methods: Record<string, unknown>[];
+  overtime_tasks: string[];
+  shutdown_events: Record<string, unknown>[];
+  work_time: {
+    start_hour: number;
+    end_hour: number;
+    work_days: string[];
+  };
+  background: string;
+  compress_strategy: Record<string, unknown>;
+}
+
 export interface ProjectFinalizeRequest {
   project_id: string;
+  final_config: FinalConfig;
 }
 
 // 模拟数据（从api.ts移动过来）
@@ -61,10 +82,12 @@ let mockProjects: Project[] = [];
 const convertApiProjectToProject = (apiProject: ApiProject): Project => {
   return {
     id: parseInt(apiProject.project_id),
-    name: apiProject.project_name,
+    name: apiProject.name, // 使用正确的字段名
     description: apiProject.description,
     createdAt: new Date(apiProject.created_at),
-    updatedAt: new Date(apiProject.updated_at),
+    updatedAt: apiProject.updated_at
+      ? new Date(apiProject.updated_at)
+      : new Date(),
     totalCost: apiProject.total_cost,
     totalDays: apiProject.total_days,
     color: apiProject.color,
@@ -82,13 +105,13 @@ export class ProjectService {
   static async getProjects(): Promise<Project[]> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
-        // 使用真实API
-        const response = await http.get<ApiProject[]>(
+        // 使用真实API - 处理正确的响应格式{projects: [...]}
+        const response = await http.get<ProjectListResponse>(
           ManagementServiceUrls.projectList()
         );
 
-        // 转换API响应为前端数据格式
-        return response.map(convertApiProjectToProject);
+        // 从projects数组中提取数据并转换
+        return response.projects.map(convertApiProjectToProject);
       } else {
         // 使用模拟数据（保持向后兼容）
         await new Promise((resolve) => setTimeout(resolve, 400));
@@ -161,11 +184,29 @@ export class ProjectService {
           },
         });
 
-        // 步骤3: 完成项目创建
+        // 步骤3: 完成项目创建 - 添加完整的final_config参数
         const finalResponse = await http.post<ApiProject>(
           ManagementServiceUrls.finalizeCreation(),
           {
             project_id: precreateResponse.project_id,
+            final_config: {
+              construction_methods: [],
+              overtime_tasks: [],
+              shutdown_events: [],
+              work_time: {
+                start_hour: 8,
+                end_hour: 18,
+                work_days: [
+                  'monday',
+                  'tuesday',
+                  'wednesday',
+                  'thursday',
+                  'friday',
+                ],
+              },
+              background: '',
+              compress_strategy: {},
+            },
           }
         );
 
@@ -279,32 +320,6 @@ export class ProjectService {
       throw new Error('删除项目失败');
     }
   }
-
-  // 根据项目ID获取任务列表
-  static async getTasksByProjectId(projectId: number): Promise<TaskItem[]> {
-    try {
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        // 使用真实API
-        const response = await http.get<TaskItem[]>(
-          `${ManagementServiceUrls.view()}?project_id=${projectId}&include_tasks=true`
-        );
-
-        return response;
-      } else {
-        // 模拟数据逻辑 - 暂时返回空数组，避免循环导入
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return [];
-      }
-    } catch (error) {
-      console.error('获取项目任务失败:', error);
-      // 降级策略
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
-        return [];
-      }
-      throw new Error('获取项目任务失败');
-    }
-  }
 }
 
 // 导出便捷的API对象（保持向后兼容）
@@ -314,5 +329,4 @@ export const projectAPI = {
   createProject: ProjectService.createProject,
   updateProject: ProjectService.updateProject,
   deleteProject: ProjectService.deleteProject,
-  getTasksByProjectId: ProjectService.getTasksByProjectId,
 };
