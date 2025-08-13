@@ -329,8 +329,11 @@ function App() {
         projectName: project.name,
         apiUrl: ManagementServiceUrls.view(),
       });
-      // 即使API调用失败，仍然更新项目状态
+      // 即使API调用失败，仍然更新项目状态并切换到输出模式
       setCurrentProject(project);
+      setViewMode('output');
+      setViewData(null); // 清除之前的Excel数据
+      console.log('⚠️ API调用失败，但已切换到输出模式，将使用默认数据');
     }
 
     // 强制触发Socket连接检查
@@ -379,7 +382,7 @@ function App() {
         setCurrentProject(latestProject);
         
         // 检查是否有最新的Excel数据
-        const latestProjectData = (window as any).latestProjectData;
+        const latestProjectData = window.latestProjectData;
         if (latestProjectData && latestProjectData.tasks) {
           console.log('🎯 检测到最新的Excel数据，项目任务数量:', latestProjectData.tasks.length);
           
