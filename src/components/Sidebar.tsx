@@ -169,28 +169,28 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
         </div>
-
-        {/* 用户信息区域 */}
-        {currentUser && (
-          <div className="user-info">
-            {isCollapsed ? (
-              <div
-                className="user-icon"
-                title={`${currentUser.username} (${currentUser.role})`}
-              >
-                {getUserIcon(currentUser.username)}
-              </div>
-            ) : (
-              <div className="user-content">
-                <div className="user-details">
-                  <span className="user-name">{currentUser.username}</span>
-                  <span className="user-role">{currentUser.role}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* 用户信息区域 - 固定在底部 */}
+      {currentUser && (
+        <div className="user-info">
+          {isCollapsed ? (
+            <div
+              className="user-icon"
+              title={`${currentUser.username} (${currentUser.role})`}
+            >
+              {getUserIcon(currentUser.username)}
+            </div>
+          ) : (
+            <div className="user-content">
+              <div className="user-details">
+                <span className="user-name">{currentUser.username}</span>
+                <span className="user-role">{currentUser.role}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
