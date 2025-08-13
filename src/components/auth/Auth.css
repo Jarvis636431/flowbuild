@@ -1,0 +1,282 @@
+/* 认证组件样式 */
+
+/* 认证模态框 */
+.auth-modal {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 1rem;
+  background-color: #1f2937;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+/* 关闭按钮 */
+.auth-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.auth-close-btn:hover {
+  color: #d1d5db;
+}
+
+/* 模态框头部 */
+.auth-header {
+  padding: 1.5rem 1.5rem 0 1.5rem;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  margin-top: 0;
+}
+
+/* Tab导航 */
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid #374151;
+  margin-bottom: 1.5rem;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.auth-tab.active {
+  color: #60a5fa;
+}
+
+.auth-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #60a5fa;
+}
+
+.auth-tab.inactive {
+  color: #9ca3af;
+}
+
+.auth-tab.inactive:hover {
+  color: #d1d5db;
+}
+
+/* 表单容器 */
+.auth-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 错误提示 */
+.auth-error {
+  background-color: rgba(127, 29, 29, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+/* 表单字段 */
+.auth-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #d1d5db;
+  margin-bottom: 0.25rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 0.375rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.auth-input::placeholder {
+  color: #9ca3af;
+}
+
+.auth-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 密码输入框容器 */
+.auth-password-container {
+  position: relative;
+}
+
+.auth-password-input {
+  padding-right: 2.5rem;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-password-toggle:hover {
+  color: #d1d5db;
+}
+
+.auth-password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 提交按钮 */
+.auth-submit-btn {
+  width: 100%;
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.auth-submit-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 链接样式 */
+.auth-link {
+  color: #60a5fa;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  color: #93c5fd;
+}
+
+.auth-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 文本居中 */
+.auth-text-center {
+  text-align: center;
+}
+
+/* 服务条款和隐私政策 */
+.auth-terms {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.auth-terms .auth-link {
+  margin-left: 0.25rem;
+}
+
+/* 加载动画 */
+.auth-loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+  .auth-modal {
+    margin: 0 0.5rem;
+  }
+
+  .auth-header,
+  .auth-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .auth-title {
+    font-size: 1.25rem;
+  }
+}

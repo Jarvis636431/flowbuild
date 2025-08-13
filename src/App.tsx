@@ -101,20 +101,16 @@ function App() {
       <div
         className={`app-container ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
       >
-        {isAuthenticated && (
-          <>
-            <Sidebar
-              isCollapsed={sidebarCollapsed}
-              onToggle={handleSidebarToggle}
-              currentProject={currentProject}
-              onProjectSelect={handleProjectSelect}
-            />
-            <div className="main-content">
-              <Chat currentProject={currentProject} />
-              <Output currentProject={currentProject} />
-            </div>
-          </>
-        )}
+        <Sidebar
+          isCollapsed={sidebarCollapsed}
+          onToggle={handleSidebarToggle}
+          currentProject={currentProject}
+          onProjectSelect={handleProjectSelect}
+        />
+        <div className="main-content">
+          <Chat currentProject={currentProject} />
+          <Output currentProject={currentProject} />
+        </div>
       </div>
 
       {/* 认证弹窗 */}
