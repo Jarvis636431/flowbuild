@@ -6,7 +6,7 @@ import type { TaskItem } from './api';
 
 // 项目相关接口定义
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
   createdAt: Date;
@@ -180,18 +180,41 @@ let mockProjects: Project[] = [];
 
 // 数据转换函数
 const convertApiProjectToProject = (apiProject: ApiProject): Project => {
-  return {
-    id: parseInt(apiProject.project_id),
-    name: apiProject.name, // 使用正确的字段名
-    description: apiProject.description,
-    createdAt: new Date(apiProject.created_at),
-    updatedAt: apiProject.updated_at
-      ? new Date(apiProject.updated_at)
-      : new Date(),
-    totalCost: apiProject.total_cost,
-    totalDays: apiProject.total_days,
-    color: apiProject.color,
-  };
+  try {
+    console.log('转换API项目数据:', apiProject);
+
+    // 验证必需字段
+    if (!apiProject) {
+      throw new Error('API项目数据为空');
+    }
+
+    if (!apiProject.project_id) {
+      throw new Error('API项目数据缺少project_id字段');
+    }
+
+    const convertedProject: Project = {
+      id: apiProject.project_id,
+      name: apiProject.name || '未命名项目', // 添加默认值
+      description: apiProject.description || '', // 添加默认值
+      createdAt: apiProject.created_at
+        ? new Date(apiProject.created_at)
+        : new Date(),
+      updatedAt: apiProject.updated_at
+        ? new Date(apiProject.updated_at)
+        : new Date(),
+      totalCost: apiProject.total_cost,
+      totalDays: apiProject.total_days,
+      color: apiProject.color,
+    };
+
+    console.log('成功转换项目数据:', convertedProject);
+    return convertedProject;
+  } catch (error) {
+    console.error('转换API项目数据失败:', error, '原始数据:', apiProject);
+    throw new Error(
+      `项目数据转换失败: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 };
 
 // 项目服务类
@@ -261,7 +284,7 @@ export class ProjectService {
   }
 
   // 根据ID获取单个项目
-  static async getProjectById(id: number): Promise<Project | null> {
+  static async getProjectById(id: string): Promise<Project | null> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         // 使用真实API
@@ -354,7 +377,7 @@ export class ProjectService {
 
   // 更新项目
   static async updateProject(
-    id: number,
+    id: string,
     updates: Partial<Omit<Project, 'id' | 'createdAt'>>
   ): Promise<Project> {
     try {
@@ -363,7 +386,7 @@ export class ProjectService {
         const response = await http.put<ApiProject>(
           ManagementServiceUrls.update(),
           {
-            project_id: id.toString(),
+            project_id: id,
             project_name: updates.name,
             description: updates.description,
             color: updates.color,
@@ -410,7 +433,7 @@ export class ProjectService {
   }
 
   // 删除项目
-  static async deleteProject(id: number): Promise<void> {
+  static async deleteProject(id: string): Promise<void> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         // 使用真实API（测试环境）
@@ -739,9 +762,7 @@ export class ProjectService {
 
       // 创建一个临时的Project对象用于兼容性
       const createdProject: Project = {
-        id: parseInt(
-          precreateResponse.project_id.replace('project_', '') || '0'
-        ),
+        id: precreateResponse.project_id,
         name: project.name,
         description: project.description || '',
         createdAt: new Date(),
