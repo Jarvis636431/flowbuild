@@ -366,3 +366,6 @@ export class AuthService {
 // 导出默认实例和工具函数
 export default AuthService;
 export { TokenManager };
+
+// 导出authService实例供组件使用
+export const authService = AuthService;
