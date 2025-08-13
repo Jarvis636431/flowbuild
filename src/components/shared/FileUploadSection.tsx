@@ -1,5 +1,27 @@
 import React from 'react';
 
+// 文件名截断工具函数
+const truncateFileName = (fileName: string, maxLength: number = 30): string => {
+  if (fileName.length <= maxLength) {
+    return fileName;
+  }
+
+  // 获取文件扩展名
+  const lastDotIndex = fileName.lastIndexOf('.');
+  const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
+  const nameWithoutExt =
+    lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+
+  // 计算可用于文件名的长度（减去扩展名和省略号的长度）
+  const availableLength = maxLength - extension.length - 3; // 3 for "..."
+
+  if (availableLength <= 0) {
+    return '...' + extension;
+  }
+
+  return nameWithoutExt.substring(0, availableLength) + '...' + extension;
+};
+
 interface FileUploadSectionProps {
   documentFile: File | null;
   cadFile: File | null;
@@ -136,7 +158,9 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
                 {cadFile ? (
                   <>
                     <div className="upload-title">已选择文件</div>
-                    <div className="upload-subtitle">{cadFile.name}</div>
+                    <div className="upload-subtitle" title={cadFile.name}>
+                      {truncateFileName(cadFile.name)}
+                    </div>
                   </>
                 ) : (
                   <>
