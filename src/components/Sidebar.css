@@ -359,11 +359,19 @@
   gap: 4px;
 }
 
+.user-name-role {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .user-name {
   color: #fff;
   font-size: 13px;
   font-weight: 600;
-  white-space: nowrap;
+  flex-shrink: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -374,6 +382,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .user-id {
