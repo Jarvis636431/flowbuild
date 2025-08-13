@@ -28,6 +28,8 @@ interface FileUploadSectionProps {
   projectName: string;
   isCreatingProject: boolean;
   isPrecreating?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
   validationErrors?: string[];
   projectId?: string | null;
   onDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -47,6 +49,8 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     projectName,
     isCreatingProject,
     isPrecreating = false,
+    isUploading = false,
+    uploadProgress = 0,
     validationErrors = [],
     projectId,
     onDocumentUpload,
@@ -83,11 +87,23 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           </div>
         )}
 
-        {/* 进度显示 */}
-        {(isCreatingProject || isPrecreating) && (
+        {/* 上传进度条 */}
+        {(isCreatingProject || isPrecreating || isUploading) && (
           <div className="upload-progress">
             <div className="progress-label">
-              {isPrecreating ? '预创建项目中...' : '创建项目中...'}
+              {isPrecreating
+                ? '预创建项目中...'
+                : isUploading
+                  ? `文件上传中... ${uploadProgress}%`
+                  : isCreatingProject
+                    ? `创建项目中... ${uploadProgress}%`
+                    : '处理中...'}
+            </div>
+            <div className="progress-bar">
+              <div
+                className="progress-fill"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
             </div>
           </div>
         )}

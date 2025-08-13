@@ -292,31 +292,18 @@ export class ProjectService {
   }): Promise<Project> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
-        // 最终确认创建项目
+        // 获取当前用户信息
+        const currentUser = AuthService.getCurrentUserSync();
+        if (!currentUser || !currentUser.user_id) {
+          throw new Error('用户未登录，请先登录');
+        }
+
+        // 最终确认创建项目 - 只传输project_id和user_id
         const finalResponse = await http.post<ApiProject>(
           ManagementServiceUrls.finalizeCreation(),
           {
             project_id: request.project_id,
-            project_name: request.project_name,
-            description: request.description || '',
-            final_config: {
-              construction_methods: [],
-              overtime_tasks: [],
-              shutdown_events: [],
-              work_time: {
-                start_hour: 8,
-                end_hour: 18,
-                work_days: [
-                  'monday',
-                  'tuesday',
-                  'wednesday',
-                  'thursday',
-                  'friday',
-                ],
-              },
-              background: '',
-              compress_strategy: {},
-            },
+            user_id: currentUser.user_id,
           }
         );
 
