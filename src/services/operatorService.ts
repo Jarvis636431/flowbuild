@@ -5,7 +5,7 @@ import { FEATURE_FLAGS } from '../config/features';
 const OPERATOR_CONFIG = {
   BASE_URL_USER: 'http://101.43.150.234:8001',
   BASE_URL_OP: 'http://101.43.150.234:8002/operator',
-  OP_USER: `operator_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+  OP_USER: `operator_${Date.now()}`,
   OP_PASS: 'operator123',
   OP_ROLE: 'operator',
   TIMEOUT: 60000,
