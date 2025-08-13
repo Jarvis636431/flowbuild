@@ -76,6 +76,66 @@ export interface ProjectFinalizeRequest {
   final_config: FinalConfig;
 }
 
+// 文件上传相关接口定义
+export interface FileUploadConfig {
+  file: File;
+  project_id: string;
+  file_type: 'ifc' | 'excel' | 'workvolume';
+  name?: string;
+  onProgress?: (progress: number) => void;
+}
+
+export interface FileUploadResponse {
+  uploaded_files: string[];
+  parse_ids: string[];
+  project_id: string;
+  status: 'success' | 'error';
+  message?: string;
+}
+
+export interface FileValidationResult {
+  isValid: boolean;
+  error?: string;
+  fileType?: 'ifc' | 'excel' | 'workvolume';
+}
+
+// 支持的文件类型配置
+export const SUPPORTED_FILE_TYPES: Record<
+  'ifc' | 'excel' | 'workvolume',
+  {
+    extensions: string[];
+    mimeTypes: string[];
+    maxSize: number;
+    description: string;
+  }
+> = {
+  ifc: {
+    extensions: ['.ifc'],
+    mimeTypes: ['application/octet-stream', 'text/plain'],
+    maxSize: 100 * 1024 * 1024, // 100MB
+    description: 'IFC模型文件',
+  },
+  excel: {
+    extensions: ['.xlsx', '.xls'],
+    mimeTypes: [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+    ],
+    maxSize: 10 * 1024 * 1024, // 10MB
+    description: 'Excel文档文件',
+  },
+  workvolume: {
+    extensions: ['.xlsx', '.xls', '.csv'],
+    mimeTypes: [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+    ],
+    maxSize: 5 * 1024 * 1024, // 5MB
+    description: '工程量清单文件',
+  },
+};
+
 // 模拟数据（从api.ts移动过来）
 let mockProjects: Project[] = [];
 
@@ -353,6 +413,180 @@ export class ProjectService {
       throw new Error('删除项目失败');
     }
   }
+
+  // 文件验证方法
+  static validateFile(
+    file: File,
+    fileType: 'ifc' | 'excel' | 'workvolume'
+  ): FileValidationResult {
+    const config = SUPPORTED_FILE_TYPES[fileType];
+
+    // 检查文件大小
+    if (file.size > config.maxSize) {
+      return {
+        isValid: false,
+        error: `文件大小超过限制，最大允许 ${(config.maxSize / 1024 / 1024).toFixed(1)}MB`,
+      };
+    }
+
+    // 检查文件扩展名
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = config.extensions.some((ext) =>
+      fileName.endsWith(ext)
+    );
+
+    if (!hasValidExtension) {
+      return {
+        isValid: false,
+        error: `不支持的文件格式，请上传 ${config.extensions.join('、')} 格式的文件`,
+      };
+    }
+
+    // 检查MIME类型（可选，因为某些文件的MIME类型可能不准确）
+    if (file.type && !config.mimeTypes.includes(file.type)) {
+      console.warn(`文件MIME类型不匹配: ${file.type}，但扩展名有效，继续处理`);
+    }
+
+    return {
+      isValid: true,
+      fileType,
+    };
+  }
+
+  // 文件上传方法
+  static async uploadDocuments(
+    config: FileUploadConfig
+  ): Promise<FileUploadResponse> {
+    try {
+      // 验证文件
+      const validation = this.validateFile(config.file, config.file_type);
+      if (!validation.isValid) {
+        throw new Error(validation.error);
+      }
+
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        // 使用真实API上传
+        const response = await http.upload<FileUploadResponse>(
+          ManagementServiceUrls.uploadDocs(),
+          {
+            file: config.file,
+            name: config.name || 'file',
+            data: {
+              project_id: config.project_id,
+              file_type: config.file_type,
+            },
+            onProgress: config.onProgress,
+          }
+        );
+
+        return {
+          ...response,
+          status: 'success',
+        };
+      } else {
+        // 模拟数据模式
+        await new Promise((resolve) => {
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 10;
+            if (config.onProgress) {
+              config.onProgress(progress);
+            }
+            if (progress >= 100) {
+              clearInterval(interval);
+              resolve(undefined);
+            }
+          }, 100);
+        });
+
+        // 模拟响应
+        return {
+          uploaded_files: [config.file.name],
+          parse_ids: [`parse_${Date.now()}`],
+          project_id: config.project_id,
+          status: 'success',
+          message: '文件上传成功（模拟模式）',
+        };
+      }
+    } catch (error) {
+      console.error('文件上传失败:', error);
+
+      // 如果是真实API模式，可以考虑降级到模拟模式
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        console.warn('API上传失败，错误详情:', error);
+      }
+
+      throw new Error(
+        `文件上传失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 批量文件上传方法
+  static async uploadMultipleDocuments(
+    files: FileUploadConfig[]
+  ): Promise<FileUploadResponse[]> {
+    const results: FileUploadResponse[] = [];
+
+    for (const fileConfig of files) {
+      try {
+        const result = await this.uploadDocuments(fileConfig);
+        results.push(result);
+      } catch (error) {
+        console.error(`文件 ${fileConfig.file.name} 上传失败:`, error);
+        results.push({
+          uploaded_files: [],
+          parse_ids: [],
+          project_id: fileConfig.project_id,
+          status: 'error',
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    return results;
+  }
+
+  // 创建项目并上传文件的完整流程
+  static async createProjectWithFiles(
+    project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
+    files?: {
+      file: File;
+      fileType: 'ifc' | 'excel' | 'workvolume';
+      onProgress?: (progress: number) => void;
+    }[]
+  ): Promise<{ project: Project; uploadResults?: FileUploadResponse[] }> {
+    try {
+      // 步骤1: 创建项目
+      const createdProject = await this.createProject(project);
+
+      // 步骤2: 如果有文件，则上传文件
+      if (files && files.length > 0) {
+        const uploadConfigs: FileUploadConfig[] = files.map(
+          ({ file, fileType, onProgress }) => ({
+            file,
+            project_id: createdProject.id.toString(),
+            file_type: fileType,
+            onProgress,
+          })
+        );
+
+        const uploadResults = await this.uploadMultipleDocuments(uploadConfigs);
+
+        return {
+          project: createdProject,
+          uploadResults,
+        };
+      }
+
+      return { project: createdProject };
+    } catch (error) {
+      console.error('创建项目并上传文件失败:', error);
+      throw new Error(
+        `创建项目并上传文件失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
 }
 
 // 导出便捷的API对象（保持向后兼容）
@@ -362,4 +596,9 @@ export const projectAPI = {
   createProject: ProjectService.createProject,
   updateProject: ProjectService.updateProject,
   deleteProject: ProjectService.deleteProject,
+  // 文件上传相关方法
+  validateFile: ProjectService.validateFile,
+  uploadDocuments: ProjectService.uploadDocuments,
+  uploadMultipleDocuments: ProjectService.uploadMultipleDocuments,
+  createProjectWithFiles: ProjectService.createProjectWithFiles,
 };
