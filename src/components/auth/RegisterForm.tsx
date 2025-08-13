@@ -54,6 +54,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       await AuthService.register({
         username: formData.username,
         password: formData.password,
+        role: 'user',
       });
       onSuccess();
     } catch (err: unknown) {

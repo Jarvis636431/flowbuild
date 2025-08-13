@@ -303,6 +303,87 @@
   animation: slideIn 0.3s ease;
 }
 
+/* 用户信息区域 */
+.user-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 用户图标（收起状态） */
+.user-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.user-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* 用户内容（展开状态） */
+.user-content {
+  width: 100%;
+  padding: 12px;
+  background: rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-content:hover {
+  background: rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  color: #a855f7;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 收起状态下的用户信息 */
+.sidebar.collapsed .user-info {
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.sidebar.collapsed .user-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
 /* 深色主题适配 */
 @media (prefers-color-scheme: dark) {
   .sidebar {
@@ -322,5 +403,15 @@
 
   .project-item:hover {
     background: #333;
+  }
+
+  .user-content {
+    background: rgba(79, 70, 229, 0.08);
+    border-color: rgba(79, 70, 229, 0.15);
+  }
+
+  .user-content:hover {
+    background: rgba(79, 70, 229, 0.12);
+    border-color: rgba(79, 70, 229, 0.25);
   }
 }
