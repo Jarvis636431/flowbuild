@@ -143,8 +143,6 @@ const Output: React.FC<OutputProps> = React.memo(
             projectName={fileUpload.projectName}
             isCreatingProject={fileUpload.isCreatingProject}
             isPrecreating={fileUpload.isPrecreating}
-            isUploading={fileUpload.isUploading}
-            uploadProgress={fileUpload.uploadProgress}
             validationErrors={fileUpload.validationErrors}
             projectId={fileUpload.projectId}
             onDocumentUpload={fileUpload.handleDocumentUpload}
@@ -154,7 +152,6 @@ const Output: React.FC<OutputProps> = React.memo(
             onDragOver={fileUpload.handleDragOver}
             onProjectNameChange={handleProjectNameChange}
             onPrecreateProject={fileUpload.handlePrecreateProject}
-            onUploadFiles={fileUpload.handleUploadFiles}
             onCreateProject={fileUpload.handleCreateProject}
           />
         </div>

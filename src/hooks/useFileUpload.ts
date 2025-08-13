@@ -9,8 +9,6 @@ export interface UseFileUploadReturn {
   projectName: string;
   isCreatingProject: boolean;
   isPrecreating: boolean;
-  isUploading: boolean;
-  uploadProgress: number;
   validationErrors: string[];
   projectId: string | null;
   handleDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -20,7 +18,6 @@ export interface UseFileUploadReturn {
   handleDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   setProjectName: (name: string) => void;
   handlePrecreateProject: () => Promise<void>;
-  handleUploadFiles: () => Promise<void>;
   handleCreateProject: () => Promise<void>;
   resetUploadState: () => void;
 }
@@ -33,8 +30,7 @@ export const useFileUpload = (
   const [projectName, setProjectName] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [isPrecreating, setIsPrecreating] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
 
@@ -151,8 +147,6 @@ export const useFileUpload = (
     setProjectName('');
     setIsCreatingProject(false);
     setIsPrecreating(false);
-    setIsUploading(false);
-    setUploadProgress(0);
     setValidationErrors([]);
     setProjectId(null);
   }, []);
@@ -300,73 +294,12 @@ export const useFileUpload = (
     }
   }, [projectName]);
 
-  // 上传文件到预创建的项目
-  const handleUploadFiles = useCallback(async () => {
-    if (!projectId) {
-      alert('请先预创建项目');
-      return;
-    }
-
-    if (!documentFile && !cadFile) {
-      alert('请至少选择一个文件');
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      setUploadProgress(0);
-
-      // 获取当前用户信息
-      const currentUser = AuthService.getCurrentUserSync();
-      if (!currentUser || !currentUser.user_id) {
-        alert('用户未登录，请先登录');
-        return;
-      }
-
-      const filesToUpload = [];
-      if (documentFile)
-        filesToUpload.push({ file: documentFile, type: 'document' });
-      if (cadFile) filesToUpload.push({ file: cadFile, type: 'cad' });
-
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const { file, type } = filesToUpload[i];
-
-        console.log(`上传文件 ${i + 1}/${filesToUpload.length}:`, file.name);
-
-        await projectAPI.uploadFile({
-          project_id: projectId,
-          uploaded_by: currentUser.user_id,
-          category: 'project_document',
-          file: file,
-          file_type: type as 'document' | 'cad',
-        });
-
-        // 更新进度
-        const progress = Math.floor(((i + 1) / filesToUpload.length) * 100);
-        setUploadProgress(progress);
-      }
-
-      console.log('所有文件上传完成');
-      alert('文件上传成功！现在可以确认创建项目了。');
-    } catch (error) {
-      console.error('文件上传失败:', error);
-      alert(
-        '文件上传失败，请重试：' +
-          (error instanceof Error ? error.message : '未知错误')
-      );
-    } finally {
-      setIsUploading(false);
-    }
-  }, [projectId, documentFile, cadFile]);
-
   return {
     documentFile,
     cadFile,
     projectName,
     isCreatingProject,
     isPrecreating,
-    isUploading,
-    uploadProgress,
     validationErrors,
     projectId,
     handleDocumentUpload,
@@ -376,7 +309,6 @@ export const useFileUpload = (
     handleDragOver,
     setProjectName,
     handlePrecreateProject,
-    handleUploadFiles,
     handleCreateProject,
     resetUploadState,
   };
