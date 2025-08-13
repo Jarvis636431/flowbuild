@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
 import { type ChatMessage } from '../services/api';
-import { getDefaultSocketService } from '../services/socketService';
-import type { SocketStatus } from '../services/socketService';
+import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
+import type { WebSocketStatus } from '../services/nativeWebSocketService';
 
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -16,7 +16,7 @@ const Chat: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [socketStatus, setSocketStatus] =
-    useState<SocketStatus>('disconnected');
+    useState<WebSocketStatus>('disconnected');
   const [isConnected, setIsConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,20 +28,20 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Socket连接管理
+  // WebSocket连接管理
   useEffect(() => {
-    const socketService = getDefaultSocketService();
+    const socketService = getDefaultWebSocketService();
     if (!socketService) {
-      console.warn('Socket服务未初始化');
+      console.warn('WebSocket服务未初始化');
       return;
     }
 
     // 监听连接状态变化
     const handleStatusChange = (...args: unknown[]) => {
-      const status = args[0] as SocketStatus;
+      const status = args[0] as WebSocketStatus;
       setSocketStatus(status);
       setIsConnected(status === 'connected');
-      console.log('Chat组件 - Socket状态变化:', status);
+      console.log('Chat组件 - WebSocket状态变化:', status);
     };
 
     // 监听接收到的消息
@@ -51,7 +51,7 @@ const Chat: React.FC = () => {
         message?: string;
         [key: string]: unknown;
       };
-      console.log('Chat组件 - 收到消息:', data);
+      console.log('Chat组件 - 收到WebSocket消息:', data);
       if (data.type === 'chat_response' && data.message) {
         const aiMessage: ChatMessage = {
           id: Date.now(),
@@ -82,11 +82,11 @@ const Chat: React.FC = () => {
     };
   }, []);
 
-  // 通过Socket发送消息
+  // 通过WebSocket发送消息
   const sendSocketMessage = (userMessage: string): boolean => {
-    const socketService = getDefaultSocketService();
+    const socketService = getDefaultWebSocketService();
     if (!socketService || !socketService.isConnected()) {
-      console.error('Socket未连接，无法发送消息');
+      console.error('WebSocket未连接，无法发送消息');
       return false;
     }
 
@@ -99,10 +99,10 @@ const Chat: React.FC = () => {
       };
 
       socketService.emit('chat_message', messageData);
-      console.log('Chat组件 - 发送消息:', messageData);
+      console.log('Chat组件 - 发送WebSocket消息:', messageData);
       return true;
     } catch (error) {
-      console.error('发送Socket消息失败:', error);
+      console.error('发送WebSocket消息失败:', error);
       return false;
     }
   };
@@ -122,11 +122,11 @@ const Chat: React.FC = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // 通过Socket发送消息
+    // 通过WebSocket发送消息
     const success = sendSocketMessage(currentInput);
 
     if (!success) {
-      // Socket发送失败，显示错误消息
+      // WebSocket发送失败，显示错误消息
       const errorResponse: ChatMessage = {
         id: Date.now() + 1,
         text: '抱歉，消息发送失败，请检查网络连接后重试。',
