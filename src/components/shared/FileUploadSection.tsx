@@ -32,6 +32,11 @@ interface FileUploadSectionProps {
   uploadProgress?: number;
   validationErrors?: string[];
   projectId?: string | null;
+  // 轮询相关状态
+  isPolling?: boolean;
+  pollingStatus?: string;
+  pollingProgress?: number;
+  pollingMessage?: string;
   onDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCadUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onDocumentDrop: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -53,6 +58,11 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     uploadProgress = 0,
     validationErrors = [],
     projectId,
+    // 轮询相关状态
+    isPolling = false,
+    pollingStatus = '',
+    pollingProgress = 0,
+    pollingMessage = '',
     onDocumentUpload,
     onCadUpload,
     onDocumentDrop,
@@ -88,7 +98,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
         )}
 
         {/* 上传进度条 */}
-        {(isCreatingProject || isPrecreating || isUploading) && (
+        {(isCreatingProject || isPrecreating || isUploading || isPolling) && (
           <div className="upload-progress">
             <div className="progress-label">
               {isPrecreating
@@ -97,14 +107,25 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
                   ? `文件上传中... ${uploadProgress}%`
                   : isCreatingProject
                     ? `创建项目中... ${uploadProgress}%`
-                    : '处理中...'}
+                    : isPolling
+                      ? pollingMessage || `项目处理中... ${pollingProgress}%`
+                      : '处理中...'}
             </div>
             <div className="progress-bar">
               <div
                 className="progress-fill"
-                style={{ width: `${uploadProgress}%` }}
+                style={{
+                  width: `${isPolling ? pollingProgress : uploadProgress}%`,
+                }}
               ></div>
             </div>
+            {/* 轮询状态详细信息 */}
+            {isPolling && pollingStatus && (
+              <div className="polling-status">
+                <span className="status-indicator">🔄</span>
+                <span className="status-text">状态: {pollingStatus}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -257,7 +278,9 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
             <button
               className="precreate-project-btn"
               onClick={onPrecreateProject}
-              disabled={isCreatingProject || isPrecreating || !!projectId}
+              disabled={
+                isCreatingProject || isPrecreating || isPolling || !!projectId
+              }
             >
               {isPrecreating
                 ? '预创建中...'
@@ -271,9 +294,15 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           <button
             className="create-project-btn"
             onClick={onCreateProject}
-            disabled={isCreatingProject || isPrecreating || !projectId}
+            disabled={
+              isCreatingProject || isPrecreating || isPolling || !projectId
+            }
           >
-            {isCreatingProject ? '创建中...' : '2. 确认创建项目'}
+            {isCreatingProject
+              ? '创建中...'
+              : isPolling
+                ? '项目处理中...'
+                : '2. 确认创建项目'}
           </button>
         </div>
       </div>

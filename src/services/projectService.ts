@@ -595,6 +595,51 @@ export class ProjectService {
     }
   }
 
+  // 轮询项目状态
+  static async pollProjectStatus(projectId: string): Promise<{
+    status: string;
+    progress?: number;
+    message?: string;
+  }> {
+    try {
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        const response = await http.get<{
+          status: string;
+          progress?: number;
+          message?: string;
+        }>(`${ManagementServiceUrls.polling()}?project_id=${projectId}`);
+
+        return response;
+      } else {
+        // 模拟模式 - 随机返回状态
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const statuses = [
+          'processing',
+          'processing',
+          'processing',
+          'completed',
+        ];
+        const randomStatus =
+          statuses[Math.floor(Math.random() * statuses.length)];
+
+        return {
+          status: randomStatus,
+          progress:
+            randomStatus === 'completed'
+              ? 100
+              : Math.floor(Math.random() * 90) + 10,
+          message:
+            randomStatus === 'completed' ? '项目处理完成' : '项目处理中...',
+        };
+      }
+    } catch (error) {
+      console.error('轮询项目状态失败:', error);
+      throw new Error(
+        `轮询项目状态失败: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   // 创建项目并上传文件的完整流程
   static async createProjectWithFiles(
     project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
@@ -662,6 +707,8 @@ export const projectAPI = {
   deleteProject: ProjectService.deleteProject,
   // 预创建项目
   precreateProject: ProjectService.precreateProject,
+  // 轮询项目状态
+  pollProjectStatus: ProjectService.pollProjectStatus,
   // 文件上传相关方法
   validateFile: ProjectService.validateFile,
   uploadFile: ProjectService.uploadFile,

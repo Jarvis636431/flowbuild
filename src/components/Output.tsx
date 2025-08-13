@@ -147,6 +147,11 @@ const Output: React.FC<OutputProps> = React.memo(
             uploadProgress={fileUpload.uploadProgress}
             validationErrors={fileUpload.validationErrors}
             projectId={fileUpload.projectId}
+            // 轮询相关状态
+            isPolling={fileUpload.isPolling}
+            pollingStatus={fileUpload.pollingStatus}
+            pollingProgress={fileUpload.pollingProgress}
+            pollingMessage={fileUpload.pollingMessage}
             onDocumentUpload={fileUpload.handleDocumentUpload}
             onCadUpload={fileUpload.handleCadUpload}
             onDocumentDrop={fileUpload.handleDocumentDrop}

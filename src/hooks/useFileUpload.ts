@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { projectAPI } from '../services/api';
 import { AuthService } from '../services/authService';
 import { ManagementServiceUrls } from '../services/apiConfig';
@@ -13,6 +13,11 @@ export interface UseFileUploadReturn {
   uploadProgress: number;
   validationErrors: string[];
   projectId: string | null;
+  // 轮询相关状态
+  isPolling: boolean;
+  pollingStatus: string;
+  pollingProgress: number;
+  pollingMessage: string;
   handleDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleCadUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleDocumentDrop: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -37,6 +42,14 @@ export const useFileUpload = (
 
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
+
+  // 轮询相关状态
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollingStatus, setPollingStatus] = useState('');
+  const [pollingProgress, setPollingProgress] = useState(0);
+  const [pollingMessage, setPollingMessage] = useState('');
+  const pollingIntervalRef = useRef<number | null>(null);
+  const pollingTimeoutRef = useRef<number | null>(null);
 
   // 处理文档文件上传
   const handleDocumentUpload = useCallback(
@@ -144,8 +157,93 @@ export const useFileUpload = (
     []
   );
 
+  // 停止轮询
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+    setIsPolling(false);
+  }, []);
+
+  // 启动轮询
+  const startPolling = useCallback(
+    async (projectId: string) => {
+      console.log('启动项目状态轮询:', projectId);
+      setIsPolling(true);
+      setPollingStatus('processing');
+      setPollingMessage('项目处理中，请稍候...');
+      setPollingProgress(0);
+
+      // 设置5分钟超时
+      pollingTimeoutRef.current = setTimeout(
+        () => {
+          console.log('轮询超时，停止轮询');
+          stopPolling();
+          alert('项目处理超时，请稍后手动刷新查看状态');
+        },
+        5 * 60 * 1000
+      ); // 5分钟
+
+      // 开始轮询
+      const pollProject = async () => {
+        try {
+          const result = await projectAPI.pollProjectStatus(projectId);
+          console.log('轮询结果:', result);
+
+          setPollingStatus(result.status);
+          setPollingMessage(result.message || '项目处理中...');
+          if (result.progress !== undefined) {
+            setPollingProgress(result.progress);
+          }
+
+          if (result.status === 'completed') {
+            console.log('项目处理完成，停止轮询');
+            stopPolling();
+
+            // 重置状态
+            setDocumentFile(null);
+            setCadFile(null);
+            setProjectName('');
+            setIsCreatingProject(false);
+            setIsPrecreating(false);
+            setIsUploading(false);
+            setUploadProgress(0);
+            setValidationErrors([]);
+            setProjectId(null);
+            setPollingStatus('');
+            setPollingProgress(0);
+            setPollingMessage('');
+
+            // 调用回调函数
+            if (onProjectCreated) {
+              onProjectCreated();
+            }
+          }
+        } catch (error) {
+          console.error('轮询失败:', error);
+          // 轮询失败不停止，继续尝试
+        }
+      };
+
+      // 立即执行一次
+      await pollProject();
+
+      // 每3秒轮询一次
+      pollingIntervalRef.current = setInterval(pollProject, 3000);
+    },
+    [stopPolling, onProjectCreated]
+  );
+
   // 重置上传状态
   const resetUploadState = useCallback(() => {
+    // 停止轮询
+    stopPolling();
+
     setDocumentFile(null);
     setCadFile(null);
     setProjectName('');
@@ -155,7 +253,11 @@ export const useFileUpload = (
     setUploadProgress(0);
     setValidationErrors([]);
     setProjectId(null);
-  }, []);
+    // 重置轮询状态
+    setPollingStatus('');
+    setPollingProgress(0);
+    setPollingMessage('');
+  }, [stopPolling]);
 
   // 最终确认创建项目
   const handleCreateProject = useCallback(async () => {
@@ -257,15 +359,9 @@ export const useFileUpload = (
 
       setUploadProgress(100); // 项目创建完成
       console.log('项目创建成功:', finalProject);
-      alert('项目创建成功！');
 
-      // 重置状态
-      resetUploadState();
-
-      // 调用回调函数
-      if (onProjectCreated) {
-        onProjectCreated();
-      }
+      // 启动轮询而不是立即跳转
+      startPolling(projectId);
     } catch (error) {
       console.error('创建项目失败:', error);
       alert(
@@ -277,14 +373,7 @@ export const useFileUpload = (
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [
-    projectId,
-    projectName,
-    documentFile,
-    cadFile,
-    onProjectCreated,
-    resetUploadState,
-  ]);
+  }, [projectId, projectName, documentFile, cadFile, startPolling]);
 
   // 预创建项目（获取project_id）
   const handlePrecreateProject = useCallback(async () => {
@@ -390,6 +479,11 @@ export const useFileUpload = (
     uploadProgress,
     validationErrors,
     projectId,
+    // 轮询相关状态
+    isPolling,
+    pollingStatus,
+    pollingProgress,
+    pollingMessage,
     handleDocumentUpload,
     handleCadUpload,
     handleDocumentDrop,
