@@ -20,6 +20,7 @@ export const MANAGEMENT_SERVICE_ENDPOINTS = {
   PRECREATE: '/precreate',
   INFO_CHECK: '/infocheck',
   UPLOAD_DOCS: '/upload_docs',
+  UPLOADS: (fileType: string) => `/uploads/${fileType}`,
   FINALIZE_CREATION: '/finalize_creation',
   PROJECT_LIST: '/project_list',
   VIEW: '/view',
@@ -149,6 +150,8 @@ export const ManagementServiceUrls = {
     buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.INFO_CHECK),
   uploadDocs: () =>
     buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.UPLOAD_DOCS),
+  uploads: (fileType: string) =>
+    buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.UPLOADS(fileType)),
   finalizeCreation: () =>
     buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.FINALIZE_CREATION),
   projectList: () =>
