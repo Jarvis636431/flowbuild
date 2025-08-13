@@ -2,8 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { IFCLoader } from 'web-ifc-three/IFCLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { type Project } from '../../services/projectService';
 
-const IfcModel: React.FC = React.memo(() => {
+interface IfcModelProps {
+  project?: Project | null;
+}
+
+const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -11,6 +16,18 @@ const IfcModel: React.FC = React.memo(() => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animateIdRef = useRef<number | null>(null);
+
+  // 根据项目名称选择模型文件
+  const getModelURL = (projectName: string): string => {
+    const firstChar = projectName.charAt(0);
+    if (firstChar === '海') {
+      return '/海河玺.ifc';
+    } else if (firstChar === '绿') {
+      return '/绿城石岗.ifc';
+    }
+    // 默认返回绿城石岗.ifc
+    return '/绿城石岗.ifc';
+  };
 
   useEffect(() => {
     if (isInitializedRef.current || !containerRef.current) {
@@ -57,11 +74,14 @@ const IfcModel: React.FC = React.memo(() => {
     scene.add(directionalLight);
 
     const ifcLoader = new IFCLoader();
-    ifcLoader.ifcManager.setWasmPath('./node_modules/web-ifc/');
+    ifcLoader.ifcManager.setWasmPath('/');
 
     const loadModel = async () => {
       try {
-        const modelURL = '/绿城石岗.ifc';
+        // 根据项目名称选择模型文件
+        const modelURL = project?.name
+          ? getModelURL(project.name)
+          : '/绿城石岗.ifc';
         const response = await fetch(modelURL);
         if (!response.ok) {
           throw new Error(`请求模型文件失败: ${response.status}`);
@@ -215,7 +235,7 @@ const IfcModel: React.FC = React.memo(() => {
       window.removeEventListener('resize', handleResize);
       isInitializedRef.current = false;
     };
-  }, []);
+  }, [project?.name]); // 添加project.name作为依赖项，当项目名称变化时重新加载模型
 
   return (
     <div
