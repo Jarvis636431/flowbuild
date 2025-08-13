@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, [loadProjects]);
 
   const handleDeleteProject = async (
-    projectId: number,
+    projectId: string,
     event: React.MouseEvent
   ) => {
     event.stopPropagation();

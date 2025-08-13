@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import { chatAPI, type ChatMessage, type ChatRequest } from '../services/api';
+import { type ChatMessage } from '../services/api';
+import { getDefaultSocketService } from '../services/socketService';
+import type { SocketStatus } from '../services/socketService';
 
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -13,6 +15,9 @@ const Chat: React.FC = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [socketStatus, setSocketStatus] =
+    useState<SocketStatus>('disconnected');
+  const [isConnected, setIsConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -23,25 +28,87 @@ const Chat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // 获取AI回复的异步函数
-  const getAIResponse = async (userMessage: string): Promise<string> => {
+  // Socket连接管理
+  useEffect(() => {
+    const socketService = getDefaultSocketService();
+    if (!socketService) {
+      console.warn('Socket服务未初始化');
+      return;
+    }
+
+    // 监听连接状态变化
+    const handleStatusChange = (...args: unknown[]) => {
+      const status = args[0] as SocketStatus;
+      setSocketStatus(status);
+      setIsConnected(status === 'connected');
+      console.log('Chat组件 - Socket状态变化:', status);
+    };
+
+    // 监听接收到的消息
+    const handleMessage = (...args: unknown[]) => {
+      const data = args[0] as {
+        type?: string;
+        message?: string;
+        [key: string]: unknown;
+      };
+      console.log('Chat组件 - 收到消息:', data);
+      if (data.type === 'chat_response' && data.message) {
+        const aiMessage: ChatMessage = {
+          id: Date.now(),
+          text: data.message,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      }
+    };
+
+    // 绑定事件监听器
+    socketService.on('statusChange', handleStatusChange);
+    socketService.on('message', handleMessage);
+    socketService.on('chat_response', handleMessage);
+
+    // 获取当前连接状态
+    const currentStatus = socketService.getStatus();
+    setSocketStatus(currentStatus);
+    setIsConnected(currentStatus === 'connected');
+
+    // 清理函数
+    return () => {
+      socketService.off('statusChange', handleStatusChange);
+      socketService.off('message', handleMessage);
+      socketService.off('chat_response', handleMessage);
+    };
+  }, []);
+
+  // 通过Socket发送消息
+  const sendSocketMessage = (userMessage: string): boolean => {
+    const socketService = getDefaultSocketService();
+    if (!socketService || !socketService.isConnected()) {
+      console.error('Socket未连接，无法发送消息');
+      return false;
+    }
+
     try {
-      const request: ChatRequest = {
+      const messageData = {
+        type: 'chat_message',
         message: userMessage,
         history: messages.slice(-10), // 发送最近10条消息作为上下文
+        timestamp: Date.now(),
       };
 
-      const response = await chatAPI.sendMessage(request);
-      return response.text;
+      socketService.emit('chat_message', messageData);
+      console.log('Chat组件 - 发送消息:', messageData);
+      return true;
     } catch (error) {
-      console.error('获取AI回复失败:', error);
-      // 降级到简单的错误回复
-      return '抱歉，我现在无法回复您的消息，请稍后再试。';
+      console.error('发送Socket消息失败:', error);
+      return false;
     }
   };
 
-  const handleSendMessage = async () => {
-    if (inputValue.trim() === '') return;
+  const handleSendMessage = () => {
+    if (inputValue.trim() === '' || !isConnected) return;
 
     const userMessage: ChatMessage = {
       id: Date.now(),
@@ -55,38 +122,66 @@ const Chat: React.FC = () => {
     setInputValue('');
     setIsTyping(true);
 
-    try {
-      // 调用API获取AI回复
-      const aiResponseText = await getAIResponse(currentInput);
+    // 通过Socket发送消息
+    const success = sendSocketMessage(currentInput);
 
-      const aiResponse: ChatMessage = {
-        id: Date.now() + 1,
-        text: aiResponseText,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiResponse]);
-    } catch (error) {
-      console.error('发送消息失败:', error);
-
-      // 显示错误消息
+    if (!success) {
+      // Socket发送失败，显示错误消息
       const errorResponse: ChatMessage = {
         id: Date.now() + 1,
-        text: '抱歉，发送消息时出现错误，请稍后再试。',
+        text: '抱歉，消息发送失败，请检查网络连接后重试。',
         sender: 'ai',
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, errorResponse]);
-    } finally {
       setIsTyping(false);
     }
+
+    // 设置超时，如果10秒内没有收到回复，显示超时消息
+    setTimeout(() => {
+      setIsTyping(false);
+    }, 10000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  // 获取连接状态显示文本
+  const getStatusText = () => {
+    switch (socketStatus) {
+      case 'connected':
+        return '已连接';
+      case 'connecting':
+        return '连接中';
+      case 'reconnecting':
+        return '重连中';
+      case 'disconnected':
+        return '未连接';
+      case 'error':
+        return '连接错误';
+      default:
+        return '未知状态';
+    }
+  };
+
+  // 获取连接状态颜色
+  const getStatusColor = () => {
+    switch (socketStatus) {
+      case 'connected':
+        return '#4CAF50';
+      case 'connecting':
+      case 'reconnecting':
+        return '#FF9800';
+      case 'disconnected':
+        return '#9E9E9E';
+      case 'error':
+        return '#F44336';
+      default:
+        return '#9E9E9E';
     }
   };
 
@@ -99,6 +194,18 @@ const Chat: React.FC = () => {
 
   return (
     <div className="chat-panel">
+      {/* 连接状态指示器 */}
+      <div className="chat-header">
+        <h3>AI助手</h3>
+        <div className="connection-status">
+          <div
+            className="status-indicator"
+            style={{ backgroundColor: getStatusColor() }}
+          ></div>
+          <span className="status-text">{getStatusText()}</span>
+        </div>
+      </div>
+
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>
@@ -122,17 +229,18 @@ const Chat: React.FC = () => {
       <div className="input-area">
         <div className="input-container">
           <textarea
-            placeholder="输入你的消息..."
+            placeholder={isConnected ? '输入你的消息...' : '等待连接...'}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isTyping}
+            disabled={isTyping || !isConnected}
             rows={4}
           />
           <button
             onClick={handleSendMessage}
-            disabled={isTyping || inputValue.trim() === ''}
+            disabled={isTyping || inputValue.trim() === '' || !isConnected}
             className="send-button"
+            title={isConnected ? '发送消息' : '等待连接'}
           >
             <svg
               width="20"

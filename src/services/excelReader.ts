@@ -236,7 +236,7 @@ export async function readProjectFromExcel(
 
     // 创建项目对象
     const project: Project = {
-      id: 1,
+      id: '1',
       name: '项目进度表',
       description: '从Excel文件导入的项目数据',
       createdAt: new Date(),
@@ -384,7 +384,7 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
 
     // 创建项目对象
     const project: Project = {
-      id: 1,
+      id: '1',
       name: file.name.replace('.xlsx', '') || '项目进度表',
       description: '从Excel文件导入的项目数据',
       createdAt: new Date(),
