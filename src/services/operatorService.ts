@@ -164,6 +164,15 @@ export class OperatorService {
       formData.append('files', fileBlob, fileName);
       formData.append('atype', atype);
 
+      // 调试信息：上传前打印详细信息
+      const uploadUrl = `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`;
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 准备上传文件`);
+      console.log(`🔍 [DEBUG] 文件标签: ${label}`);
+      console.log(`🔍 [DEBUG] 文件名: ${fileName}`);
+      console.log(`🔍 [DEBUG] 文件类型: ${atype}`);
+      console.log(`🔍 [DEBUG] 项目ID: ${projectId}`);
+      console.log(`🔍 [DEBUG] 文件路径: ${filePath}`);
+      console.log(`🔍 [DEBUG] 上传URL: ${uploadUrl}`);
       console.log(`📤 正在上传 ${label}: ${fileName}`);
 
       const response = await httpClient.post(
@@ -193,6 +202,12 @@ export class OperatorService {
     const { projectId, projectName } = options;
 
     try {
+      // 调试信息：方法开始时打印projectId
+      console.log(
+        `🔍 [DEBUG] ${new Date().toISOString()} - executeOperatorActions 开始`
+      );
+      console.log(`🔍 [DEBUG] 项目ID: ${projectId}`);
+      console.log(`🔍 [DEBUG] 项目名称: ${projectName}`);
       console.log('🚀 开始执行操作员操作...', { projectId, projectName });
 
       // 如果是模拟模式，直接返回成功
@@ -222,9 +237,19 @@ export class OperatorService {
       const accessToken = await OperatorService.loginOperator();
 
       // 步骤3: 上传文件
+      const totalUploadUrl = `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`;
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 准备上传文件`);
+      console.log(`🔍 [DEBUG] 使用项目ID: ${projectId}`);
+      console.log(`🔍 [DEBUG] 总的上传文件URL: ${totalUploadUrl}`);
+      console.log(`🔍 [DEBUG] 文件路径配置:`, filePaths);
+
       const uploadedFiles: string[] = [];
 
       // 上传IFC文件
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传IFC文件`);
+      console.log(
+        `🔍 [DEBUG] IFC文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.ifc}`
+      );
       await OperatorService.uploadFile(
         filePaths.ifc,
         'ifc',
@@ -235,6 +260,10 @@ export class OperatorService {
       uploadedFiles.push(filePaths.ifc);
 
       // 上传钢筋文件
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传钢筋文件`);
+      console.log(
+        `🔍 [DEBUG] 钢筋文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.steel}`
+      );
       await OperatorService.uploadFile(
         filePaths.steel,
         'steel',
@@ -245,6 +274,10 @@ export class OperatorService {
       uploadedFiles.push(filePaths.steel);
 
       // 上传汇总文件
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传汇总文件`);
+      console.log(
+        `🔍 [DEBUG] 汇总文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.summary}`
+      );
       await OperatorService.uploadFile(
         filePaths.summary,
         'summary',
