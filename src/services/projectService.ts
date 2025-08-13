@@ -259,7 +259,7 @@ export class ProjectService {
   // 预创建项目（获取project_id）
   static async precreateProject(request: {
     user_id: string;
-    project_name: string;
+    name: string;
   }): Promise<{ project_id: string }> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
@@ -267,7 +267,7 @@ export class ProjectService {
           ManagementServiceUrls.precreate(),
           {
             user_id: request.user_id,
-            project_name: request.project_name,
+            name: request.name,
           }
         );
         return response;
@@ -618,10 +618,16 @@ export class ProjectService {
     }[]
   ): Promise<{ project: Project; uploadResults?: FileUploadResponse[] }> {
     try {
+      // 获取当前用户信息
+      const currentUser = AuthService.getCurrentUserSync();
+      if (!currentUser || !currentUser.user_id) {
+        throw new Error('用户未登录，请先登录');
+      }
+
       // 步骤1: 预创建项目
       const precreateResponse = await this.precreateProject({
-        user_id: 'current_user', // TODO: 从当前登录用户获取
-        project_name: project.name,
+        user_id: currentUser.user_id,
+        name: project.name,
       });
 
       // 步骤2: 创建项目
