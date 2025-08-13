@@ -7,6 +7,7 @@ import type {
   AxiosProgressEvent,
 } from 'axios';
 import { ENV_CONFIG } from '../config/features';
+import { TokenManager } from './authService';
 
 // 基础响应接口
 export interface ApiResponse<T = unknown> {
@@ -43,6 +44,8 @@ class HttpClient {
   private instance: AxiosInstance;
   private cancelTokens: Map<string, CancelTokenSource> = new Map();
   private requestQueue: Set<string> = new Set();
+  private isRefreshingToken = false;
+  private refreshTokenPromise: Promise<string> | null = null;
 
   constructor() {
     this.instance = axios.create({
@@ -136,6 +139,24 @@ class HttpClient {
 
         console.error('[HTTP Response Error]', error);
 
+        // 处理401错误和token刷新
+        if (
+          error.response?.status === 401 &&
+          !(error.config as RequestConfig)?.skipAuth
+        ) {
+          try {
+            const newToken = await this.refreshAuthToken();
+            // 重新发送原始请求
+            if (error.config) {
+              error.config.headers.Authorization = `Bearer ${newToken}`;
+              return this.instance.request(error.config);
+            }
+          } catch {
+            console.error('Token refresh failed, redirecting to login');
+            return Promise.reject(this.handleError(error));
+          }
+        }
+
         // 处理重试逻辑
         if (this.shouldRetry(error)) {
           return this.retryRequest(error);
@@ -153,9 +174,38 @@ class HttpClient {
 
   // 获取认证token
   private getAuthToken(): string | null {
-    return (
-      localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-    );
+    return TokenManager.getToken();
+  }
+
+  // 刷新token
+  private async refreshAuthToken(): Promise<string> {
+    if (this.isRefreshingToken && this.refreshTokenPromise) {
+      return this.refreshTokenPromise;
+    }
+
+    this.isRefreshingToken = true;
+    this.refreshTokenPromise = this.performTokenRefresh();
+
+    try {
+      const newToken = await this.refreshTokenPromise;
+      return newToken;
+    } finally {
+      this.isRefreshingToken = false;
+      this.refreshTokenPromise = null;
+    }
+  }
+
+  // 执行token刷新
+  private async performTokenRefresh(): Promise<string> {
+    try {
+      // 动态导入AuthService以避免循环依赖
+      const { AuthService } = await import('./authService');
+      return await AuthService.refreshToken();
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      this.handleUnauthorized();
+      throw error;
+    }
   }
 
   // 判断是否需要重试
@@ -238,10 +288,12 @@ class HttpClient {
 
   // 处理未授权
   private handleUnauthorized(): void {
-    localStorage.removeItem('auth_token');
-    sessionStorage.removeItem('auth_token');
+    TokenManager.clearAuth();
     // 可以在这里添加跳转到登录页的逻辑
     // window.location.href = '/login';
+
+    // 触发自定义事件，通知应用用户需要重新登录
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
   }
 
   // GET 请求
@@ -404,17 +456,22 @@ class HttpClient {
     token: string,
     storage: 'localStorage' | 'sessionStorage' = 'localStorage'
   ): void {
-    if (storage === 'localStorage') {
-      localStorage.setItem('auth_token', token);
-    } else {
-      sessionStorage.setItem('auth_token', token);
-    }
+    TokenManager.setToken(token, storage);
   }
 
   // 清除认证token
   public clearAuthToken(): void {
-    localStorage.removeItem('auth_token');
-    sessionStorage.removeItem('auth_token');
+    TokenManager.clearAuth();
+  }
+
+  // 检查是否已认证
+  public isAuthenticated(): boolean {
+    return TokenManager.hasToken();
+  }
+
+  // 获取当前用户信息（同步）
+  public getCurrentUser() {
+    return TokenManager.getUser();
   }
 }
 
