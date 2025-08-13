@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
-import { projectAPI } from '../services/projectService';
+import { projectAPI } from '../services/api';
+import { AuthService } from '../services/authService';
+import { ManagementServiceUrls } from '../services/apiConfig';
 
 export interface UseFileUploadReturn {
   documentFile: File | null;
@@ -208,14 +210,59 @@ export const useFileUpload = (
   const handlePrecreateProject = useCallback(async () => {
     try {
       setIsPrecreating(true);
+
+      // 获取当前用户信息
+      const currentUser = AuthService.getCurrentUserSync();
+      if (!currentUser || !currentUser.user_id) {
+        alert('用户未登录，请先登录');
+        return;
+      }
+
+      // 验证项目名称
+      if (!projectName || !projectName.trim()) {
+        alert('请输入项目名称');
+        return;
+      }
+
+      const trimmedProjectName = projectName.trim();
+
+      // 项目名称长度限制
+      if (trimmedProjectName.length < 2) {
+        alert('项目名称至少需要2个字符');
+        return;
+      }
+
+      if (trimmedProjectName.length > 50) {
+        alert('项目名称不能超过50个字符');
+        return;
+      }
+
+      // 项目名称字符限制（允许中文、英文、数字、下划线、连字符、空格）
+      const namePattern = /^[\u4e00-\u9fa5a-zA-Z0-9_\-\s]+$/;
+      if (!namePattern.test(trimmedProjectName)) {
+        alert('项目名称只能包含中文、英文、数字、下划线、连字符和空格');
+        return;
+      }
+
       console.log('预创建项目:', {
-        project_name: projectName,
+        user_id: currentUser.user_id,
+        project_name: trimmedProjectName,
       });
+
+      console.log('=== 预创建项目调试信息 ===');
+      console.log('API URL:', ManagementServiceUrls.precreate());
+      console.log('请求参数:', {
+        user_id: currentUser.user_id,
+        name: trimmedProjectName,
+      });
+      console.log('当前用户:', currentUser);
+      console.log('HTTP方法: POST');
+      console.log('========================');
 
       // 调用预创建API获取project_id
       const response = await projectAPI.precreateProject({
-        user_id: 'current_user', // TODO: 从当前登录用户获取
-        project_name: projectName,
+        user_id: currentUser.user_id,
+        name: trimmedProjectName,
       });
 
       setProjectId(response.project_id);
@@ -223,10 +270,31 @@ export const useFileUpload = (
       alert('项目预创建成功！现在可以上传文件了。');
     } catch (error) {
       console.error('预创建项目失败:', error);
-      alert(
-        '预创建项目失败，请重试：' +
-          (error instanceof Error ? error.message : '未知错误')
-      );
+
+      // 打印详细的错误信息用于调试
+      if (error && typeof error === 'object' && 'data' in error) {
+        console.error('服务器返回的错误详情:', error.data);
+        console.error('完整错误对象:', JSON.stringify(error, null, 2));
+      }
+
+      let errorMessage = '预创建项目失败，请重试';
+      if (error && typeof error === 'object') {
+        if ('data' in error && error.data && typeof error.data === 'object') {
+          // 尝试从错误数据中提取具体信息
+          const errorData = error.data as Record<string, unknown>;
+          if (errorData.message) {
+            errorMessage += `：${errorData.message}`;
+          } else if (errorData.detail) {
+            errorMessage += `：${errorData.detail}`;
+          } else if (errorData.error) {
+            errorMessage += `：${errorData.error}`;
+          }
+        } else if ('message' in error) {
+          errorMessage += `：${(error as Error).message}`;
+        }
+      }
+
+      alert(errorMessage);
     } finally {
       setIsPrecreating(false);
     }
@@ -248,6 +316,13 @@ export const useFileUpload = (
       setIsUploading(true);
       setUploadProgress(0);
 
+      // 获取当前用户信息
+      const currentUser = AuthService.getCurrentUserSync();
+      if (!currentUser || !currentUser.user_id) {
+        alert('用户未登录，请先登录');
+        return;
+      }
+
       const filesToUpload = [];
       if (documentFile)
         filesToUpload.push({ file: documentFile, type: 'document' });
@@ -260,7 +335,7 @@ export const useFileUpload = (
 
         await projectAPI.uploadFile({
           project_id: projectId,
-          uploaded_by: 'current_user', // TODO: 从当前登录用户获取
+          uploaded_by: currentUser.user_id,
           category: 'project_document',
           file: file,
           file_type: type as 'document' | 'cad',
