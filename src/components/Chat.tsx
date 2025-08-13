@@ -1,20 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import {
-  chatAPI,
-  projectAPI,
-  type ChatMessage,
-  type ChatRequest,
-  type Project,
-  type TaskItem,
-} from '../services/api';
-import { useAsyncState } from '../hooks/useAsyncState';
+import { chatAPI, type ChatMessage, type ChatRequest } from '../services/api';
 
-interface ChatProps {
-  currentProject: Project | null;
-}
-
-const Chat: React.FC<ChatProps> = ({ currentProject }) => {
+const Chat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -25,9 +13,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const { data: projectTasks, execute: fetchProjectTasks } = useAsyncState<
-    TaskItem[]
-  >([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -37,29 +22,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // 获取项目任务数据
-  useEffect(() => {
-    if (currentProject) {
-      fetchProjectTasks(async () => {
-        const tasks = await projectAPI.getTasksByProjectId(currentProject.id);
-        return tasks;
-      });
-    }
-  }, [currentProject, fetchProjectTasks]);
-
-  // 计算项目总成本
-  const calculateTotalCost = () => {
-    return (projectTasks || []).reduce((total, task) => total + task.cost, 0);
-  };
-
-  // 计算项目总工期
-  const calculateTotalDays = () => {
-    if (!projectTasks || projectTasks.length === 0) return 0;
-    const maxEndDay = Math.max(...projectTasks.map((task) => task.endDay));
-    const minStartDay = Math.min(...projectTasks.map((task) => task.startDay));
-    return maxEndDay - minStartDay + 1;
-  };
 
   // 获取AI回复的异步函数
   const getAIResponse = async (userMessage: string): Promise<string> => {
@@ -137,19 +99,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   return (
     <div className="chat-panel">
-      {currentProject && (
-        <div className="project-header">
-          <div className="project-info">
-            <div className="project-name">{currentProject.name}</div>
-          </div>
-          <div className="project-stats">
-            <span className="stat-item">
-              成本: {(calculateTotalCost() / 10000).toFixed(1)}万
-            </span>
-            <span className="stat-item">工期: {calculateTotalDays()}天</span>
-          </div>
-        </div>
-      )}
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>

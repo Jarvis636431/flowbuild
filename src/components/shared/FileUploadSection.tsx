@@ -1,16 +1,49 @@
 import React from 'react';
 
+// 文件名截断工具函数
+const truncateFileName = (fileName: string, maxLength: number = 30): string => {
+  if (fileName.length <= maxLength) {
+    return fileName;
+  }
+
+  // 获取文件扩展名
+  const lastDotIndex = fileName.lastIndexOf('.');
+  const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : '';
+  const nameWithoutExt =
+    lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+
+  // 计算可用于文件名的长度（减去扩展名和省略号的长度）
+  const availableLength = maxLength - extension.length - 3; // 3 for "..."
+
+  if (availableLength <= 0) {
+    return '...' + extension;
+  }
+
+  return nameWithoutExt.substring(0, availableLength) + '...' + extension;
+};
+
 interface FileUploadSectionProps {
   documentFile: File | null;
   cadFile: File | null;
   projectName: string;
   isCreatingProject: boolean;
+  isPrecreating?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  validationErrors?: string[];
+  projectId?: string | null;
+  // 轮询相关状态
+  isPolling?: boolean;
+  pollingStatus?: string;
+  pollingProgress?: number;
+  pollingMessage?: string;
   onDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCadUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onDocumentDrop: (event: React.DragEvent<HTMLDivElement>) => void;
   onCadDrop: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onProjectNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPrecreateProject?: () => void;
   onCreateProject: () => void;
 }
 
@@ -20,17 +53,81 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     cadFile,
     projectName,
     isCreatingProject,
+    isPrecreating = false,
+    isUploading = false,
+    uploadProgress = 0,
+    validationErrors = [],
+    projectId,
+    // 轮询相关状态
+    isPolling = false,
+    pollingStatus = '',
+    pollingProgress = 0,
+    pollingMessage = '',
     onDocumentUpload,
     onCadUpload,
     onDocumentDrop,
     onCadDrop,
     onDragOver,
     onProjectNameChange,
+    onPrecreateProject,
     onCreateProject,
   }) => {
     return (
       <div className="upload-container">
         <h2 className="upload-main-title">创建新项目</h2>
+
+        {/* 验证错误提示 */}
+        {validationErrors.length > 0 && (
+          <div className="validation-errors">
+            <h4>文件验证错误：</h4>
+            <ul>
+              {validationErrors.map((error, index) => (
+                <li key={index} className="error-item">
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 项目状态显示 */}
+        {projectId && (
+          <div className="project-status">
+            <div className="status-item">✅ 项目已预创建，ID: {projectId}</div>
+          </div>
+        )}
+
+        {/* 上传进度条 */}
+        {(isCreatingProject || isPrecreating || isUploading || isPolling) && (
+          <div className="upload-progress">
+            <div className="progress-label">
+              {isPrecreating
+                ? '预创建项目中...'
+                : isUploading
+                  ? `文件上传中... ${uploadProgress}%`
+                  : isCreatingProject
+                    ? `创建项目中... ${uploadProgress}%`
+                    : isPolling
+                      ? pollingMessage || `项目处理中... ${pollingProgress}%`
+                      : '处理中...'}
+            </div>
+            <div className="progress-bar">
+              <div
+                className="progress-fill"
+                style={{
+                  width: `${isPolling ? pollingProgress : uploadProgress}%`,
+                }}
+              ></div>
+            </div>
+            {/* 轮询状态详细信息 */}
+            {isPolling && pollingStatus && (
+              <div className="polling-status">
+                <span className="status-indicator">🔄</span>
+                <span className="status-text">状态: {pollingStatus}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 上传区域容器 - 左右排列 */}
         <div className="upload-sections-container">
@@ -136,7 +233,9 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
                 {cadFile ? (
                   <>
                     <div className="upload-title">已选择文件</div>
-                    <div className="upload-subtitle">{cadFile.name}</div>
+                    <div className="upload-subtitle" title={cadFile.name}>
+                      {truncateFileName(cadFile.name)}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -172,14 +271,38 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           />
         </div>
 
-        {/* 确认按钮 */}
+        {/* 两步骤按钮 */}
         <div className="create-project-section">
+          {/* 步骤1: 预创建项目 */}
+          {onPrecreateProject && (
+            <button
+              className="precreate-project-btn"
+              onClick={onPrecreateProject}
+              disabled={
+                isCreatingProject || isPrecreating || isPolling || !!projectId
+              }
+            >
+              {isPrecreating
+                ? '预创建中...'
+                : projectId
+                  ? '已预创建'
+                  : '1. 预创建项目'}
+            </button>
+          )}
+
+          {/* 步骤2: 确认创建 */}
           <button
             className="create-project-btn"
             onClick={onCreateProject}
-            disabled={isCreatingProject || !projectName.trim()}
+            disabled={
+              isCreatingProject || isPrecreating || isPolling || !projectId
+            }
           >
-            {isCreatingProject ? '创建中...' : '确认创建项目'}
+            {isCreatingProject
+              ? '创建中...'
+              : isPolling
+                ? '项目处理中...'
+                : '2. 确认创建项目'}
           </button>
         </div>
       </div>
