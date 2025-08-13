@@ -1,16 +1,19 @@
 import { useMemo } from 'react';
-import type { TaskItem } from '../services/api';
+import type { TaskItem, CrewData, BudgetData } from '../services/api';
 
 export interface UseChartDataReturn {
   totalDays: number;
-  fundingTrend: number[];
-  materialTrend: number[];
   fundingChartOption: object;
   materialChartOption: object;
   tasksDayRange: { minDay: number; maxDay: number };
 }
 
-export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
+// 新的图表数据 Hook，用于处理 crew 和 budget 数据
+export const useChartData = (
+  tasks: TaskItem[],
+  crewData?: CrewData[],
+  budgetData?: BudgetData[]
+): UseChartDataReturn => {
   // 自动计算任务数据的天数范围
   const tasksDayRange = useMemo(() => {
     if (tasks.length === 0) {
@@ -33,64 +36,37 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
     return maxDay - minDay + 1;
   }, [tasksDayRange]);
 
-  // 计算资金投入趋势数据
-  const fundingTrend = useMemo(() => {
-    const dailyFunding: number[] = new Array(totalDays).fill(0);
-
-    tasks.forEach((task) => {
-      const startDay = task.startDay - 1; // 转为0索引
-      const duration = task.endDay - task.startDay + 1;
-      const cost = task.cost || 0;
-      const dailyCost = cost / duration;
-
-      for (let i = 0; i < duration && startDay + i < totalDays; i++) {
-        dailyFunding[startDay + i] += dailyCost;
-      }
-    });
-
-    // 计算累积资金投入
-    const cumulativeFunding: number[] = [];
-    let total = 0;
-    for (let i = 0; i < totalDays; i++) {
-      total += dailyFunding[i];
-      cumulativeFunding.push(total);
-    }
-
-    return cumulativeFunding;
-  }, [tasks, totalDays]);
-
-  // 计算物料消耗趋势数据
-  const materialTrend = useMemo(() => {
-    const dailyMaterial: number[] = new Array(totalDays).fill(0);
-
-    tasks.forEach((task) => {
-      const startDay = task.startDay - 1; // 转为0索引
-      const duration = task.endDay - task.startDay + 1;
-      const workload = task.workload || 0;
-      const dailyMaterialAmount = workload / duration;
-
-      for (let i = 0; i < duration && startDay + i < totalDays; i++) {
-        dailyMaterial[startDay + i] += dailyMaterialAmount;
-      }
-    });
-
-    // 计算累积物料消耗
-    const cumulativeMaterial: number[] = [];
-    let total = 0;
-    for (let i = 0; i < totalDays; i++) {
-      total += dailyMaterial[i];
-      cumulativeMaterial.push(total);
-    }
-
-    return cumulativeMaterial;
-  }, [tasks, totalDays]);
-
-  // 生成资金投入趋势图表配置
+  // 生成资金投入趋势图表配置（使用 budget 数据）
   const fundingChartOption = useMemo(() => {
     const xAxisData = Array.from(
       { length: totalDays },
       (_, i) => `第${i + 1}天`
     );
+
+    // 如果有 budget 数据，使用它；否则使用默认数据
+    let chartData: number[] = [];
+    if (budgetData && budgetData.length > 0) {
+      chartData = budgetData[0].data.slice(0, totalDays);
+    } else {
+      // 使用默认的累积资金数据
+      const dailyFunding: number[] = new Array(totalDays).fill(0);
+      tasks.forEach((task) => {
+        const startDay = task.startDay - 1;
+        const duration = task.endDay - task.startDay + 1;
+        const cost = task.cost || 0;
+        const dailyCost = cost / duration;
+
+        for (let i = 0; i < duration && startDay + i < totalDays; i++) {
+          dailyFunding[startDay + i] += dailyCost;
+        }
+      });
+
+      let total = 0;
+      chartData = dailyFunding.map((daily) => {
+        total += daily;
+        return total;
+      });
+    }
 
     return {
       title: {
@@ -153,7 +129,7 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
         {
           name: '累积资金投入',
           type: 'line',
-          data: fundingTrend,
+          data: chartData,
           smooth: true,
           lineStyle: {
             color: '#4CAF50',
@@ -184,18 +160,49 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
         },
       ],
     };
-  }, [fundingTrend, totalDays]);
+  }, [budgetData, tasks, totalDays]);
 
-  // 生成物料消耗趋势图表配置
+  // 生成物料消耗趋势图表配置（使用 crew 数据）
   const materialChartOption = useMemo(() => {
     const xAxisData = Array.from(
       { length: totalDays },
       (_, i) => `第${i + 1}天`
     );
 
+    // 如果有 crew 数据，使用它；否则使用默认数据
+    let chartData: number[] = [];
+    if (crewData && crewData.length > 0) {
+      // 计算每天的总人数
+      chartData = new Array(totalDays).fill(0);
+      crewData.forEach((crew) => {
+        crew.data.slice(0, totalDays).forEach((count, dayIndex) => {
+          chartData[dayIndex] += count;
+        });
+      });
+    } else {
+      // 使用默认的累积物料数据
+      const dailyMaterial: number[] = new Array(totalDays).fill(0);
+      tasks.forEach((task) => {
+        const startDay = task.startDay - 1;
+        const duration = task.endDay - task.startDay + 1;
+        const workload = task.workload || 0;
+        const dailyMaterialAmount = workload / duration;
+
+        for (let i = 0; i < duration && startDay + i < totalDays; i++) {
+          dailyMaterial[startDay + i] += dailyMaterialAmount;
+        }
+      });
+
+      let total = 0;
+      chartData = dailyMaterial.map((daily) => {
+        total += daily;
+        return total;
+      });
+    }
+
     return {
       title: {
-        text: '物料消耗趋势',
+        text: '人员配置趋势',
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -206,7 +213,7 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
         trigger: 'axis',
         formatter: (params: Array<{ name: string; value: number }>) => {
           const data = params[0];
-          return `${data.name}<br/>累积消耗: ${data.value.toFixed(2)}万立方米`;
+          return `${data.name}<br/>总人数: ${data.value}人`;
         },
       },
       grid: {
@@ -230,13 +237,13 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
       },
       yAxis: {
         type: 'value',
-        name: '物料(吨)',
+        name: '人数',
         nameTextStyle: {
           color: '#888',
         },
         axisLabel: {
           color: '#888',
-          formatter: '{value}吨',
+          formatter: '{value}人',
         },
         axisLine: {
           lineStyle: {
@@ -252,9 +259,9 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
       },
       series: [
         {
-          name: '累积物料消耗',
+          name: '总人数',
           type: 'line',
-          data: materialTrend,
+          data: chartData,
           smooth: true,
           lineStyle: {
             color: '#FF9800',
@@ -285,12 +292,10 @@ export const useChartData = (tasks: TaskItem[]): UseChartDataReturn => {
         },
       ],
     };
-  }, [materialTrend, totalDays]);
+  }, [crewData, tasks, totalDays]);
 
   return {
     totalDays,
-    fundingTrend,
-    materialTrend,
     fundingChartOption,
     materialChartOption,
     tasksDayRange,

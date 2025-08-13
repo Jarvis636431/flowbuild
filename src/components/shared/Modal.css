@@ -118,3 +118,48 @@
     min-width: 70px;
   }
 }
+
+/* 新增样式：工序信息部分 */
+.detail-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #444;
+}
+
+.detail-section .detail-label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 加载状态指示器 */
+.loading-indicator {
+  color: #4caf50;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* 错误消息 */
+.error-message {
+  color: #ff6b6b;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+/* 无数据提示 */
+.no-data {
+  color: #888;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+  background-color: rgba(136, 136, 136, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(136, 136, 136, 0.3);
+}

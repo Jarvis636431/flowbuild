@@ -3,7 +3,10 @@ import type { TaskItem } from '../../services/api';
 
 interface GanttChartProps {
   tasks: TaskItem[];
-  onTaskClick: (task: TaskItem, e: React.MouseEvent<HTMLElement>) => void;
+  onTaskClick: (
+    task: TaskItem,
+    e: React.MouseEvent<HTMLElement>
+  ) => Promise<void>;
 }
 
 const GanttChart: React.FC<GanttChartProps> = React.memo(

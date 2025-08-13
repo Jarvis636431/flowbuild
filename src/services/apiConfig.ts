@@ -31,6 +31,10 @@ export const MANAGEMENT_SERVICE_ENDPOINTS = {
   GET_VERSIONS: '/get_versions',
   GET_IFC: '/get_ifc',
 
+  // 图表数据接口
+  CREW: '/mgmt/crew',
+  BUDGET: '/mgmt/budget',
+
   // 操作员接口
   OPERATOR: {
     PROJECTS: '/operator/projects',
@@ -167,6 +171,19 @@ export const ManagementServiceUrls = {
   getVersions: () =>
     buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.GET_VERSIONS),
   getIfc: () => buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.GET_IFC),
+
+  // 图表数据接口
+  crew: (projectId: string) =>
+    buildApiUrl(
+      'management',
+      `${MANAGEMENT_SERVICE_ENDPOINTS.CREW}?project_id=${projectId}`
+    ),
+  budget: (projectId: string) =>
+    buildApiUrl(
+      'management',
+      `${MANAGEMENT_SERVICE_ENDPOINTS.BUDGET}?project_id=${projectId}`
+    ),
+
   // 操作员接口
   operatorProjects: () =>
     buildApiUrl('management', MANAGEMENT_SERVICE_ENDPOINTS.OPERATOR.PROJECTS),

@@ -5,23 +5,27 @@ import { FEATURE_FLAGS } from '../config/features';
 const OPERATOR_CONFIG = {
   BASE_URL_USER: 'http://101.43.150.234:8001',
   BASE_URL_OP: 'http://101.43.150.234:8002/operator',
-  OP_USER: `operator_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+  OP_USER: `operator_${Date.now()}`,
   OP_PASS: 'operator123',
   OP_ROLE: 'operator',
   TIMEOUT: 60000,
 };
 
-// 文件路径映射 - 使用动态import路径
+// 文件路径映射 - 使用GitHub raw链接
 const FILE_MAPPINGS = {
   海: {
-    ifc: '/海河玺9#楼/海河玺9#楼.ifc',
-    steel: '/海河玺9#楼/钢筋汇总表_工序_工程量_价格.xls',
-    summary: '/海河玺9#楼/清单汇总表_材料名称_工程量_价格.xls',
+    ifc: 'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3%E7%8E%BA9%23%E6%A5%BC.ifc',
+    steel:
+      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E9%92%A2%E7%AD%8B%E6%B1%87%E6%80%BB%E8%A1%A8_%E5%B7%A5%E5%BA%8F_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
+    summary:
+      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E9%92%A2%E7%AD%8B%E6%B1%87%E6%80%BB%E8%A1%A8_%E5%B7%A5%E5%BA%8F_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
   },
   绿: {
-    ifc: '/绿城石岗/石钢住宅土建.ifc',
-    steel: '/绿城石岗/钢筋汇总表_工序_工程量_价格.xls',
-    summary: '/绿城石岗/清单汇总表_材料名称_工程量_价格.xls',
+    ifc: 'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E7%9F%B3%E9%92%A2%E4%BD%8F%E5%AE%85%E5%9C%9F%E5%BB%BA.ifc',
+    steel:
+      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E9%92%A2%E7%AD%8B%E6%B1%87%E6%80%BB%E8%A1%A8_%E5%B7%A5%E5%BA%8F_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
+    summary:
+      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E7%BB%BF_%E6%B8%85%E5%8D%95%E6%B1%87%E6%80%BB%E8%A1%A8_%E6%9D%90%E6%96%99%E5%90%8D%E7%A7%B0_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
   },
 };
 
@@ -181,7 +185,7 @@ export class OperatorService {
     label: string
   ): Promise<void> {
     try {
-      console.log(`🔍 [DEBUG] 准备处理本地文件: ${filePath}`);
+      console.log(`🔍 [DEBUG] 准备处理文件: ${filePath}`);
 
       // 从文件路径提取文件名
       const fileName = filePath.split('/').pop() || 'unknown';
@@ -195,11 +199,30 @@ export class OperatorService {
         mimeType = 'application/vnd.ms-excel';
       }
 
-      // 由于浏览器环境限制，我们创建一个包含文件路径信息的文本文件
-      const fileContent = `文件路径: ${filePath}\n文件名: ${fileName}\n文件类型: ${atype}\n上传时间: ${new Date().toISOString()}`;
-      const fileBlob = new Blob([fileContent], { type: mimeType });
+      let fileBlob: Blob;
 
-      console.log(`🔍 [DEBUG] 创建的文件Blob大小: ${fileBlob.size} bytes`);
+      // 检查是否是GitHub URL
+      if (filePath.startsWith('http')) {
+        console.log(`🔍 [DEBUG] 检测到GitHub URL，正在获取文件内容...`);
+        try {
+          // 获取GitHub文件的实际内容
+          fileBlob = await OperatorService.fetchFileContent(filePath);
+          console.log(
+            `🔍 [DEBUG] 成功获取GitHub文件内容，大小: ${fileBlob.size} bytes`
+          );
+        } catch (fetchError) {
+          console.warn(`⚠️ 获取GitHub文件失败，使用备用方案: ${fetchError}`);
+          // 如果获取失败，创建包含文件路径信息的文本文件作为备用
+          const fileContent = `文件路径: ${filePath}\n文件名: ${fileName}\n文件类型: ${atype}\n上传时间: ${new Date().toISOString()}\n获取失败，使用备用内容`;
+          fileBlob = new Blob([fileContent], { type: mimeType });
+        }
+      } else {
+        // 本地文件路径，创建包含文件路径信息的文本文件
+        const fileContent = `文件路径: ${filePath}\n文件名: ${fileName}\n文件类型: ${atype}\n上传时间: ${new Date().toISOString()}`;
+        fileBlob = new Blob([fileContent], { type: mimeType });
+      }
+
+      console.log(`🔍 [DEBUG] 最终文件Blob大小: ${fileBlob.size} bytes`);
       console.log(`🔍 [DEBUG] 文件MIME类型: ${mimeType}`);
 
       // 创建FormData
@@ -235,6 +258,89 @@ export class OperatorService {
         error instanceof Error ? error.message : String(error);
       throw new Error(`${label} 上传失败: ${errorMessage}`);
     }
+  }
+
+  /**
+   * 异步获取文件内容
+   */
+  static async fetchFileContent(fileUrl: string): Promise<Blob> {
+    try {
+      console.log(`🔍 正在获取文件内容: ${fileUrl}`);
+
+      // 处理GitHub链接，将blob链接转换为raw链接
+      let finalUrl = fileUrl;
+      if (fileUrl.includes('github.com') && fileUrl.includes('/blob/')) {
+        finalUrl = fileUrl.replace('/blob/', '/raw/');
+        console.log(`🔍 转换GitHub链接为raw链接: ${finalUrl}`);
+      }
+
+      console.log(`🔍 最终请求URL: ${finalUrl}`);
+
+      const response = await httpClient.get(finalUrl, {
+        responseType: 'blob',
+        timeout: OPERATOR_CONFIG.TIMEOUT,
+        maxRedirects: 10, // 增加重定向次数
+        validateStatus: (status) => status >= 200 && status < 400, // 接受重定向状态码
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          Accept: '*/*',
+        },
+      });
+
+      console.log(`🔍 响应状态码: ${response.status}`);
+      console.log(`🔍 响应头:`, response.headers);
+
+      if (!response.data) {
+        throw new Error('未获取到文件内容');
+      }
+
+      console.log(`✅ 文件获取成功，大小: ${response.data.size} bytes`);
+      return response.data;
+    } catch (error: unknown) {
+      console.error(`❌ 获取文件失败: ${fileUrl}`, error);
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as {
+          response?: { status?: number; headers?: unknown; data?: unknown };
+        };
+        console.error(`❌ 响应状态码: ${axiosError.response?.status}`);
+        console.error(`❌ 响应头:`, axiosError.response?.headers);
+        console.error(`❌ 响应数据:`, axiosError.response?.data);
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`获取文件内容失败: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * 异步获取项目所有文件
+   */
+  static async fetchProjectFiles(projectName: string): Promise<{
+    ifc: Blob;
+    steel: Blob;
+    summary: Blob;
+  }> {
+    const filePaths = OperatorService.getFilePathsByProjectName(projectName);
+    if (!filePaths) {
+      throw new Error(`不支持的项目名称: ${projectName}`);
+    }
+
+    console.log(`📁 开始获取项目文件: ${projectName}`);
+
+    const [ifcBlob, steelBlob, summaryBlob] = await Promise.all([
+      this.fetchFileContent(filePaths.ifc),
+      this.fetchFileContent(filePaths.steel),
+      this.fetchFileContent(filePaths.summary),
+    ]);
+
+    return {
+      ifc: ifcBlob,
+      steel: steelBlob,
+      summary: summaryBlob,
+    };
   }
 
   /**
@@ -380,4 +486,6 @@ export class OperatorService {
 export const operatorAPI = {
   executeOperatorActions: OperatorService.executeOperatorActions,
   executeOperatorActionsAsync: OperatorService.executeOperatorActionsAsync,
+  fetchFileContent: OperatorService.fetchFileContent,
+  fetchProjectFiles: OperatorService.fetchProjectFiles,
 };

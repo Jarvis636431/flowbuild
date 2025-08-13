@@ -76,6 +76,39 @@ export interface ProjectFinalizeRequest {
   final_config: FinalConfig;
 }
 
+// 工序信息相关接口
+export interface ProcessInfoRequest {
+  project_id: string;
+  work_process_name: string;
+}
+
+// 工序详细信息
+export interface ProcessInfo {
+  施工工序: string;
+  持续时间: string | number;
+  开始时间: string | null;
+  结束时间: string | null;
+  施工人数: string | number;
+  施工工种: string;
+  人工成本: string | number;
+  拆单名称: string;
+}
+
+// 工单信息
+export interface OrderInfo {
+  工单内容: string;
+  详细信息: string;
+  设计交底: string;
+  安全交底: string;
+  技术验收标准: string;
+}
+
+// API响应结构
+export interface ProcessInfoResponse {
+  process_info: ProcessInfo;
+  order_info?: OrderInfo; // 可选字段
+}
+
 // 文件上传相关接口定义
 export interface FileUploadConfig {
   file: File;
@@ -142,7 +175,6 @@ export const SUPPORTED_FILE_TYPES: Record<
     description: 'CAD文件或广联达模型文件',
   },
 };
-
 // 模拟数据（从api.ts移动过来）
 let mockProjects: Project[] = [];
 
@@ -764,6 +796,26 @@ export class ProjectService {
       );
     }
   }
+
+  // 获取派单信息
+  static async getProcessInfo(
+    projectId: string,
+    workProcessName: string
+  ): Promise<ProcessInfoResponse> {
+    try {
+      // 调用真实API
+      const response = await http.get<{ data: ProcessInfoResponse }>(
+        `${ManagementServiceUrls.processInfo()}?project_id=${encodeURIComponent(projectId)}&work_process_name=${encodeURIComponent(workProcessName)}`
+
+        // `${ManagementServiceUrls.processInfo()}?project_id=${encodeURIComponent("94b2a9ea-acce-48b6-ab46-32eaf1ea31be")}&work_process_name=${encodeURIComponent(workProcessName)}`
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('获取工序信息失败:', error);
+      throw new Error('获取工序信息失败');
+    }
+  }
 }
 
 // 导出便捷的API对象（保持向后兼容）
@@ -773,6 +825,8 @@ export const projectAPI = {
   createProject: ProjectService.createProject,
   updateProject: ProjectService.updateProject,
   deleteProject: ProjectService.deleteProject,
+
+  getProcessInfo: ProjectService.getProcessInfo,
   // 预创建项目
   precreateProject: ProjectService.precreateProject,
   // 轮询项目状态
