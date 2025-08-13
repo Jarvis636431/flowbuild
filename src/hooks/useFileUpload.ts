@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { projectAPI } from '../services/api';
 import { AuthService } from '../services/authService';
 import { ManagementServiceUrls } from '../services/apiConfig';
+import { operatorAPI } from '../services/operatorService';
 import { readProjectFromFile } from '../services/excelReader';
 import { ProjectService } from '../services/projectService';
 
@@ -183,6 +184,17 @@ export const useFileUpload = (
       setPollingMessage('项目处理中，请稍候...');
       setPollingProgress(0);
 
+      // 启动轮询的同时，异步执行操作员操作
+      if (projectId && projectName) {
+        console.log('🤖 启动操作员自动操作...', { projectId, projectName });
+        operatorAPI.executeOperatorActionsAsync({
+          projectId,
+          projectName,
+        });
+      } else {
+        console.warn('⚠️ 缺少项目ID或项目名称，跳过操作员操作');
+      }
+
       // 设置5分钟超时
       pollingTimeoutRef.current = setTimeout(
         () => {
@@ -276,7 +288,7 @@ export const useFileUpload = (
       // 每3秒轮询一次
       pollingIntervalRef.current = setInterval(pollProject, 3000);
     },
-    [stopPolling, onProjectCreated, projectId]
+    [stopPolling, onProjectCreated, projectId, projectName]
   );
 
   // 重置上传状态

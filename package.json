@@ -15,13 +15,17 @@
     "deps:outdated": "pnpm outdated",
     "deps:update": "pnpm update",
     "prepare": "husky",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "operator": "node --env-file=.env.operator scripts/operator.js",
+    "operator:project": "node --env-file=.env.operator scripts/operator.js"
   },
   "dependencies": {
     "@types/three": "^0.179.0",
     "axios": "^1.11.0",
+    "dotenv": "^17.2.1",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.4",
+    "form-data": "^4.0.4",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
