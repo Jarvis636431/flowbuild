@@ -31,7 +31,7 @@ const DEFAULT_CONFIG = {
   SERVER_BASE: 'http://101.43.150.234',
   USER_PORT: '8001',
   OPERATOR_PORT: '8002',
-  PROJECT_ID: 'test_project_123',
+  PROJECT_ID: '6a20dde2-24c7-485d-99e2-76a4e5ab543a',
   USERNAME: `test_operator_${Date.now()}`,
   PASSWORD: 'test123456',
   TIMEOUT: 30000,
