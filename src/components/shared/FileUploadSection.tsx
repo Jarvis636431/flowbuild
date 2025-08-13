@@ -28,8 +28,6 @@ interface FileUploadSectionProps {
   projectName: string;
   isCreatingProject: boolean;
   isPrecreating?: boolean;
-  isUploading?: boolean;
-  uploadProgress?: number;
   validationErrors?: string[];
   projectId?: string | null;
   onDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -39,7 +37,6 @@ interface FileUploadSectionProps {
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onProjectNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onPrecreateProject?: () => void;
-  onUploadFiles?: () => void;
   onCreateProject: () => void;
 }
 
@@ -50,8 +47,6 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     projectName,
     isCreatingProject,
     isPrecreating = false,
-    isUploading = false,
-    uploadProgress = 0,
     validationErrors = [],
     projectId,
     onDocumentUpload,
@@ -61,7 +56,6 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     onDragOver,
     onProjectNameChange,
     onPrecreateProject,
-    onUploadFiles,
     onCreateProject,
   }) => {
     return (
@@ -89,26 +83,14 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           </div>
         )}
 
-        {/* 上传进度条 */}
-        {(isCreatingProject || isPrecreating || isUploading) &&
-          uploadProgress > 0 && (
-            <div className="upload-progress">
-              <div className="progress-label">
-                {isPrecreating
-                  ? '预创建项目中...'
-                  : isUploading
-                    ? '文件上传中...'
-                    : '创建项目中...'}
-                : {uploadProgress}%
-              </div>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
+        {/* 进度显示 */}
+        {(isCreatingProject || isPrecreating) && (
+          <div className="upload-progress">
+            <div className="progress-label">
+              {isPrecreating ? '预创建项目中...' : '创建项目中...'}
             </div>
-          )}
+          </div>
+        )}
 
         {/* 上传区域容器 - 左右排列 */}
         <div className="upload-sections-container">
@@ -252,7 +234,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           />
         </div>
 
-        {/* 三步骤按钮 */}
+        {/* 两步骤按钮 */}
         <div className="create-project-section">
           {/* 步骤1: 预创建项目 */}
           {onPrecreateProject && (
@@ -269,32 +251,13 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
             </button>
           )}
 
-          {/* 步骤2: 上传文件 */}
-          {onUploadFiles && (
-            <button
-              className="upload-files-btn"
-              onClick={onUploadFiles}
-              disabled={
-                isCreatingProject ||
-                isPrecreating ||
-                isUploading ||
-                !projectId ||
-                (!documentFile && !cadFile)
-              }
-            >
-              {isUploading ? '上传中...' : '2. 上传文件'}
-            </button>
-          )}
-
-          {/* 步骤3: 确认创建 */}
+          {/* 步骤2: 确认创建 */}
           <button
             className="create-project-btn"
             onClick={onCreateProject}
-            disabled={
-              isCreatingProject || isPrecreating || isUploading || !projectId
-            }
+            disabled={isCreatingProject || isPrecreating || !projectId}
           >
-            {isCreatingProject ? '创建中...' : '3. 确认创建项目'}
+            {isCreatingProject ? '创建中...' : '2. 确认创建项目'}
           </button>
         </div>
       </div>
