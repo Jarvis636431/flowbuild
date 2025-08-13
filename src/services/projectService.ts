@@ -287,9 +287,8 @@ export class ProjectService {
   // 创建新项目（最终确认创建）
   static async createProject(request: {
     project_id: string;
-    project_name: string;
-    description?: string;
-  }): Promise<Project> {
+    user_id: string;
+  }): Promise<{ job_id: string }> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         // 获取当前用户信息
@@ -299,27 +298,21 @@ export class ProjectService {
         }
 
         // 最终确认创建项目 - 只传输project_id和user_id
-        const finalResponse = await http.post<ApiProject>(
+        const finalResponse = await http.post<{ job_id: string }>(
           ManagementServiceUrls.finalizeCreation(),
           {
             project_id: request.project_id,
-            user_id: currentUser.user_id,
+            user_id: request.user_id,
           }
         );
 
-        return convertApiProjectToProject(finalResponse);
+        return finalResponse;
       } else {
         // 模拟数据逻辑
         await new Promise((resolve) => setTimeout(resolve, 800));
-        const newProject: Project = {
-          id: Math.max(...mockProjects.map((p) => p.id), 0) + 1,
-          name: request.project_name,
-          description: request.description || '',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+        return {
+          job_id: `job_${Date.now()}`,
         };
-        mockProjects.push(newProject);
-        return newProject;
       }
     } catch (error) {
       console.error('创建项目失败:', error);
@@ -596,7 +589,7 @@ export class ProjectService {
   }
 
   // 轮询项目状态
-  static async pollProjectStatus(projectId: string): Promise<{
+  static async pollProjectStatus(jobId: string): Promise<{
     status: string;
     progress?: number;
     message?: string;
@@ -607,7 +600,7 @@ export class ProjectService {
           status: string;
           progress?: number;
           message?: string;
-        }>(`${ManagementServiceUrls.polling()}?project_id=${projectId}`);
+        }>(`${ManagementServiceUrls.polling()}?job_id=${jobId}`);
 
         return response;
       } else {
@@ -663,18 +656,28 @@ export class ProjectService {
       });
 
       // 步骤2: 创建项目
-      const createdProject = await this.createProject({
+      await this.createProject({
         project_id: precreateResponse.project_id,
-        project_name: project.name,
-        description: project.description,
+        user_id: currentUser.user_id,
       });
+
+      // 创建一个临时的Project对象用于兼容性
+      const createdProject: Project = {
+        id: parseInt(
+          precreateResponse.project_id.replace('project_', '') || '0'
+        ),
+        name: project.name,
+        description: project.description || '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       // 步骤3: 如果有文件，则上传文件
       if (files && files.length > 0) {
         const uploadConfigs: FileUploadConfig[] = files.map(
           ({ file, fileType, onProgress }) => ({
             file,
-            project_id: createdProject.id.toString(),
+            project_id: precreateResponse.project_id,
             file_type: fileType,
             onProgress,
           })

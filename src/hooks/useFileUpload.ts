@@ -18,6 +18,7 @@ export interface UseFileUploadReturn {
   pollingStatus: string;
   pollingProgress: number;
   pollingMessage: string;
+  jobId: string | null;
   handleDocumentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleCadUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleDocumentDrop: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -42,6 +43,7 @@ export const useFileUpload = (
 
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   // 轮询相关状态
   const [isPolling, setIsPolling] = useState(false);
@@ -172,8 +174,8 @@ export const useFileUpload = (
 
   // 启动轮询
   const startPolling = useCallback(
-    async (projectId: string) => {
-      console.log('启动项目状态轮询:', projectId);
+    async (jobId: string) => {
+      console.log('启动项目状态轮询:', jobId);
       setIsPolling(true);
       setPollingStatus('processing');
       setPollingMessage('项目处理中，请稍候...');
@@ -192,7 +194,7 @@ export const useFileUpload = (
       // 开始轮询
       const pollProject = async () => {
         try {
-          const result = await projectAPI.pollProjectStatus(projectId);
+          const result = await projectAPI.pollProjectStatus(jobId);
           console.log('轮询结果:', result);
 
           setPollingStatus(result.status);
@@ -215,6 +217,7 @@ export const useFileUpload = (
             setUploadProgress(0);
             setValidationErrors([]);
             setProjectId(null);
+            setJobId(null);
             setPollingStatus('');
             setPollingProgress(0);
             setPollingMessage('');
@@ -253,6 +256,7 @@ export const useFileUpload = (
     setUploadProgress(0);
     setValidationErrors([]);
     setProjectId(null);
+    setJobId(null);
     // 重置轮询状态
     setPollingStatus('');
     setPollingProgress(0);
@@ -353,15 +357,23 @@ export const useFileUpload = (
       // 调用最终创建API
       const finalProject = await projectAPI.createProject({
         project_id: projectId,
-        project_name: projectName,
-        description: `项目包含${documentFile ? '文档文件' : ''}${documentFile && cadFile ? '和' : ''}${cadFile ? 'CAD文件' : ''}`,
+        user_id: currentUser.user_id,
       });
 
       setUploadProgress(100); // 项目创建完成
       console.log('项目创建成功:', finalProject);
 
-      // 启动轮询而不是立即跳转
-      startPolling(projectId);
+      // 从返回值中提取job_id
+      if (finalProject && finalProject.job_id) {
+        setJobId(finalProject.job_id);
+        console.log('获取到job_id:', finalProject.job_id);
+
+        // 使用job_id启动轮询
+        startPolling(finalProject.job_id);
+      } else {
+        console.error('项目创建成功但未返回job_id');
+        alert('项目创建成功但无法获取作业ID，请手动刷新查看状态');
+      }
     } catch (error) {
       console.error('创建项目失败:', error);
       alert(
@@ -484,6 +496,7 @@ export const useFileUpload = (
     pollingStatus,
     pollingProgress,
     pollingMessage,
+    jobId,
     handleDocumentUpload,
     handleCadUpload,
     handleDocumentDrop,
