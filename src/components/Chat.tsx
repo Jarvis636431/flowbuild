@@ -76,13 +76,46 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       const data = args[0] as {
         type?: string;
         message?: string;
+        text?: string;
         [key: string]: unknown;
       };
       console.log('Chat组件 - 收到WebSocket消息:', data);
+
+      // 处理不同类型的消息
       if (data.type === 'chat_response' && data.message) {
         const aiMessage: ChatMessage = {
           id: Date.now(),
           text: data.message,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      } else if (data.type === 'done' && data.text) {
+        // 任务完成消息
+        const aiMessage: ChatMessage = {
+          id: Date.now(),
+          text: data.text,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      } else if (data.type === 'approval' && data.text) {
+        // 需要用户确认的消息
+        const aiMessage: ChatMessage = {
+          id: Date.now(),
+          text: `🔔 需要确认: ${data.text}`,
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      } else if (data.type === 'update_done' && data.text) {
+        // 更新完成通知
+        const aiMessage: ChatMessage = {
+          id: Date.now(),
+          text: `✅ 更新完成: ${data.text}`,
           sender: 'ai',
           timestamp: new Date(),
         };
