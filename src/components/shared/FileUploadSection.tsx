@@ -34,6 +34,7 @@ interface FileUploadSectionProps {
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onProjectNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCreateProject: () => void;
+  onPrecreateProject?: () => void;
 }
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
@@ -49,6 +50,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
     onDragOver,
     onProjectNameChange,
     onCreateProject,
+    onPrecreateProject,
   }) => {
     return (
       <div className="upload-container">
@@ -198,6 +200,15 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
 
         {/* 确认按钮 */}
         <div className="create-project-section">
+          {onPrecreateProject && (
+            <button
+              className="precreate-project-btn"
+              onClick={onPrecreateProject}
+              disabled={isCreatingProject || !projectName.trim()}
+            >
+              预创建项目
+            </button>
+          )}
           <button
             className="create-project-btn"
             onClick={onCreateProject}
