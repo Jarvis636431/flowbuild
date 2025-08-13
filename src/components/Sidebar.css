@@ -376,6 +376,16 @@
   letter-spacing: 0.5px;
 }
 
+.user-id {
+  color: #888;
+  font-size: 10px;
+  font-weight: 400;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* 收起状态下的用户信息 */
 .sidebar.collapsed .user-info {
   padding: 12px 0;

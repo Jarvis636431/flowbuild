@@ -177,15 +177,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           {isCollapsed ? (
             <div
               className="user-icon"
-              title={`${currentUser.username} (${currentUser.role})`}
+              title={`${currentUser.username} (${currentUser.role})\nID: ${currentUser.user_id}`}
             >
               {getUserIcon(currentUser.username)}
             </div>
           ) : (
             <div className="user-content">
               <div className="user-details">
-                <span className="user-name">{currentUser.username}</span>
-                <span className="user-role">{currentUser.role}</span>
+                <div className="user-name-role">
+                  <span className="user-name">{currentUser.username}</span>
+                  <span className="user-role">({currentUser.role})</span>
+                </div>
+                <span className="user-id">ID: {currentUser.user_id}</span>
               </div>
             </div>
           )}
