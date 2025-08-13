@@ -217,7 +217,7 @@ export const useFileUpload = (
             setPollingProgress(result.progress);
           }
 
-          if (result.status === 'completed') {
+          if (result.status === 'success') {
             console.log('项目处理完成，停止轮询');
             stopPolling();
 
@@ -353,7 +353,7 @@ export const useFileUpload = (
               file: documentFile,
               project_id: projectId,
               uploaded_by: currentUser.user_id,
-              category: 'document',
+              category: 'workdescription',
               file_type: 'document',
             });
 
@@ -381,7 +381,7 @@ export const useFileUpload = (
               file: cadFile,
               project_id: projectId,
               uploaded_by: currentUser.user_id,
-              category: 'cad',
+              category: 'workvolume',
               file_type: 'cad',
             });
 

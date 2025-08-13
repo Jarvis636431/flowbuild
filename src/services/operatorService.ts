@@ -139,6 +139,38 @@ export class OperatorService {
   }
 
   /**
+   * 完成任务
+   */
+  private static async finishTask(
+    projectId: string,
+    accessToken: string
+  ): Promise<void> {
+    try {
+      console.log(`🏁 正在完成任务，项目ID: ${projectId}`);
+
+      const formData = new FormData();
+      formData.append('project_id', projectId);
+
+      const response = await httpClient.post(
+        `${OPERATOR_CONFIG.BASE_URL_OP}/finish`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            // 移除 Content-Type，让浏览器自动设置为 multipart/form-data
+          },
+        }
+      );
+
+      console.log('✅ 任务完成成功:', response.data);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`任务完成失败: ${errorMessage}`);
+    }
+  }
+
+  /**
    * 上传文件
    */
   private static async uploadFile(
@@ -286,6 +318,10 @@ export class OperatorService {
         '汇总文件'
       );
       uploadedFiles.push(filePaths.summary);
+
+      // 步骤4: 完成任务
+      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始完成任务`);
+      await OperatorService.finishTask(projectId, accessToken);
 
       console.log('✅ 操作员操作全部完成');
 
