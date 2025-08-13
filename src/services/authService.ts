@@ -157,8 +157,24 @@ export class AuthService {
         // 存储认证信息
         if (response.access_token) {
           TokenManager.setToken(response.access_token);
-          if (response.user) {
-            TokenManager.setUser(response.user);
+
+          // 立即获取完整的用户信息
+          try {
+            const userInfo = await this.getCurrentUser();
+            // 用户信息已在getCurrentUser中存储，这里构造完整响应
+            return {
+              access_token: response.access_token,
+              token_type: response.token_type,
+              user: userInfo,
+            };
+          } catch (userError) {
+            console.warn(
+              '获取用户信息失败，使用登录响应中的用户信息:',
+              userError
+            );
+            if (response.user) {
+              TokenManager.setUser(response.user);
+            }
           }
         }
 
