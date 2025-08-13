@@ -14,6 +14,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'upload' | 'output'>('upload');
 
   // 检查用户认证状态
   useEffect(() => {
@@ -80,6 +81,27 @@ function App() {
     }
   };
 
+  const handleNewProject = () => {
+    setViewMode('upload');
+  };
+
+  const handleProjectCreated = async () => {
+    // 项目创建成功后的回调
+    try {
+      // 刷新项目列表
+      const projects = await projectAPI.getProjects();
+      if (projects.length > 0) {
+        // 选择最新创建的项目（通常是列表中的最后一个）
+        const latestProject = projects[projects.length - 1];
+        setCurrentProject(latestProject);
+      }
+      // 切换到输出模式
+      setViewMode('output');
+    } catch (error) {
+      console.error('刷新项目列表失败:', error);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="app-container loading">
@@ -106,10 +128,15 @@ function App() {
           onToggle={handleSidebarToggle}
           currentProject={currentProject}
           onProjectSelect={handleProjectSelect}
+          onNewProject={handleNewProject}
         />
         <div className="main-content">
-          <Chat currentProject={currentProject} />
-          <Output currentProject={currentProject} />
+          <Chat />
+          <Output
+            currentProject={currentProject}
+            viewMode={viewMode}
+            onProjectCreated={handleProjectCreated}
+          />
         </div>
       </div>
 

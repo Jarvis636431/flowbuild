@@ -9,6 +9,7 @@ interface SidebarProps {
   onToggle: () => void;
   currentProject: Project | null;
   onProjectSelect: (project: Project) => void;
+  onNewProject: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -16,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   currentProject,
   onProjectSelect,
+  onNewProject,
 }) => {
   const {
     data: projects,
@@ -134,6 +136,23 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
+        {/* 新建项目按钮 */}
+        <div className="new-project-section">
+          {isCollapsed ? (
+            <button
+              className="new-project-btn collapsed"
+              onClick={onNewProject}
+              title="新建项目"
+            >
+              +
+            </button>
+          ) : (
+            <button className="new-project-btn" onClick={onNewProject}>
+              + 新建项目
+            </button>
+          )}
+        </div>
+
         <div className="projects-list">
           {(projects || []).map((project) => (
             <div
@@ -177,15 +196,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           {isCollapsed ? (
             <div
               className="user-icon"
-              title={`${currentUser.username} (${currentUser.role})`}
+              title={`${currentUser.username} (${currentUser.role})\nID: ${currentUser.user_id}`}
             >
               {getUserIcon(currentUser.username)}
             </div>
           ) : (
             <div className="user-content">
               <div className="user-details">
-                <span className="user-name">{currentUser.username}</span>
-                <span className="user-role">{currentUser.role}</span>
+                <div className="user-name-role">
+                  <span className="user-name">{currentUser.username}</span>
+                  <span className="user-role">({currentUser.role})</span>
+                </div>
+                <span className="user-id">ID: {currentUser.user_id}</span>
               </div>
             </div>
           )}
