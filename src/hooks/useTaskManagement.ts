@@ -36,7 +36,7 @@ export const useTaskManagement = (
         // 如果有当前项目，获取项目的任务数据
         tasksData = await taskAPI.getTasks();
         tasksData = tasksData.filter(
-          (task) => task.projectId === currentProject.id
+          (task) => task.projectId === parseInt(currentProject.id)
         );
       } else {
         // 否则获取默认任务数据
