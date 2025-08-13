@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { type Project, projectAPI } from '../services/api';
 import { useAsyncState } from '../hooks/useAsyncState';
+import { AuthService } from '../services/authService';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -73,6 +74,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   const getProjectIcon = (projectName: string) => {
     return projectName.charAt(0).toUpperCase();
   };
+
+  // 获取用户图标（首字母）
+  const getUserIcon = (username: string) => {
+    return username.charAt(0).toUpperCase();
+  };
+
+  // 获取当前用户信息
+  const currentUser = AuthService.getCurrentUserSync();
 
   if (loading) {
     return (
@@ -160,6 +169,27 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
         </div>
+
+        {/* 用户信息区域 */}
+        {currentUser && (
+          <div className="user-info">
+            {isCollapsed ? (
+              <div
+                className="user-icon"
+                title={`${currentUser.username} (${currentUser.role})`}
+              >
+                {getUserIcon(currentUser.username)}
+              </div>
+            ) : (
+              <div className="user-content">
+                <div className="user-details">
+                  <span className="user-name">{currentUser.username}</span>
+                  <span className="user-role">{currentUser.role}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

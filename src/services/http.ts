@@ -296,8 +296,115 @@ class HttpClient {
     window.dispatchEvent(new CustomEvent('auth:unauthorized'));
   }
 
+  // 检查是否为完整URL
+  private isAbsoluteUrl(url: string): boolean {
+    return /^https?:\/\//i.test(url);
+  }
+
+  // 创建用于完整URL的axios实例
+  private createAbsoluteUrlInstance(config?: RequestConfig): AxiosInstance {
+    const instance = axios.create({
+      timeout: 15000,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      ...config,
+    });
+
+    // 为新实例添加相同的拦截器
+    this.setupInterceptorsForInstance(instance);
+    return instance;
+  }
+
+  // 为指定实例设置拦截器
+  private setupInterceptorsForInstance(instance: AxiosInstance): void {
+    // 请求拦截器
+    instance.interceptors.request.use(
+      (config) => {
+        const requestId = this.generateRequestId(config);
+        config.metadata = { requestId };
+        this.requestQueue.add(requestId);
+
+        const token = this.getAuthToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        config.headers['X-Request-Time'] = Date.now().toString();
+        console.log(
+          `[HTTP Request] ${config.method?.toUpperCase()} ${config.url}`,
+          config
+        );
+        return config;
+      },
+      (error) => {
+        console.error('[HTTP Request Error]', error);
+        return Promise.reject(this.handleError(error));
+      }
+    );
+
+    // 响应拦截器
+    instance.interceptors.response.use(
+      (response: AxiosResponse) => {
+        const requestId = response.config.metadata?.requestId;
+        if (requestId) {
+          this.requestQueue.delete(requestId);
+        }
+
+        console.log(`[HTTP Response] ${response.status}`, response.data);
+
+        if (response.data && typeof response.data === 'object') {
+          if (response.data.code !== undefined) {
+            if (response.data.code === 0 || response.data.success) {
+              return response.data;
+            } else {
+              throw new Error(response.data.message || '请求失败');
+            }
+          }
+        }
+
+        return response.data;
+      },
+      async (error: AxiosError) => {
+        const requestId = error.config?.metadata?.requestId;
+        if (requestId) {
+          this.requestQueue.delete(requestId);
+        }
+
+        console.error('[HTTP Response Error]', error);
+
+        if (
+          error.response?.status === 401 &&
+          !(error.config as RequestConfig)?.skipAuth
+        ) {
+          try {
+            const newToken = await this.refreshAuthToken();
+            if (error.config) {
+              error.config.headers.Authorization = `Bearer ${newToken}`;
+              return instance.request(error.config);
+            }
+          } catch {
+            console.error('Token refresh failed, redirecting to login');
+            return Promise.reject(this.handleError(error));
+          }
+        }
+
+        if (this.shouldRetry(error)) {
+          return this.retryRequest(error);
+        }
+
+        return Promise.reject(this.handleError(error));
+      }
+    );
+  }
+
   // GET 请求
   async get<T = unknown>(url: string, config?: RequestConfig): Promise<T> {
+    if (this.isAbsoluteUrl(url)) {
+      const instance = this.createAbsoluteUrlInstance(config);
+      return instance.get(url, config);
+    }
     return this.instance.get(url, config);
   }
 
@@ -307,6 +414,10 @@ class HttpClient {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
+    if (this.isAbsoluteUrl(url)) {
+      const instance = this.createAbsoluteUrlInstance(config);
+      return instance.post(url, data, config);
+    }
     return this.instance.post(url, data, config);
   }
 
@@ -316,11 +427,19 @@ class HttpClient {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
+    if (this.isAbsoluteUrl(url)) {
+      const instance = this.createAbsoluteUrlInstance(config);
+      return instance.put(url, data, config);
+    }
     return this.instance.put(url, data, config);
   }
 
   // DELETE 请求
   async delete<T = unknown>(url: string, config?: RequestConfig): Promise<T> {
+    if (this.isAbsoluteUrl(url)) {
+      const instance = this.createAbsoluteUrlInstance(config);
+      return instance.delete(url, config);
+    }
     return this.instance.delete(url, config);
   }
 
@@ -330,6 +449,10 @@ class HttpClient {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
+    if (this.isAbsoluteUrl(url)) {
+      const instance = this.createAbsoluteUrlInstance(config);
+      return instance.patch(url, data, config);
+    }
     return this.instance.patch(url, data, config);
   }
 
