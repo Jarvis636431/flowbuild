@@ -429,11 +429,11 @@ export async function readExcelFromBuffer(
  */
 export async function readAllProjectsFromExcel(): Promise<Project[]> {
   try {
-    // 目前只读取output.xlsx文件
-    const project = await readProjectFromExcel('output.xlsx');
+    // 目前只读取output-2.xlsx文件
+    const project = await readProjectFromExcel('output-2.xlsx');
     return project ? [project] : [];
   } catch (error) {
-    console.error('读取Excel文件失败:', error);
+    console.error('Excel数据读取失败，请检查data/output-2.xlsx文件是否存在且格式正确:', error);
     return [];
   }
 }
