@@ -64,11 +64,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       setIsConnected(status === 'connected');
 
       // 连接建立后发送初始化消息
-      if (status === 'connected') {
-        setTimeout(() => {
-          sendInitMessage();
-        }, 100); // 稍微延迟确保连接稳定
-      }
+      // if (status === 'connected') {
+      //   setTimeout(() => {
+      //     sendInitMessage();
+      //   }, 100); // 稍微延迟确保连接稳定
+      // }
     };
 
     // 监听接收到的消息
@@ -166,45 +166,45 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   }, [currentProject?.id]);
 
   // 发送初始化消息
-  const sendInitMessage = (): boolean => {
-    const socketService = getDefaultWebSocketService();
-    if (!socketService || !socketService.isConnected()) {
-      return false;
-    }
+  // const sendInitMessage = (): boolean => {
+  //   const socketService = getDefaultWebSocketService();
+  //   if (!socketService || !socketService.isConnected()) {
+  //     return false;
+  //   }
 
-    try {
-      const user = AuthService.getCurrentUserSync();
-      const token = AuthService.getToken();
+  //   try {
+  //     const user = AuthService.getCurrentUserSync();
+  //     const token = AuthService.getToken();
 
-      if (!user || !token) {
-        return false;
-      }
+  //     if (!user || !token) {
+  //       return false;
+  //     }
 
-      let projectId: string | undefined;
-      if (currentProject?.id) {
-        projectId = currentProject.id;
-      } else if (user.projects && user.projects.length > 0) {
-        projectId = user.projects[0];
-      }
+  //     let projectId: string | undefined;
+  //     if (currentProject?.id) {
+  //       projectId = currentProject.id;
+  //     } else if (user.projects && user.projects.length > 0) {
+  //       projectId = user.projects[0];
+  //     }
 
-      if (!projectId) {
-        return false;
-      }
+  //     if (!projectId) {
+  //       return false;
+  //     }
 
-      const initData = {
-        type: 'init',
-        project_id: projectId,
-        token: token,
-      };
+  //     const initData = {
+  //       type: 'init',
+  //       project_id: projectId,
+  //       token: token,
+  //     };
 
-      socketService.sendRaw(initData);
-      console.log('Chat组件 - 发送初始化消息:', initData);
-      return true;
-    } catch (error) {
-      console.error('发送初始化消息失败:', error);
-      return false;
-    }
-  };
+  //     socketService.sendRaw(initData);
+  //     console.log('Chat组件 - 发送初始化消息:', initData);
+  //     return true;
+  //   } catch (error) {
+  //     console.error('发送初始化消息失败:', error);
+  //     return false;
+  //   }
+  // };
 
   // 通过WebSocket发送消息
   const sendSocketMessage = (userMessage: string): boolean => {

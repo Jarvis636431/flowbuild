@@ -367,7 +367,7 @@ export const chartAPI = {
   // 获取人员配置数据
   getCrewData: async (projectId: string): Promise<CrewData[]> => {
     try {
-      const response = await fetch(`/mgmt/crew?project_id=${projectId}`, {
+      const response = await fetch(`/crew?project_id=${projectId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -390,7 +390,7 @@ export const chartAPI = {
   // 获取预算数据
   getBudgetData: async (projectId: string): Promise<BudgetData[]> => {
     try {
-      const response = await fetch(`/mgmt/budget?project_id=${projectId}`, {
+      const response = await fetch(`/budget?project_id=${projectId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
