@@ -92,11 +92,6 @@ const Output: React.FC<OutputProps> = React.memo(
           return (
             <div>
               <div className="project-info">
-                <div className="project-title">
-                  {currentProject?.name || '未选择项目'}
-                </div>
-                <div className="project-date">总计{chartData.totalDays}天</div>
-
                 {/* 根据项目名第一个字显示不同内容 */}
                 {currentProject?.name && (
                   <>

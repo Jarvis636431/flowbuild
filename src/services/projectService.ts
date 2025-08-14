@@ -816,6 +816,32 @@ export class ProjectService {
       throw new Error('获取工序信息失败');
     }
   }
+
+  // 获取人员配置数据
+  static async getCrewData(projectId: string): Promise<CrewData[]> {
+    try {
+      const response = await http.get<CrewData[]>(
+        `/mgmt/crew?project_id=${encodeURIComponent(projectId)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('获取人员配置数据失败:', error);
+      throw new Error('获取人员配置数据失败');
+    }
+  }
+
+  // 获取预算数据
+  static async getBudgetData(projectId: string): Promise<BudgetData[]> {
+    try {
+      const response = await http.get<BudgetData[]>(
+        `/mgmt/budget?project_id=${encodeURIComponent(projectId)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('获取预算数据失败:', error);
+      throw new Error('获取预算数据失败');
+    }
+  }
 }
 
 // 导出便捷的API对象（保持向后兼容）
@@ -839,4 +865,8 @@ export const projectAPI = {
   uploadDocuments: ProjectService.uploadDocuments,
   uploadMultipleDocuments: ProjectService.uploadMultipleDocuments,
   createProjectWithFiles: ProjectService.createProjectWithFiles,
+  
+  // 图表数据相关方法
+  getCrewData: ProjectService.getCrewData,
+  getBudgetData: ProjectService.getBudgetData,
 };

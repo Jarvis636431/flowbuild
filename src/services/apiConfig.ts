@@ -32,8 +32,8 @@ export const MANAGEMENT_SERVICE_ENDPOINTS = {
   GET_IFC: '/get_ifc',
 
   // 图表数据接口
-  CREW: '/mgmt/crew',
-  BUDGET: '/mgmt/budget',
+  CREW: '/crew',
+  BUDGET: '/budget',
 
   // 操作员接口
   OPERATOR: {
