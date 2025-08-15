@@ -123,6 +123,29 @@
   align-self: flex-end;
 }
 
+/* 确认按钮样式 */
+.approval-button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  align-self: flex-start;
+}
+
+.approval-button:hover {
+  background-color: #45a049;
+}
+
+.approval-button:active {
+  background-color: #3d8b40;
+}
+
 .input-area {
   padding: 0;
 }

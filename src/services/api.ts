@@ -30,11 +30,22 @@ export interface TaskItem {
   projectId: number; // 关联的项目ID
 }
 
+// 定义approval消息的数据结构
+export interface ApprovalData {
+  type: string;
+  text?: string;
+  message?: string;
+  approval_id?: string | number;
+  [key: string]: unknown;
+}
+
 export interface ChatMessage {
   id: number;
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  needsApproval?: boolean;
+  approvalData?: ApprovalData;
 }
 
 export interface ChatRequest {

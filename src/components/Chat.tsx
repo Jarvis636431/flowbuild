@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import { type ChatMessage } from '../services/api';
+import { type ChatMessage, type ApprovalData } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
 import type { WebSocketStatus } from '../services/nativeWebSocketService';
 import { AuthService } from '../services/authService';
@@ -73,25 +73,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
     // 监听接收到的消息
     const handleMessage = (...args: unknown[]) => {
-      const data = args[0] as {
-        type?: string;
-        message?: string;
-        text?: string;
-        [key: string]: unknown;
-      };
+      const data = args[0] as ApprovalData;
       console.log('Chat组件 - 收到WebSocket消息:', data);
 
       // 处理不同类型的消息
-      if (data.type === 'chat_response' && data.message) {
-        const aiMessage: ChatMessage = {
-          id: Date.now(),
-          text: data.message,
-          sender: 'ai',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-        setIsTyping(false);
-      } else if (data.type === 'done' && data.text) {
+      if (data.type === 'done' && data.text) {
         // 任务完成消息
         const aiMessage: ChatMessage = {
           id: Date.now(),
@@ -108,6 +94,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           text: `🔔 需要确认: ${data.text}`,
           sender: 'ai',
           timestamp: new Date(),
+          needsApproval: true, // 添加标记，表示需要确认按钮
+          approvalData: data, // 保存原始数据，用于确认操作
         };
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
@@ -127,7 +115,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     // 绑定事件监听器
     socketService.on('statusChange', handleStatusChange);
     socketService.on('message', handleMessage);
-    socketService.on('chat_response', handleMessage);
 
     // 获取当前连接状态
     const currentStatus = socketService.getStatus();
@@ -343,6 +330,64 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     });
   };
 
+  // 处理确认按钮点击事件
+  const handleApproval = (message: ChatMessage) => {
+    if (!message.approvalData) return;
+    
+    // 发送确认消息
+    const socketService = getDefaultWebSocketService();
+    if (!socketService || !socketService.isConnected()) {
+      console.error('WebSocket未连接，无法发送确认消息');
+      return;
+    }
+
+    try {
+      // 获取当前用户和项目信息
+      const user = AuthService.getCurrentUserSync();
+      const token = AuthService.getToken();
+
+      if (!user || !token) {
+        console.error('用户未认证，无法发送确认消息');
+        return;
+      }
+
+      // 获取项目ID
+      let projectId: string | undefined;
+      if (currentProject?.id) {
+        projectId = currentProject.id;
+      } else if (user.projects && user.projects.length > 0) {
+        projectId = user.projects[0];
+      }
+
+      if (!projectId) {
+        console.error('无法获取项目ID，无法发送确认消息');
+        return;
+      }
+
+      // 构建确认消息
+      const approvalResponse = {
+        type: 'approval_response',
+        project_id: projectId,
+        token: token,
+        approval_id: message.approvalData.approval_id || message.id,
+        approved: true
+      };
+
+      socketService.sendRaw(approvalResponse);
+      console.log('Chat组件 - 发送确认消息:', approvalResponse);
+      
+      // 更新消息，移除确认按钮
+      setMessages(prev => prev.map(msg => {
+        if (msg.id === message.id) {
+          return { ...msg, needsApproval: false, text: msg.text + ' (已确认)' };
+        }
+        return msg;
+      }));
+    } catch (error) {
+      console.error('发送确认消息失败:', error);
+    }
+  };
+
   return (
     <div className="chat-panel">
       {/* 连接状态指示器 */}
@@ -365,6 +410,14 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
               <span className="message-time">
                 {formatTime(message.timestamp)}
               </span>
+              {message.needsApproval && (
+                <button 
+                  className="approval-button"
+                  onClick={() => handleApproval(message)}
+                >
+                  确认
+                </button>
+              )}
             </div>
           </div>
         ))}
