@@ -76,41 +76,41 @@ const Output: React.FC<OutputProps> = React.memo(
     );
 
     // 获取项目配置数据
-     const fetchProjectConfig = useCallback(async () => {
-       if (!currentProject) return;
-       
-       try {
-         setConfigLoading(true);
-         setConfigError(null);
-         const config = await projectAPI.getProjectConfig(currentProject.id);
-         
-         // 验证配置数据是否符合ProjectConfig接口
-         const isValidConfig = (
-           config && 
-           typeof config === 'object' && 
-           'construction_methods' in config && 
-           'overtime_tasks' in config && 
-           'shutdown_events' in config && 
-           'work_start_hour' in config && 
-           'work_end_hour' in config && 
-           'backgrounds' in config && 
-           'compress' in config
-         );
-         
-         if (isValidConfig) {
-           setProjectConfig(config as unknown as ProjectConfig);
-           console.log('项目配置数据:', config);
-         } else {
-           console.warn('项目配置数据格式不符合预期:', config);
-           setConfigError('项目配置数据格式不符合预期');
-         }
-       } catch (error) {
-         console.error('获取项目配置失败:', error);
-         setConfigError(error instanceof Error ? error.message : '获取项目配置失败');
-       } finally {
-         setConfigLoading(false);
-       }
-     }, [currentProject]);
+    const fetchProjectConfig = useCallback(async () => {
+      if (!currentProject) return;
+
+      try {
+        setConfigLoading(true);
+        setConfigError(null);
+        const config = await projectAPI.getProjectConfig(currentProject.id);
+
+        // 验证配置数据是否符合ProjectConfig接口
+        const isValidConfig = (
+          config &&
+          typeof config === 'object' &&
+          'construction_methods' in config &&
+          'overtime_tasks' in config &&
+          'shutdown_events' in config &&
+          'work_start_hour' in config &&
+          'work_end_hour' in config &&
+          'backgrounds' in config &&
+          'compress' in config
+        );
+
+        if (isValidConfig) {
+          setProjectConfig(config as unknown as ProjectConfig);
+          console.log('项目配置数据:', config);
+        } else {
+          console.warn('项目配置数据格式不符合预期:', config);
+          setConfigError('项目配置数据格式不符合预期');
+        }
+      } catch (error) {
+        console.error('获取项目配置失败:', error);
+        setConfigError(error instanceof Error ? error.message : '获取项目配置失败');
+      } finally {
+        setConfigLoading(false);
+      }
+    }, [currentProject]);
 
     // 初始化数据
     useEffect(() => {
@@ -845,7 +845,7 @@ const Output: React.FC<OutputProps> = React.memo(
             currentProject: currentProject?.name,
             viewData: viewData ? 'Excel数据存在' : '无Excel数据'
           });
-          
+
           if (taskManagement.tasks.length === 0) {
             return (
               <div className="empty-state">
@@ -864,7 +864,7 @@ const Output: React.FC<OutputProps> = React.memo(
               </div>
             );
           }
-          
+
           return (
             <>
               {configLoading && <div className="config-loading">加载项目配置中...</div>}
@@ -885,7 +885,7 @@ const Output: React.FC<OutputProps> = React.memo(
             currentProject: currentProject?.name,
             viewData: viewData ? 'Excel数据存在' : '无Excel数据'
           });
-          
+
           if (taskManagement.tasks.length === 0) {
             return (
               <div className="empty-state">
@@ -904,7 +904,7 @@ const Output: React.FC<OutputProps> = React.memo(
               </div>
             );
           }
-          
+
           return (
             <ProgressTable
               tasks={taskManagement.tasks}

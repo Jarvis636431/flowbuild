@@ -679,6 +679,17 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
+        // // 直接触发浏览器下载
+        // const url = URL.createObjectURL(blob);
+        // const link = document.createElement('a');
+        // link.href = url;
+        // link.download = `project_${projectId}.xlsx`;
+        // link.style.display = 'none';
+        // document.body.appendChild(link);
+        // link.click();
+        // document.body.removeChild(link);
+        // URL.revokeObjectURL(url);
+
         return file;
       } else {
         // 模拟模式 - 创建一个模拟的Excel文件
@@ -778,13 +789,10 @@ export class ProjectService {
   ): Promise<ProcessInfoResponse> {
     try {
       // 调用真实API
-      const response = await http.get<{ data: ProcessInfoResponse }>(
+      const response = await http.get<ProcessInfoResponse>(
         `${ManagementServiceUrls.processInfo()}?project_id=${encodeURIComponent(projectId)}&work_process_name=${encodeURIComponent(workProcessName)}`
-
-        // `${ManagementServiceUrls.processInfo()}?project_id=${encodeURIComponent("94b2a9ea-acce-48b6-ab46-32eaf1ea31be")}&work_process_name=${encodeURIComponent(workProcessName)}`
       );
-
-      return response.data;
+      return response;
     } catch (error) {
       console.error('获取工序信息失败:', error);
       throw new Error('获取工序信息失败');

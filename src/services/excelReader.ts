@@ -9,7 +9,7 @@ const COLUMN_MAPPING: Record<string, string> = {
   选定施工方式: 'constructionMethod',
   施工人数: 'workerCount',
   工种: 'workType',
-  价格: 'cost',
+  人工成本: 'cost',
   工程量: 'workload',
   工程量单位: 'unit',
   开始时间: 'startDay',
