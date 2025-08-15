@@ -212,97 +212,70 @@ function App() {
     });
 
     try {
-      // 构建完整的API URL
-      const apiUrl = ManagementServiceUrls.view();
-      const token = AuthService.getToken();
-      
-      console.log('📡 /view接口详细信息:', {
-        url: apiUrl,
-        method: 'POST',
+      console.log('📡 /view接口调用开始:', {
         projectId: project.id,
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0,
-        requestBody: { project_id: project.id },
+        method: '使用projectAPI.downloadProjectExcel',
       });
 
-      // 调用/view接口
+      // 使用封装好的方法调用/view接口
       const startTime = Date.now();
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ project_id: project.id }),
-      });
-      
+      const file = await projectAPI.downloadProjectExcel(project.id);
       const responseTime = Date.now() - startTime;
-      
-      console.log('📥 /view接口响应详情:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        responseTime: `${responseTime}ms`,
-        headers: {
-          contentType: response.headers.get('content-type'),
-          contentLength: response.headers.get('content-length'),
-          contentDisposition: response.headers.get('content-disposition'),
-        },
-        url: response.url,
-      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API响应错误详情:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorBody: errorText,
-          headers: Object.fromEntries(response.headers.entries()),
-        });
-        throw new Error(
-          `API调用失败: ${response.status} ${response.statusText}. 错误内容: ${errorText}`
-        );
-      }
+      console.log('📥 /view接口响应详情:', {
+        responseTime: `${responseTime}ms`,
+        fileName: file.name,
+        fileSize: `${file.size} bytes (${(file.size / 1024).toFixed(2)} KB)`,
+        fileType: file.type,
+      });
 
       // 获取返回的Excel数据
-      const excelData = await response.arrayBuffer();
-      
+      const excelData = await file.arrayBuffer();
+
       // 详细检查Excel数据
       const dataSize = excelData.byteLength;
       const isValidSize = dataSize > 0;
       const first4Bytes = new Uint8Array(excelData.slice(0, 4));
-      const first4BytesHex = Array.from(first4Bytes).map(b => b.toString(16).padStart(2, '0')).join(' ');
-      
+      const first4BytesHex = Array.from(first4Bytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join(' ');
+
       // 检查是否为Excel文件格式
-      const isExcelFormat = (
+      const isExcelFormat =
         // XLSX格式 (ZIP文件头)
-        (first4Bytes[0] === 0x50 && first4Bytes[1] === 0x4B) ||
+        (first4Bytes[0] === 0x50 && first4Bytes[1] === 0x4b) ||
         // XLS格式 (OLE文件头)
-        (first4Bytes[0] === 0xD0 && first4Bytes[1] === 0xCF && first4Bytes[2] === 0x11 && first4Bytes[3] === 0xE0)
-      );
-      
+        (first4Bytes[0] === 0xd0 &&
+          first4Bytes[1] === 0xcf &&
+          first4Bytes[2] === 0x11 &&
+          first4Bytes[3] === 0xe0);
+
       console.log('📊 Excel数据详细分析:', {
         dataSize: `${dataSize} bytes (${(dataSize / 1024).toFixed(2)} KB)`,
         isValidSize,
         first4BytesHex,
         isExcelFormat,
-        possibleFormat: isExcelFormat ? 
-          (first4Bytes[0] === 0x50 ? 'XLSX (ZIP-based)' : 'XLS (OLE-based)') : 
-          '未知格式',
+        possibleFormat: isExcelFormat
+          ? first4Bytes[0] === 0x50
+            ? 'XLSX (ZIP-based)'
+            : 'XLS (OLE-based)'
+          : '未知格式',
         dataType: Object.prototype.toString.call(excelData),
       });
-      
+
       if (!isValidSize) {
         throw new Error('接收到的Excel数据为空');
       }
-      
+
       if (!isExcelFormat) {
         console.warn('⚠️ 警告: 接收到的数据可能不是有效的Excel格式');
         // 尝试将前100字节转换为文本查看内容
-        const preview = new TextDecoder('utf-8', { fatal: false }).decode(excelData.slice(0, 100));
+        const preview = new TextDecoder('utf-8', { fatal: false }).decode(
+          excelData.slice(0, 100)
+        );
         console.log('📄 数据预览 (前100字节):', preview);
       }
-      
+
       setViewData(excelData);
       console.log('✅ /view接口调用成功，Excel数据已保存到状态');
 
@@ -380,16 +353,19 @@ function App() {
         // 选择最新创建的项目（通常是列表中的最后一个）
         const latestProject = projects[projects.length - 1];
         setCurrentProject(latestProject);
-        
+
         // 检查是否有最新的Excel数据
         const latestProjectData = window.latestProjectData;
         if (latestProjectData && latestProjectData.tasks) {
-          console.log('🎯 检测到最新的Excel数据，项目任务数量:', latestProjectData.tasks.length);
-          
+          console.log(
+            '🎯 检测到最新的Excel数据，项目任务数量:',
+            latestProjectData.tasks.length
+          );
+
           // 将Excel数据转换为ArrayBuffer格式，以便传递给Output组件
           // 这里我们创建一个标记，让useTaskManagement知道要从ProjectService获取数据
           setViewData(new ArrayBuffer(0)); // 设置一个空的ArrayBuffer作为标记
-          
+
           console.log('✅ Excel数据已准备就绪，将传递给图表组件');
         } else {
           console.log('⚠️ 未检测到Excel数据，使用默认数据源');
