@@ -2,7 +2,7 @@ import { FEATURE_FLAGS } from '../config/features';
 import { ManagementServiceUrls } from './apiConfig';
 import http from './http';
 import { AuthService } from './authService';
-import type { TaskItem } from './api';
+import type { TaskItem, CrewData, BudgetData } from './api';
 
 // 项目相关接口定义
 export interface Project {
@@ -823,7 +823,7 @@ export class ProjectService {
       const response = await http.get<CrewData[]>(
         `/mgmt/crew?project_id=${encodeURIComponent(projectId)}`
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('获取人员配置数据失败:', error);
       throw new Error('获取人员配置数据失败');
@@ -836,7 +836,7 @@ export class ProjectService {
       const response = await http.get<BudgetData[]>(
         `/mgmt/budget?project_id=${encodeURIComponent(projectId)}`
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('获取预算数据失败:', error);
       throw new Error('获取预算数据失败');
