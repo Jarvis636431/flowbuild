@@ -59,7 +59,7 @@ function App() {
 
     checkAuthStatus();
   }, []);
-  
+
   // 处理退出登录
   const handleLogout = async () => {
     try {
@@ -68,12 +68,12 @@ function App() {
       if (socketService) {
         socketService.disconnect();
       }
-      
+
       // 清除认证状态
       setIsAuthenticated(false);
       setCurrentProject(null);
       setShowAuthModal(true);
-      
+
       console.log('用户已成功退出登录');
     } catch (error) {
       console.error('退出登录失败:', error);
