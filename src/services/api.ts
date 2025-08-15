@@ -250,7 +250,7 @@ export const taskAPI = {
 loadExcelData().catch((error) => {
   console.error('Excel数据初始化失败:', error);
   // 系统将无法正常工作，因为没有备用数据
-  alert('Excel数据读取失败，请检查data/output.xlsx文件是否存在且格式正确。');
+  console.log('Excel数据读取失败，请检查data/output.xlsx文件是否存在且格式正确。');
 });
 
 // 聊天API函数

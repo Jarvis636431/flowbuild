@@ -24,7 +24,7 @@ const ProgressTable: React.FC<ProgressTableProps> = React.memo(
             <div className="table-cell header-cell">持续时长</div>
             <div className="table-cell header-cell">施工人数</div>
             <div className="table-cell header-cell">工种</div>
-            <div className="table-cell header-cell">价格</div>
+            <div className="table-cell header-cell">成本</div>
             <div className="table-cell header-cell">直接依赖任务</div>
           </div>
           <div className="table-body">

@@ -4,7 +4,7 @@ import { projectAPI } from '../services/api';
 import type { TaskItem } from '../services/api';
 import type { Project, ProcessInfoResponse } from '../services/projectService';
 import { useAsyncState } from './useAsyncState';
-import { readExcelFromBuffer } from '../services/excelReader';
+import { readProjectFromFile } from '../services/excelReader';
 
 export interface UseTaskManagementReturn {
   tasks: TaskItem[];
@@ -38,67 +38,6 @@ export const useTaskManagement = (
   const [processInfoLoading, setProcessInfoLoading] = useState(false);
   const [processInfoError, setProcessInfoError] = useState<string | null>(null);
 
-  // 解析Excel数据为TaskItem格式
-  const parseExcelToTasks = useCallback(
-    (excelData: unknown[][]): TaskItem[] => {
-      const tasks: TaskItem[] = [];
-
-      if (excelData.length < 2) {
-        console.warn('Excel数据不足，无法解析任务');
-        return tasks;
-      }
-
-      // 第一行是表头
-      const headers = excelData[0] as string[];
-      console.log('Excel表头:', headers);
-
-      excelData.forEach((row, index) => {
-        if (index === 0) return; // 跳过表头
-        if (!row || !Array.isArray(row) || row.length === 0) return; // 跳过空行
-
-        // 安全地访问数组元素
-        const getRowValue = (idx: number): unknown => row[idx];
-        const getStringValue = (idx: number, defaultValue = ''): string => {
-          const val = getRowValue(idx);
-          return val ? String(val) : defaultValue;
-        };
-        const getNumberValue = (idx: number, defaultValue = 0): number => {
-          const val = getRowValue(idx);
-          return typeof val === 'number' ? val : defaultValue;
-        };
-
-        // 根据表头动态解析数据
-        const task: TaskItem = {
-          id: index,
-          name: getStringValue(0, `任务${index}`),
-          serialNumber: index,
-          constructionMethod: getStringValue(8),
-          workerCount: getNumberValue(9),
-          workType: getStringValue(10),
-          cost: getNumberValue(11),
-          workload: getNumberValue(12),
-          unit: getStringValue(13),
-          startDay: getNumberValue(1, 1),
-          endDay: getNumberValue(2, 1),
-          isOvertime: false,
-          dependencies: [],
-          projectId: currentProject ? parseInt(currentProject.id) : 1,
-          startTime: { day: 1, hour: 0, totalHours: 24 },
-          endTime: { day: 1, hour: 0, totalHours: 24 }
-        };
-
-        // 只添加有名称的任务
-        if (task.name && task.name.trim() !== '') {
-          tasks.push(task);
-        }
-      });
-
-      console.log('解析的任务数据:', tasks);
-      return tasks;
-    },
-    [currentProject]
-  );
-
   // 获取任务数据
   const fetchTasks = useCallback(
     async (viewData?: ArrayBuffer) => {
@@ -106,11 +45,20 @@ export const useTaskManagement = (
         let tasksData: TaskItem[];
 
         if (viewData && viewData.byteLength > 0) {
-          // 如果有view接口返回的Excel数据，解析它
+          // 如果有view接口返回的Excel数据，使用readProjectFromFile解析
           try {
-            const excelData = await readExcelFromBuffer(viewData);
-            tasksData = parseExcelToTasks(excelData);
-            console.log('从Excel数据解析的任务:', tasksData);
+            // 将ArrayBuffer转换为File对象
+            const blob = new Blob([viewData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const file = new File([blob], 'project-data.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            
+            const project = await readProjectFromFile(file);
+            if (project && project.tasks) {
+              tasksData = project.tasks;
+              console.log('从Excel文件解析的任务:', tasksData);
+            } else {
+              console.warn('Excel文件解析失败或没有任务数据，使用默认API');
+              tasksData = await taskAPI.getTasks();
+            }
           } catch (error) {
             console.error('解析Excel数据失败:', error);
             // 解析失败时回退到默认API
@@ -148,7 +96,7 @@ export const useTaskManagement = (
         return tasksData;
       });
     },
-    [currentProject, execute, parseExcelToTasks]
+    [currentProject, execute]
   );
 
   // 处理任务行点击事件

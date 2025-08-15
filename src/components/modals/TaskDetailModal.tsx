@@ -38,43 +38,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </button>
       </div>
       <div className="popup-content">
-        <div className="detail-item">
-          <span className="detail-label">持续时间:</span>
-          <span>
-            {task.startTime && task.endTime
-              ? `${Math.max(1, Math.ceil((task.endTime.totalHours - task.startTime.totalHours) / 24))}天`
-              : `${task.endDay - task.startDay + 1}天`}
-          </span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">开始时间:</span>
-          <span>
-            {task.startTime
-              ? `第${task.startTime.day}天 ${task.startTime.hour.toString().padStart(2, '0')}:00`
-              : `第${task.startDay}天`}
-          </span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">结束时间:</span>
-          <span>
-            {task.endTime
-              ? `第${task.endTime.day}天 ${task.endTime.hour.toString().padStart(2, '0')}:00`
-              : `第${task.endDay}天`}
-          </span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">施工人数:</span>
-          <span>{task.workerCount}人</span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">施工工种:</span>
-          <span>{task.workType}</span>
-        </div>
-        <div className="detail-item">
-          <span className="detail-label">价格:</span>
-          <span>{task.cost.toLocaleString()}</span>
-        </div>
-
+      
         {/* 工序信息部分 */}
         <div className="detail-section">
           <span className="detail-label">工序信息:</span>
@@ -129,23 +93,23 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             <div style={{ marginLeft: '20px' }}>
               <div className="detail-item">
                 <span className="detail-label">工单内容:</span>
-                <span>{processInfo.order_info.工单内容}</span>
+                <span style={{ overflowWrap: 'break-word' }}>{processInfo.order_info.工单内容}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">详细信息:</span>
-                <span>{processInfo.order_info.详细信息}</span>
+                <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.详细信息}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">设计交底:</span>
-                <span>{processInfo.order_info.设计交底}</span>
+                <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.设计交底}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">安全交底:</span>
-                <span>{processInfo.order_info.安全交底}</span>
+                <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.安全交底}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">技术验收标准:</span>
-                <span>{processInfo.order_info.技术验收标准}</span>
+                <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.技术验收标准}</span>
               </div>
             </div>
           </div>
