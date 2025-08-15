@@ -271,6 +271,13 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
           />
         </div>
 
+        {/* 文件上传提示 */}
+        <div className="file-upload-note">
+          <p style={{ color: '#ff6b6b', fontSize: '14px', marginBottom: '10px' }}>
+            <strong>注意：</strong> 必须同时上传文档文件和CAD文件才能创建项目
+          </p>
+        </div>
+
         {/* 两步骤按钮 */}
         <div className="create-project-section">
           {/* 步骤1: 预创建项目 */}
@@ -295,7 +302,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
             className="create-project-btn"
             onClick={onCreateProject}
             disabled={
-              isCreatingProject || isPrecreating || isPolling || !projectId
+              isCreatingProject || isPrecreating || isPolling || !projectId || !documentFile || !cadFile
             }
           >
             {isCreatingProject
