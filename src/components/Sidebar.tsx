@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // 获取当前用户信息
   const currentUser = AuthService.getCurrentUserSync();
-  
+
   // 处理退出登录
   const handleLogout = async () => {
     if (window.confirm('确定要退出登录吗？')) {
