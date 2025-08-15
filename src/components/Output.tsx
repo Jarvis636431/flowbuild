@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { type Project } from '../services/projectService';
+import { projectAPI } from '../services/projectService';
 import TaskDetailModal from './modals/TaskDetailModal';
 import GanttChart from './charts/GanttChart';
 import ProgressTable from './charts/ProgressTable';
@@ -19,9 +20,28 @@ interface OutputProps {
   onProjectCreated: () => void;
 }
 
+interface ProjectConfig {
+  construction_methods: Array<{ task_name: string; method_index: number }>;
+  overtime_tasks: string[];
+  shutdown_events: Array<{
+    name: string;
+    start_time: { day: number; hour: number };
+    end_time: { day: number; hour: number };
+    a_level_tasks: string[];
+    b_level_tasks: string[];
+  }>;
+  work_start_hour: number;
+  work_end_hour: number;
+  backgrounds: string[];
+  compress: { target_days: number; add_carpenter_first: boolean };
+}
+
 const Output: React.FC<OutputProps> = React.memo(
   ({ currentProject, viewMode, viewData, onProjectCreated }) => {
     const [activeTab, setActiveTab] = useState('甘特图模式');
+    const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(null);
+    const [configLoading, setConfigLoading] = useState(false);
+    const [configError, setConfigError] = useState<string | null>(null);
 
     // 使用自定义Hooks
     const taskManagement = useTaskManagement(currentProject);
@@ -55,12 +75,31 @@ const Output: React.FC<OutputProps> = React.memo(
       [fileUpload]
     );
 
+    // 获取项目配置数据
+    const fetchProjectConfig = useCallback(async () => {
+      if (!currentProject) return;
+      
+      try {
+        setConfigLoading(true);
+        setConfigError(null);
+        const config = await projectAPI.getProjectConfig(currentProject.id);
+        setProjectConfig(config as ProjectConfig);
+        console.log('项目配置数据:', config);
+      } catch (error) {
+        console.error('获取项目配置失败:', error);
+        setConfigError(error instanceof Error ? error.message : '获取项目配置失败');
+      } finally {
+        setConfigLoading(false);
+      }
+    }, [currentProject]);
+
     // 初始化数据
     useEffect(() => {
       if (viewMode === 'output') {
         taskManagement.fetchTasks(viewData || undefined);
+        fetchProjectConfig();
       }
-    }, [viewMode, viewData, taskManagement.fetchTasks]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [viewMode, viewData, taskManagement.fetchTasks, fetchProjectConfig]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 渲染内容
     const renderContent = useMemo(() => {
@@ -808,10 +847,15 @@ const Output: React.FC<OutputProps> = React.memo(
           }
           
           return (
-            <GanttChart
-              tasks={taskManagement.tasks}
-              onTaskClick={taskManagement.handleTaskClick}
-            />
+            <>
+              {configLoading && <div className="config-loading">加载项目配置中...</div>}
+              {configError && <div className="config-error">加载项目配置失败: {configError}</div>}
+              <GanttChart
+                tasks={taskManagement.tasks}
+                onTaskClick={taskManagement.handleTaskClick}
+                shutdownEvents={projectConfig?.shutdown_events}
+              />
+            </>
           );
         case '进度表模式':
           console.log('📋 进度表模式渲染 - 任务数据状态:', {

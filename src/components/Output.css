@@ -443,6 +443,11 @@
   -ms-overflow-style: none; /* IE and Edge */
 }
 
+.shutdown-event {
+  border: 1px dashed #999;
+  border-radius: 2px;
+}
+
 .gantt-container::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
