@@ -283,33 +283,7 @@ export class ProjectService {
     }
   }
 
-  // 根据ID获取单个项目
-  static async getProjectById(id: string): Promise<Project | null> {
-    try {
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        // 使用真实API
-        const response = await http.get<ApiProject>(
-          `${ManagementServiceUrls.view()}?project_id=${id}`
-        );
-
-        return convertApiProjectToProject(response);
-      } else {
-        // 使用模拟数据
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        const project = mockProjects.find((project) => project.id === id);
-        return project || null;
-      }
-    } catch (error) {
-      console.error('获取项目详情失败:', error);
-      // 降级到模拟数据
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
-        const project = mockProjects.find((project) => project.id === id);
-        return project || null;
-      }
-      throw new Error('获取项目详情失败');
-    }
-  }
+  // 根据ID获取单个项目方法已删除
 
   // 预创建项目（获取project_id）
   static async precreateProject(request: {
@@ -842,12 +816,81 @@ export class ProjectService {
       throw new Error('获取预算数据失败');
     }
   }
+
+  // 获取项目配置信息
+  static async getProjectConfig(projectId: string): Promise<Record<string, unknown>> {
+    try {
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        // 使用真实API
+        const response = await http.get<{ config: Record<string, unknown> }>(
+          `${ManagementServiceUrls.projectConfig()}?project_id=${encodeURIComponent(projectId)}`
+        );
+
+        return response.config || {};
+      } else {
+        // 模拟数据逻辑
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const project = mockProjects.find((p) => p.id === projectId);
+        if (!project) {
+          throw new Error('项目不存在');
+        }
+        
+        // 返回模拟的配置数据，根据用户提供的示例格式
+        return {
+          construction_methods: [
+            { task_name: "柱钢筋绑扎", method_index: 0 },
+            { task_name: "梁板底排钢筋绑扎", method_index: 1 }
+          ],
+          overtime_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+          shutdown_events: [
+            {
+              name: "雨天停工",
+              start_time: { day: 5, hour: 0 },
+              end_time: { day: 7, hour: 0 },
+              a_level_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+              b_level_tasks: ["柱钢筋绑扎", "梁板底排钢筋绑扎"]
+            }
+          ],
+          work_start_hour: 8,
+          work_end_hour: 20,
+          backgrounds: ["标准层施工", "暑期施工"],
+          compress: { target_days: 100, add_carpenter_first: true }
+        };
+      }
+    } catch (error) {
+      console.error('获取项目配置失败:', error);
+      // 降级到模拟数据
+      if (FEATURE_FLAGS.USE_REAL_API) {
+        console.warn('API调用失败，降级到模拟数据');
+        return {
+          construction_methods: [
+            { task_name: "柱钢筋绑扎", method_index: 0 },
+            { task_name: "梁板底排钢筋绑扎", method_index: 1 }
+          ],
+          overtime_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+          shutdown_events: [
+            {
+              name: "雨天停工",
+              start_time: { day: 5, hour: 0 },
+              end_time: { day: 7, hour: 0 },
+              a_level_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+              b_level_tasks: ["柱钢筋绑扎", "梁板底排钢筋绑扎"]
+            }
+          ],
+          work_start_hour: 8,
+          work_end_hour: 20,
+          backgrounds: ["标准层施工", "暑期施工"],
+          compress: { target_days: 100, add_carpenter_first: true }
+        };
+      }
+      throw new Error('获取项目配置失败');
+    }
+  }
 }
 
 // 导出便捷的API对象（保持向后兼容）
 export const projectAPI = {
   getProjects: ProjectService.getProjects,
-  getProjectById: ProjectService.getProjectById,
   createProject: ProjectService.createProject,
   updateProject: ProjectService.updateProject,
   deleteProject: ProjectService.deleteProject,
@@ -859,6 +902,8 @@ export const projectAPI = {
   pollProjectStatus: ProjectService.pollProjectStatus,
   // 下载项目Excel文件
   downloadProjectExcel: ProjectService.downloadProjectExcel,
+  // 获取项目配置
+  getProjectConfig: ProjectService.getProjectConfig,
   // 文件上传相关方法
   validateFile: ProjectService.validateFile,
   uploadFile: ProjectService.uploadFile,
