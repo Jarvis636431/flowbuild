@@ -74,7 +74,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
     scene.add(directionalLight);
 
     const ifcLoader = new IFCLoader();
-    ifcLoader.ifcManager.setWasmPath('/');
+    ifcLoader.ifcManager.setWasmPath('./');
 
     const loadModel = async () => {
       try {
