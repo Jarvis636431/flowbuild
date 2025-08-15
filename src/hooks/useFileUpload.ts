@@ -328,6 +328,12 @@ export const useFileUpload = (
       return;
     }
 
+    // 检查文档文件和CAD文件是否都已上传
+    if (!documentFile || !cadFile) {
+      alert('请确保已上传文档文件和CAD文件，两个文件都必须上传才能创建项目');
+      return;
+    }
+
     try {
       setIsCreatingProject(true);
       console.log('确认创建项目:', {
@@ -342,9 +348,9 @@ export const useFileUpload = (
         return;
       }
 
-      // 如果有文件需要上传，先上传文件
+      // 上传文件
       const uploadResults: unknown[] = [];
-      if (documentFile || cadFile) {
+      if (documentFile && cadFile) {
         setIsUploading(true);
         setUploadProgress(0);
         console.log('开始上传文件...');
