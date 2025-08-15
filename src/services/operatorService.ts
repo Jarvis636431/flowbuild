@@ -18,7 +18,7 @@ const FILE_MAPPINGS = {
     steel:
       'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E9%92%A2%E7%AD%8B%E6%B1%87%E6%80%BB%E8%A1%A8_%E5%B7%A5%E5%BA%8F_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
     summary:
-      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E9%92%A2%E7%AD%8B%E6%B1%87%E6%80%BB%E8%A1%A8_%E5%B7%A5%E5%BA%8F_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
+      'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E6%B5%B7%E6%B2%B3_%E6%B8%85%E5%8D%95%E6%B1%87%E6%80%BB%E8%A1%A8_%E6%9D%90%E6%96%99%E5%90%8D%E7%A7%B0_%E5%B7%A5%E7%A8%8B%E9%87%8F_%E4%BB%B7%E6%A0%BC.xls',
   },
   绿: {
     ifc: 'https://raw.githubusercontent.com/orzorz1/public/refs/heads/main/%E7%9F%B3%E9%92%A2%E4%BD%8F%E5%AE%85%E5%9C%9F%E5%BB%BA.ifc',
