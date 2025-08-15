@@ -976,7 +976,7 @@ const Output: React.FC<OutputProps> = React.memo(
             <div className="project-date">总计{chartData.totalDays}天</div>
           </div>
           <div className="header-controls">
-            <button className="export-btn">导出报告</button>
+            {/* 导出报告按钮已移除 */}
           </div>
         </div>
 
