@@ -1,16 +1,25 @@
 import React, { useMemo } from 'react';
 import type { TaskItem } from '../../services/api';
 
+interface ShutdownEvent {
+  name: string;
+  start_time: { day: number; hour: number };
+  end_time: { day: number; hour: number };
+  a_level_tasks: string[];
+  b_level_tasks: string[];
+}
+
 interface GanttChartProps {
   tasks: TaskItem[];
   onTaskClick: (
     task: TaskItem,
     e: React.MouseEvent<HTMLElement>
   ) => Promise<void>;
+  shutdownEvents?: ShutdownEvent[];
 }
 
 const GanttChart: React.FC<GanttChartProps> = React.memo(
-  ({ tasks, onTaskClick }) => {
+  ({ tasks, onTaskClick, shutdownEvents = [] }) => {
     console.log('📊 GanttChart组件接收到的数据:', {
       tasksCount: tasks.length,
       tasks: tasks.slice(0, 3), // 只显示前3个任务避免日志过长
@@ -151,14 +160,39 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
                         ? `${timelineDays.length * 60}px`
                         : 'auto',
                     flex: timelineDays.length > 14 ? 'none' : '1',
+                    position: 'relative',
                   }}
                 >
+                  {/* 渲染停工事件的灰色标记 */}
+                  {shutdownEvents.map((event, eventIndex) => {
+                    const startDay = event.start_time.day;
+                    const endDay = event.end_time.day;
+                    const shutdownPosition = getTaskPosition(startDay, endDay);
+                    return (
+                      <div
+                        key={`shutdown-${eventIndex}`}
+                        className="shutdown-event"
+                        style={{
+                          position: 'absolute',
+                          left: shutdownPosition.left,
+                          width: shutdownPosition.width,
+                          height: '100%',
+                          backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                          zIndex: 1,
+                          pointerEvents: 'none',
+                        }}
+                        title={`${event.name} (第${startDay}天-第${endDay}天)`}
+                      />
+                    );
+                  })}
                   <div
                     className="task-bar"
                     style={{
                       left: position.left,
                       width: position.width,
                       backgroundColor: task.isOvertime ? '#ff6b6b' : '#4CAF50',
+                      position: 'relative',
+                      zIndex: 2,
                     }}
                     onClick={(e) => onTaskClick(task, e)}
                   ></div>
