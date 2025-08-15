@@ -11,6 +11,7 @@ interface SidebarProps {
   onProjectSelect: (project: Project) => void;
   onNewProject: () => void;
   viewMode?: 'upload' | 'output';
+  onLogout?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -20,6 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onProjectSelect,
   onNewProject,
   viewMode,
+  onLogout,
 }) => {
   const {
     data: projects,
@@ -86,6 +88,19 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // 获取当前用户信息
   const currentUser = AuthService.getCurrentUserSync();
+  
+  // 处理退出登录
+  const handleLogout = async () => {
+    if (window.confirm('确定要退出登录吗？')) {
+      await AuthService.logout();
+      if (onLogout) {
+        onLogout();
+      } else {
+        // 如果没有提供onLogout回调，则刷新页面
+        window.location.reload();
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -194,16 +209,16 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* 用户信息区域 - 固定在底部 */}
       {currentUser && (
-        <div className="user-info">
+        <div className="user-info" onClick={handleLogout}>
           {isCollapsed ? (
             <div
               className="user-icon"
-              title={`${currentUser.username} (${currentUser.role})\nID: ${currentUser.user_id}`}
+              title={`${currentUser.username} (${currentUser.role})\nID: ${currentUser.user_id}\n点击退出登录`}
             >
               {getUserIcon(currentUser.username)}
             </div>
           ) : (
-            <div className="user-content">
+            <div className="user-content" title="点击退出登录">
               <div className="user-details">
                 <div className="user-name-role">
                   <span className="user-name">{currentUser.username}</span>

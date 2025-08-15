@@ -59,6 +59,26 @@ function App() {
 
     checkAuthStatus();
   }, []);
+  
+  // 处理退出登录
+  const handleLogout = async () => {
+    try {
+      // 断开WebSocket连接
+      const socketService = getDefaultWebSocketService();
+      if (socketService) {
+        socketService.disconnect();
+      }
+      
+      // 清除认证状态
+      setIsAuthenticated(false);
+      setCurrentProject(null);
+      setShowAuthModal(true);
+      
+      console.log('用户已成功退出登录');
+    } catch (error) {
+      console.error('退出登录失败:', error);
+    }
+  };
 
   // 监听项目变化和认证状态，管理Socket连接
   useEffect(() => {
@@ -399,6 +419,7 @@ function App() {
           onProjectSelect={handleProjectSelect}
           onNewProject={handleNewProject}
           viewMode={viewMode}
+          onLogout={handleLogout}
         />
         <div className="main-content">
           <Chat currentProject={currentProject} />
