@@ -341,7 +341,7 @@ export class NativeWebSocketService {
     if (this.config.heartbeatInterval && this.config.heartbeatInterval > 0) {
       this.heartbeatTimer = setInterval(() => {
         if (this.isConnected()) {
-          this.emit('ping', { timestamp: Date.now() });
+          // this.emit('ping', { timestamp: Date.now() });
         }
       }, this.config.heartbeatInterval);
     }
