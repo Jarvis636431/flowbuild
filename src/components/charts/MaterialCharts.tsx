@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { TaskItem, CrewData, BudgetData } from '../../services/api';
-import { chartAPI } from '../../services/api';
+import { projectAPI } from '../../services/projectService';
 import { useChartData } from '../../hooks/useChartData';
 
 interface MaterialChartsProps {
@@ -26,8 +26,8 @@ const MaterialCharts: React.FC<MaterialChartsProps> = React.memo(
 
         try {
           const [crewResult, budgetResult] = await Promise.all([
-            chartAPI.getCrewData(projectId),
-            chartAPI.getBudgetData(projectId),
+            projectAPI.getCrewData(projectId),
+            projectAPI.getBudgetData(projectId),
           ]);
 
           setCrewData(crewResult);
