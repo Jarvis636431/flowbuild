@@ -393,6 +393,12 @@ function App() {
           setViewData(new ArrayBuffer(0)); // 设置一个空的ArrayBuffer作为标记
 
           console.log('✅ Excel数据已准备就绪，将传递给图表组件');
+          
+          // 数据成功获取后执行页面刷新
+          console.log('🔄 数据获取成功，即将刷新页面...');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000); // 延迟1秒刷新，确保数据完全加载
         } else {
           console.log('⚠️ 未检测到Excel数据，使用默认数据源');
           setViewData(null);

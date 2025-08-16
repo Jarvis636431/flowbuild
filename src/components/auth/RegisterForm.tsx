@@ -51,11 +51,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     setError('');
 
     try {
+      // 1. 先注册用户
       await AuthService.register({
         username: formData.username,
         password: formData.password,
         role: 'user',
       });
+
+      // 2. 注册成功后自动登录获取token
+      await AuthService.login({
+        username: formData.username,
+        password: formData.password,
+      });
+
+      // 3. 现在用户已有token，可以调用成功回调
       onSuccess();
     } catch (err: unknown) {
       const errorMessage =
