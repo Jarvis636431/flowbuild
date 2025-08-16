@@ -271,15 +271,37 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           history: messages,
         });
 
-        // 将模拟API响应转换为ChatMessage格式
-         const aiMessage: ChatMessage = {
-           id: Date.now() + 1,
-           text: response.text,
-           sender: 'ai',
-           timestamp: response.timestamp || new Date(),
-         };
-
-        setMessages((prev) => [...prev, aiMessage]);
+        // 根据响应类型处理模拟API响应，与WebSocket模式保持一致
+        if (response.type === 'done' && response.text) {
+          // 任务完成消息
+          const aiMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: response.text,
+            sender: 'ai',
+            timestamp: response.timestamp || new Date(),
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        } else if (response.type === 'approval' && response.text) {
+          // 需要用户确认的消息
+          const aiMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: `🔔 需要确认: ${response.text}`,
+            sender: 'ai',
+            timestamp: response.timestamp || new Date(),
+            needsApproval: true, // 添加标记，表示需要确认按钮
+            approvalData: response, // 保存原始数据，用于确认操作
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        } else if (response.type === 'update_done' && response.text) {
+          // 更新完成通知
+          const aiMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: `✅ 更新完成: ${response.text}`,
+            sender: 'ai',
+            timestamp: response.timestamp || new Date(),
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        }
         setIsTyping(false);
       } catch (error) {
         console.error('模拟聊天API调用失败:', error);
