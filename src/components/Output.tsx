@@ -39,7 +39,9 @@ interface ProjectConfig {
 const Output: React.FC<OutputProps> = React.memo(
   ({ currentProject, viewMode, viewData, onProjectCreated }) => {
     const [activeTab, setActiveTab] = useState('甘特图模式');
-    const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(null);
+    const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(
+      null
+    );
     const [, setConfigLoading] = useState(false);
     const [, setConfigError] = useState<string | null>(null);
 
@@ -85,7 +87,7 @@ const Output: React.FC<OutputProps> = React.memo(
         const config = await projectAPI.getProjectConfig(currentProject.id);
 
         // 验证配置数据是否符合ProjectConfig接口
-        const isValidConfig = (
+        const isValidConfig =
           config &&
           typeof config === 'object' &&
           'construction_methods' in config &&
@@ -94,8 +96,7 @@ const Output: React.FC<OutputProps> = React.memo(
           'work_start_hour' in config &&
           'work_end_hour' in config &&
           'backgrounds' in config &&
-          'compress' in config
-        );
+          'compress' in config;
 
         if (isValidConfig) {
           setProjectConfig(config as unknown as ProjectConfig);
@@ -106,7 +107,9 @@ const Output: React.FC<OutputProps> = React.memo(
         }
       } catch (error) {
         console.error('获取项目配置失败:', error);
-        setConfigError(error instanceof Error ? error.message : '获取项目配置失败');
+        setConfigError(
+          error instanceof Error ? error.message : '获取项目配置失败'
+        );
       } finally {
         setConfigLoading(false);
       }
@@ -119,24 +122,31 @@ const Output: React.FC<OutputProps> = React.memo(
         fetchProjectConfig();
       }
     }, [viewMode, viewData, taskManagement.fetchTasks, fetchProjectConfig]); // eslint-disable-line react-hooks/exhaustive-deps
-    
+
     // 监听activeTab变化，确保切换到甘特图模式时数据已加载
     useEffect(() => {
-      if (activeTab === '甘特图模式' && viewMode === 'output' && !taskManagement.loading && taskManagement.tasks.length === 0) {
+      if (
+        activeTab === '甘特图模式' &&
+        viewMode === 'output' &&
+        !taskManagement.loading &&
+        taskManagement.tasks.length === 0
+      ) {
         console.log('🔄 切换到甘特图模式，重新加载任务数据');
         taskManagement.fetchTasks(viewData || undefined);
       }
-    }, [activeTab, viewMode, taskManagement.loading, taskManagement.tasks.length, taskManagement.fetchTasks, viewData]);
+    }, [
+      activeTab,
+      viewMode,
+      taskManagement.loading,
+      taskManagement.tasks.length,
+      taskManagement.fetchTasks,
+      viewData,
+    ]);
 
     // 渲染内容
     const renderContent = useMemo(() => {
       if (taskManagement.loading) {
-        return (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>正在加载数据...</p>
-          </div>
-        );
+        return <div className="loading-container"></div>;
       }
 
       if (taskManagement.error) {
@@ -851,7 +861,7 @@ const Output: React.FC<OutputProps> = React.memo(
             loading: taskManagement.loading,
             error: taskManagement.error,
             currentProject: currentProject?.name,
-            viewData: viewData ? 'Excel数据存在' : '无Excel数据'
+            viewData: viewData ? 'Excel数据存在' : '无Excel数据',
           });
 
           if (taskManagement.tasks.length === 0) {
@@ -863,7 +873,9 @@ const Output: React.FC<OutputProps> = React.memo(
                   <p>调试信息：</p>
                   <ul>
                     <li>任务数量: {taskManagement.tasks.length}</li>
-                    <li>加载状态: {taskManagement.loading ? '加载中' : '已完成'}</li>
+                    <li>
+                      加载状态: {taskManagement.loading ? '加载中' : '已完成'}
+                    </li>
                     <li>错误信息: {taskManagement.error || '无'}</li>
                     <li>当前项目: {currentProject?.name || '未选择'}</li>
                     <li>Excel数据: {viewData ? '已加载' : '未加载'}</li>
@@ -889,7 +901,7 @@ const Output: React.FC<OutputProps> = React.memo(
             loading: taskManagement.loading,
             error: taskManagement.error,
             currentProject: currentProject?.name,
-            viewData: viewData ? 'Excel数据存在' : '无Excel数据'
+            viewData: viewData ? 'Excel数据存在' : '无Excel数据',
           });
 
           if (taskManagement.tasks.length === 0) {
@@ -901,7 +913,9 @@ const Output: React.FC<OutputProps> = React.memo(
                   <p>调试信息：</p>
                   <ul>
                     <li>任务数量: {taskManagement.tasks.length}</li>
-                    <li>加载状态: {taskManagement.loading ? '加载中' : '已完成'}</li>
+                    <li>
+                      加载状态: {taskManagement.loading ? '加载中' : '已完成'}
+                    </li>
                     <li>错误信息: {taskManagement.error || '无'}</li>
                     <li>当前项目: {currentProject?.name || '未选择'}</li>
                     <li>Excel数据: {viewData ? '已加载' : '未加载'}</li>
@@ -981,9 +995,7 @@ const Output: React.FC<OutputProps> = React.memo(
             </div>
             <div className="project-date">总计{chartData.totalDays}天</div>
           </div>
-          <div className="header-controls">
-            {/* 导出报告按钮已移除 */}
-          </div>
+          <div className="header-controls">{/* 导出报告按钮已移除 */}</div>
         </div>
 
         <div className="date-controls">
