@@ -41,6 +41,16 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   useEffect(() => {
     console.log('🔍 Chat组件 - useEffect触发，项目ID:', currentProject?.id);
 
+    // 项目切换时清空聊天记录
+    setMessages([
+      {
+        id: 1,
+        text: '你好！我是AI助手，有什么可以帮你的吗？',
+        sender: 'ai',
+        timestamp: new Date(),
+      },
+    ]);
+
     const socketService = getDefaultWebSocketService();
     if (!socketService) {
       console.warn('❌ Chat组件 - WebSocket服务未初始化');
@@ -473,7 +483,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // 自定义代码块样式
-                    code: ({ className, children, ...props }: any) => {
+                    code: ({ className, children, ...props }: React.ComponentProps<'code'>) => {
                       const isInline =
                         !className || !className.includes('language-');
                       return !isInline ? (
@@ -539,7 +549,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       <div className="input-area">
         <div className="input-container">
           <textarea
-            placeholder={isConnected ? '输入你的消息...' : '等待连接...'}
+            placeholder='输入你的消息...'
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -550,7 +560,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             onClick={handleSendMessage}
             disabled={isTyping || inputValue.trim() === ''}
             className="send-button"
-            title={isConnected ? '发送消息' : '等待连接'}
+            title='发送消息'
           >
             <svg
               width="20"
