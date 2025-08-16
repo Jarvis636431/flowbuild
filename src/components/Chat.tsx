@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
-import { type ChatMessage, type ApprovalData } from '../services/api';
+import { type ChatMessage, type ApprovalData, chatAPI } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
 import type { WebSocketStatus } from '../services/nativeWebSocketService';
 import { AuthService } from '../services/authService';
 import { type Project } from '../services/projectService';
+import { FEATURE_FLAGS } from '../config/features';
 
 interface ChatProps {
   currentProject?: Project | null;
@@ -245,8 +246,57 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (inputValue.trim() === '' || !isConnected) return;
+  const handleSendMessage = async () => {
+    if (inputValue.trim() === '') return;
+    
+    // 检查是否使用模拟聊天
+    if (FEATURE_FLAGS.USE_MOCK_CHAT) {
+      // 使用模拟聊天API
+      const userMessage: ChatMessage = {
+        id: Date.now(),
+        text: inputValue,
+        sender: 'user',
+        timestamp: new Date(),
+      };
+
+      const currentInput = inputValue;
+      setMessages((prev) => [...prev, userMessage]);
+      setInputValue('');
+      setIsTyping(true);
+
+      try {
+        // 调用模拟聊天API
+        const response = await chatAPI.sendMessage({
+          message: currentInput,
+          history: messages,
+        });
+
+        // 将模拟API响应转换为ChatMessage格式
+         const aiMessage: ChatMessage = {
+           id: Date.now() + 1,
+           text: response.text,
+           sender: 'ai',
+           timestamp: response.timestamp || new Date(),
+         };
+
+        setMessages((prev) => [...prev, aiMessage]);
+        setIsTyping(false);
+      } catch (error) {
+        console.error('模拟聊天API调用失败:', error);
+        const errorResponse: ChatMessage = {
+          id: Date.now() + 1,
+          text: '抱歉，AI服务暂时不可用，请稍后再试。',
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorResponse]);
+        setIsTyping(false);
+      }
+      return;
+    }
+
+    // 使用WebSocket模式
+    if (!isConnected) return;
 
     const userMessage: ChatMessage = {
       id: Date.now(),
@@ -288,38 +338,27 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     }
   };
 
-  // 获取连接状态显示文本
-  const getStatusText = () => {
-    switch (socketStatus) {
-      case 'connected':
-        return '已连接';
-      case 'connecting':
-        return '连接中';
-      case 'reconnecting':
-        return '重连中';
-      case 'disconnected':
-        return '未连接';
-      case 'error':
-        return '连接错误';
-      default:
-        return '未知状态';
+  // 获取状态显示文本和颜色
+  const getStatusDisplay = () => {
+    // 模拟模式下显示模拟状态
+    if (FEATURE_FLAGS.USE_MOCK_CHAT) {
+      return { text: '模拟模式', color: '#2196f3' };
     }
-  };
-
-  // 获取连接状态颜色
-  const getStatusColor = () => {
+    
+    // WebSocket模式下显示连接状态
     switch (socketStatus) {
-      case 'connected':
-        return '#4CAF50';
       case 'connecting':
-      case 'reconnecting':
-        return '#FF9800';
+        return { text: '连接中...', color: '#ffa500' };
+      case 'connected':
+        return { text: '已连接', color: '#4caf50' };
       case 'disconnected':
-        return '#9E9E9E';
+        return { text: '未连接', color: '#f44336' };
+      case 'reconnecting':
+        return { text: '重连中...', color: '#ff9800' };
       case 'error':
-        return '#F44336';
+        return { text: '连接错误', color: '#f44336' };
       default:
-        return '#9E9E9E';
+        return { text: '未知状态', color: '#9e9e9e' };
     }
   };
 
@@ -396,9 +435,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         <div className="connection-status">
           <div
             className="status-indicator"
-            style={{ backgroundColor: getStatusColor() }}
+            style={{ backgroundColor: getStatusDisplay().color }}
           ></div>
-          <span className="status-text">{getStatusText()}</span>
+          <span className="status-text">{getStatusDisplay().text}</span>
         </div>
       </div>
 
@@ -442,7 +481,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           />
           <button
             onClick={handleSendMessage}
-            disabled={isTyping || inputValue.trim() === '' || !isConnected}
+            disabled={isTyping || inputValue.trim() === '' || (!FEATURE_FLAGS.USE_MOCK_CHAT && !isConnected)}
             className="send-button"
             title={isConnected ? '发送消息' : '等待连接'}
           >

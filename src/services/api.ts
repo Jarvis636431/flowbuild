@@ -54,8 +54,12 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
+  type: string;
   text: string;
-  timestamp: Date;
+  timestamp?: Date;
+  message?: string;
+  approval_id?: string | number;
+  [key: string]: unknown;
 }
 
 // 初始化数据变量
@@ -270,71 +274,92 @@ export const chatAPI = {
       // 模拟AI回复逻辑
       const userMessage = request.message.toLowerCase();
       let responseText: string;
+      let responseType: string;
 
-      // 关键词匹配逻辑
+      // 关键词匹配逻辑，只使用真实API的三种类型：approval、done、update_done
       if (
-        userMessage.includes('你好') ||
-        userMessage.includes('hello') ||
-        userMessage.includes('hi')
+        userMessage.includes('确认') ||
+        userMessage.includes('同意') ||
+        userMessage.includes('approve') ||
+        userMessage.includes('批准')
       ) {
-        responseText =
-          mockChatResponses.greetings[
-            Math.floor(Math.random() * mockChatResponses.greetings.length)
-          ];
+        responseText = '好的，我已收到您的确认。请问您是否同意继续执行此操作？';
+        responseType = 'approval';
       } else if (
-        userMessage.includes('谢谢') ||
-        userMessage.includes('感谢') ||
-        userMessage.includes('thanks')
+        userMessage.includes('更新') ||
+        userMessage.includes('修改') ||
+        userMessage.includes('update') ||
+        userMessage.includes('完成')
       ) {
-        responseText =
-          mockChatResponses.thanks[
-            Math.floor(Math.random() * mockChatResponses.thanks.length)
-          ];
-      } else if (
-        userMessage.includes('项目') ||
-        userMessage.includes('project')
-      ) {
-        responseText =
-          mockChatResponses.project[
-            Math.floor(Math.random() * mockChatResponses.project.length)
-          ];
-      } else if (
-        userMessage.includes('甘特图') ||
-        userMessage.includes('gantt') ||
-        userMessage.includes('进度图')
-      ) {
-        responseText =
-          mockChatResponses.gantt[
-            Math.floor(Math.random() * mockChatResponses.gantt.length)
-          ];
-      } else if (
-        userMessage.includes('成本') ||
-        userMessage.includes('预算') ||
-        userMessage.includes('费用') ||
-        userMessage.includes('cost')
-      ) {
-        responseText =
-          mockChatResponses.cost[
-            Math.floor(Math.random() * mockChatResponses.cost.length)
-          ];
-      } else if (
-        userMessage.includes('进度') ||
-        userMessage.includes('进展') ||
-        userMessage.includes('完成') ||
-        userMessage.includes('progress')
-      ) {
-        responseText =
-          mockChatResponses.progress[
-            Math.floor(Math.random() * mockChatResponses.progress.length)
-          ];
+        responseText = '更新操作已完成。';
+        responseType = 'update_done';
       } else {
-        responseText =
-          mockChatResponses.general[
-            Math.floor(Math.random() * mockChatResponses.general.length)
-          ];
+        // 其他所有情况都使用done类型，根据关键词选择合适的回复
+        if (
+          userMessage.includes('你好') ||
+          userMessage.includes('hello') ||
+          userMessage.includes('hi')
+        ) {
+          responseText =
+            mockChatResponses.greetings[
+              Math.floor(Math.random() * mockChatResponses.greetings.length)
+            ];
+        } else if (
+          userMessage.includes('谢谢') ||
+          userMessage.includes('感谢') ||
+          userMessage.includes('thanks')
+        ) {
+          responseText =
+            mockChatResponses.thanks[
+              Math.floor(Math.random() * mockChatResponses.thanks.length)
+            ];
+        } else if (
+          userMessage.includes('项目') ||
+          userMessage.includes('project')
+        ) {
+          responseText =
+            mockChatResponses.project[
+              Math.floor(Math.random() * mockChatResponses.project.length)
+            ];
+        } else if (
+          userMessage.includes('甘特图') ||
+          userMessage.includes('gantt') ||
+          userMessage.includes('进度图')
+        ) {
+          responseText =
+            mockChatResponses.gantt[
+              Math.floor(Math.random() * mockChatResponses.gantt.length)
+            ];
+        } else if (
+          userMessage.includes('成本') ||
+          userMessage.includes('预算') ||
+          userMessage.includes('费用') ||
+          userMessage.includes('cost')
+        ) {
+          responseText =
+            mockChatResponses.cost[
+              Math.floor(Math.random() * mockChatResponses.cost.length)
+            ];
+        } else if (
+          userMessage.includes('进度') ||
+          userMessage.includes('进展') ||
+          userMessage.includes('progress')
+        ) {
+          responseText =
+            mockChatResponses.progress[
+              Math.floor(Math.random() * mockChatResponses.progress.length)
+            ];
+        } else {
+          responseText =
+            mockChatResponses.general[
+              Math.floor(Math.random() * mockChatResponses.general.length)
+            ];
+        }
+        responseType = 'done';
       }
 
       return {
+        type: responseType,
         text: responseText,
         timestamp: new Date(),
       };
