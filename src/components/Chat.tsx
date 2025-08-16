@@ -317,8 +317,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       return;
     }
 
-    // 使用WebSocket模式
-    if (!isConnected) return;
+    // 使用WebSocket模式 - 移除连接状态限制
+    // if (!isConnected) return;
 
     const userMessage: ChatMessage = {
       id: Date.now(),
@@ -504,15 +504,14 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isTyping || !isConnected}
+            disabled={isTyping}
             rows={4}
           />
           <button
             onClick={handleSendMessage}
             disabled={
               isTyping ||
-              inputValue.trim() === '' ||
-              (!FEATURE_FLAGS.USE_MOCK_CHAT && !isConnected)
+              inputValue.trim() === ''
             }
             className="send-button"
             title={isConnected ? '发送消息' : '等待连接'}
