@@ -248,7 +248,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   const handleSendMessage = async () => {
     if (inputValue.trim() === '') return;
-    
+
     // 检查是否使用模拟聊天
     if (FEATURE_FLAGS.USE_MOCK_CHAT) {
       // 使用模拟聊天API
@@ -366,7 +366,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     if (FEATURE_FLAGS.USE_MOCK_CHAT) {
       return { text: '模拟模式', color: '#2196f3' };
     }
-    
+
     // WebSocket模式下显示连接状态
     switch (socketStatus) {
       case 'connecting':
@@ -394,7 +394,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   // 处理确认按钮点击事件
   const handleApproval = (message: ChatMessage) => {
     if (!message.approvalData) return;
-    
+
     // 发送确认消息
     const socketService = getDefaultWebSocketService();
     if (!socketService || !socketService.isConnected()) {
@@ -431,19 +431,25 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         project_id: projectId,
         token: token,
         approval_id: message.approvalData.approval_id || message.id,
-        approved: true
+        approved: true,
       };
 
       socketService.sendRaw(approvalResponse);
       console.log('Chat组件 - 发送确认消息:', approvalResponse);
-      
+
       // 更新消息，移除确认按钮
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === message.id) {
-          return { ...msg, needsApproval: false, text: msg.text + ' (已确认)' };
-        }
-        return msg;
-      }));
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id === message.id) {
+            return {
+              ...msg,
+              needsApproval: false,
+              text: msg.text + ' (已确认)',
+            };
+          }
+          return msg;
+        })
+      );
     } catch (error) {
       console.error('发送确认消息失败:', error);
     }
@@ -472,7 +478,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                 {formatTime(message.timestamp)}
               </span>
               {message.needsApproval && (
-                <button 
+                <button
                   className="approval-button"
                   onClick={() => handleApproval(message)}
                 >
@@ -503,7 +509,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           />
           <button
             onClick={handleSendMessage}
-            disabled={isTyping || inputValue.trim() === '' || (!FEATURE_FLAGS.USE_MOCK_CHAT && !isConnected)}
+            disabled={
+              isTyping ||
+              inputValue.trim() === '' ||
+              (!FEATURE_FLAGS.USE_MOCK_CHAT && !isConnected)
+            }
             className="send-button"
             title={isConnected ? '发送消息' : '等待连接'}
           >

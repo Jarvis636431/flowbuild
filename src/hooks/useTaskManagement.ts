@@ -67,21 +67,43 @@ export const useTaskManagement = (
         } else if (viewData && viewData.byteLength === 0) {
           // 如果viewData是空的ArrayBuffer，说明需要从ProjectService获取数据
           console.log('🔍 检测到空ArrayBuffer标记，从ProjectService获取项目数据');
-          try {
-            // 从ProjectService获取项目数据
-            const projects = await import('../services/projectService').then(m => m.ProjectService.getProjects());
-            const targetProject = projects.find(p => p.id === currentProject?.id);
-            
-            if (targetProject && targetProject.tasks && targetProject.tasks.length > 0) {
-              tasksData = targetProject.tasks;
-              console.log('✅ 从ProjectService获取到任务数据:', tasksData.length, '个任务');
-            } else {
-              console.log('⚠️ ProjectService中未找到匹配的项目数据，使用默认API');
-              tasksData = await taskAPI.getTasks();
+          
+          // 初始化tasksData为默认值
+          tasksData = await taskAPI.getTasks();
+          
+          // 添加重试机制，最多重试3次
+          let retryCount = 0;
+          const maxRetries = 3;
+          const retryDelay = 200; // 200ms延迟
+          
+          while (retryCount < maxRetries) {
+            try {
+              // 从ProjectService获取项目数据
+              const projects = await import('../services/projectService').then(m => m.ProjectService.getProjects());
+              const targetProject = projects.find(p => p.id === currentProject?.id);
+              
+              if (targetProject && targetProject.tasks && targetProject.tasks.length > 0) {
+                tasksData = targetProject.tasks;
+                console.log('✅ 从ProjectService获取到任务数据:', tasksData.length, '个任务');
+                break; // 成功获取数据，跳出重试循环
+              } else {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                  console.log(`⏳ 第${retryCount}次重试，ProjectService中暂未找到数据，${retryDelay}ms后重试...`);
+                  await new Promise(resolve => setTimeout(resolve, retryDelay));
+                } else {
+                  console.log('⚠️ 重试次数已达上限，ProjectService中未找到匹配的项目数据，使用默认API');
+                }
+              }
+            } catch (error) {
+              retryCount++;
+              if (retryCount < maxRetries) {
+                console.log(`❌ 第${retryCount}次获取数据失败，${retryDelay}ms后重试...`, error);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+              } else {
+                console.error('从ProjectService获取数据失败，使用默认API:', error);
+              }
             }
-          } catch (error) {
-            console.error('从ProjectService获取数据失败:', error);
-            tasksData = await taskAPI.getTasks();
           }
         } else if (currentProject) {
           // 如果有当前项目但没有Excel数据，获取项目的任务数据

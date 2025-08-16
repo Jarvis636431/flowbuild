@@ -20,28 +20,33 @@ interface GanttChartProps {
 
 const GanttChart: React.FC<GanttChartProps> = React.memo(
   ({ tasks, onTaskClick, shutdownEvents = [] }) => {
+    // 确保tasks是有效数组
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    
     console.log('📊 GanttChart组件接收到的数据:', {
-      tasksCount: tasks.length,
-      tasks: tasks.slice(0, 3), // 只显示前3个任务避免日志过长
-      firstTask: tasks[0],
-      hasOnTaskClick: typeof onTaskClick === 'function'
+      tasksCount: safeTasks.length,
+      tasks: safeTasks.slice(0, 3), // 只显示前3个任务避免日志过长
+      firstTask: safeTasks[0],
+      hasOnTaskClick: typeof onTaskClick === 'function',
+      originalTasksType: typeof tasks,
+      isTasksArray: Array.isArray(tasks)
     });
     
     // 自动计算任务数据的天数范围
     const getTasksDayRange = useMemo(() => {
-      if (tasks.length === 0) {
+      if (safeTasks.length === 0) {
         return {
           minDay: 1,
           maxDay: 18,
         };
       }
 
-      const allDays = tasks.flatMap((task) => [task.startDay, task.endDay]);
+      const allDays = safeTasks.flatMap((task) => [task.startDay, task.endDay]);
       const minDay = Math.min(...allDays);
       const maxDay = Math.max(...allDays);
 
       return { minDay, maxDay };
-    }, [tasks]);
+    }, [safeTasks]);
 
     // 生成时间轴天数
     const timelineDays = useMemo(() => {
@@ -135,7 +140,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
           </div>
         </div>
         <div className="tasks-container">
-          {tasks.map((task) => {
+          {safeTasks.map((task) => {
             const position = getTaskPosition(task.startDay, task.endDay);
             return (
               <div
@@ -164,7 +169,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
                   }}
                 >
                   {/* 渲染停工事件的灰色标记 */}
-                  {shutdownEvents.map((event, eventIndex) => {
+                  {(shutdownEvents || []).map((event, eventIndex) => {
                     const startDay = event.start_time.day;
                     const endDay = event.end_time.day;
                     const shutdownPosition = getTaskPosition(startDay, endDay);

@@ -254,6 +254,19 @@ export const useFileUpload = (
                   ProjectService.setMockProjects([projectData]);
                   console.log('项目数据已更新到系统中，项目ID:', projectData.id);
                   
+                  // 验证数据是否正确设置
+                  try {
+                    const verifyProjects = await ProjectService.getProjects();
+                    const verifyProject = verifyProjects.find(p => p.id === projectData.id);
+                    if (verifyProject && verifyProject.tasks && verifyProject.tasks.length > 0) {
+                      console.log('✅ 数据验证成功，项目任务数量:', verifyProject.tasks.length);
+                    } else {
+                      console.warn('⚠️ 数据验证失败，可能需要重新设置');
+                    }
+                  } catch (error) {
+                    console.error('数据验证过程中出错:', error);
+                  }
+                  
                   // 存储Excel数据以便后续使用
                   window.latestProjectData = projectData;
                 } else {
