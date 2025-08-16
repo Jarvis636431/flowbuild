@@ -642,20 +642,19 @@
 .progress-table-wrapper {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
   border-radius: 8px;
   margin-bottom: 20px;
+  max-height: calc(100vh - 50px);
+  border: 1px solid #444;
 }
 
 .progress-table {
   width: 100%;
   min-width: 1200px;
-  border: 1px solid #444;
   border-radius: 8px;
-  overflow-y: hidden;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 50px);
-  margin-top: 20px;
 }
 
 .table-header {
@@ -664,12 +663,13 @@
   background-color: #2a2a2a;
   border-bottom: 1px solid #444;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .table-body {
-  overflow-y: auto;
   flex: 1;
-  max-height: calc(100vh - 60px);
 }
 
 .table-row {
@@ -823,7 +823,7 @@
 
 /* 滚动条样式 */
 .tasks-container::-webkit-scrollbar,
-.table-body::-webkit-scrollbar,
+.progress-table-wrapper::-webkit-scrollbar,
 .progress-table::-webkit-scrollbar,
 .material-mode::-webkit-scrollbar,
 .operation-log-mode::-webkit-scrollbar,
@@ -834,7 +834,7 @@
 }
 
 .tasks-container::-webkit-scrollbar-track,
-.table-body::-webkit-scrollbar-track,
+.progress-table-wrapper::-webkit-scrollbar-track,
 .progress-table::-webkit-scrollbar-track,
 .material-mode::-webkit-scrollbar-track,
 .operation-log-mode::-webkit-scrollbar-track,
@@ -845,9 +845,8 @@
 }
 
 .tasks-container::-webkit-scrollbar-thumb,
-.table-body::-webkit-scrollbar-thumb,
-.progress-table::-webkit-scrollbar-thumb,
 .progress-table-wrapper::-webkit-scrollbar-thumb,
+.progress-table::-webkit-scrollbar-thumb,
 .material-mode::-webkit-scrollbar-thumb,
 .operation-log-mode::-webkit-scrollbar-thumb,
 .log-list::-webkit-scrollbar-thumb,
@@ -857,9 +856,8 @@
 }
 
 .tasks-container::-webkit-scrollbar-thumb:hover,
-.table-body::-webkit-scrollbar-thumb:hover,
-.progress-table::-webkit-scrollbar-thumb:hover,
 .progress-table-wrapper::-webkit-scrollbar-thumb:hover,
+.progress-table::-webkit-scrollbar-thumb:hover,
 .material-mode::-webkit-scrollbar-thumb:hover,
 .operation-log-mode::-webkit-scrollbar-thumb:hover,
 .log-list::-webkit-scrollbar-thumb:hover,
@@ -868,14 +866,14 @@
 }
 
 .tasks-container::-webkit-scrollbar-thumb,
-.table-body::-webkit-scrollbar-thumb,
+.progress-table-wrapper::-webkit-scrollbar-thumb,
 .progress-table::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 3px;
 }
 
 .tasks-container::-webkit-scrollbar-thumb:hover,
-.table-body::-webkit-scrollbar-thumb:hover,
+.progress-table-wrapper::-webkit-scrollbar-thumb:hover,
 .progress-table::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
