@@ -40,8 +40,7 @@ const Output: React.FC<OutputProps> = React.memo(
   ({ currentProject, viewMode, viewData, onProjectCreated }) => {
     const [activeTab, setActiveTab] = useState('甘特图模式');
     const [projectConfig, setProjectConfig] = useState<ProjectConfig | null>(null);
-    const [configLoading, setConfigLoading] = useState(false);
-    const [configError, setConfigError] = useState<string | null>(null);
+
 
     // 使用自定义Hooks
     const taskManagement = useTaskManagement(currentProject);
