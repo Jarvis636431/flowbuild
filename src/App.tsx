@@ -133,8 +133,8 @@ function App() {
           url: wsUrl,
           reconnectAttempts: 5,
           reconnectDelay: 1000,
-          heartbeatInterval: 30000,
-          connectionTimeout: 10000,
+          heartbeatInterval: 10000,
+          connectionTimeout: 100000,
         });
 
         // 监听连接状态变化
