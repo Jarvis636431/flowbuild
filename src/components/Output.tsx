@@ -119,6 +119,14 @@ const Output: React.FC<OutputProps> = React.memo(
         fetchProjectConfig();
       }
     }, [viewMode, viewData, taskManagement.fetchTasks, fetchProjectConfig]); // eslint-disable-line react-hooks/exhaustive-deps
+    
+    // 监听activeTab变化，确保切换到甘特图模式时数据已加载
+    useEffect(() => {
+      if (activeTab === '甘特图模式' && viewMode === 'output' && !taskManagement.loading && taskManagement.tasks.length === 0) {
+        console.log('🔄 切换到甘特图模式，重新加载任务数据');
+        taskManagement.fetchTasks(viewData || undefined);
+      }
+    }, [activeTab, viewMode, taskManagement.loading, taskManagement.tasks.length, taskManagement.fetchTasks, viewData]);
 
     // 渲染内容
     const renderContent = useMemo(() => {
