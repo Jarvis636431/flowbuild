@@ -394,6 +394,7 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  min-width: 0; /* 允许flex子元素收缩 */
 }
 
 .user-content:hover {
@@ -424,6 +425,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0; /* 允许flex子元素收缩 */
+  flex: 1; /* 占据可用空间 */
 }
 
 .user-name-role {
@@ -460,6 +463,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%; /* 确保不超出容器宽度 */
+  display: block; /* 确保文本溢出处理生效 */
 }
 
 /* 收起状态下的用户信息 */
