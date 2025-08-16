@@ -462,28 +462,20 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       {/* 连接状态指示器 */}
       <div className="chat-header">
         <h3>AI助手</h3>
-        <div className="connection-status">
-          <div
-            className="status-indicator"
-            style={{ backgroundColor: getStatusDisplay().color }}
-          ></div>
-          <span className="status-text">{getStatusDisplay().text}</span>
-        </div>
       </div>
 
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>
             <div className="message-content">
-              <div 
-                className="message-text" 
-              >
-                <ReactMarkdown 
+              <div className="message-text">
+                <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // 自定义代码块样式
                     code: ({ className, children, ...props }: any) => {
-                      const isInline = !className || !className.includes('language-');
+                      const isInline =
+                        !className || !className.includes('language-');
                       return !isInline ? (
                         <pre className="markdown-code-block">
                           <code className={className} {...props}>
@@ -498,9 +490,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                     },
                     // 自定义链接样式
                     a: ({ children, href, ...props }) => (
-                      <a 
-                        href={href} 
-                        target="_blank" 
+                      <a
+                        href={href}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="markdown-link"
                         {...props}
@@ -556,10 +548,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           />
           <button
             onClick={handleSendMessage}
-            disabled={
-              isTyping ||
-              inputValue.trim() === ''
-            }
+            disabled={isTyping || inputValue.trim() === ''}
             className="send-button"
             title={isConnected ? '发送消息' : '等待连接'}
           >
