@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { type ChatMessage, type ApprovalData, chatAPI } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
 import type { WebSocketStatus } from '../services/nativeWebSocketService';
@@ -473,7 +475,52 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>
             <div className="message-content">
-              <span className="message-text">{message.text}</span>
+              <div 
+                className="message-text" 
+              >
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    // 自定义代码块样式
+                    code: ({ className, children, ...props }: any) => {
+                      const isInline = !className || !className.includes('language-');
+                      return !isInline ? (
+                        <pre className="markdown-code-block">
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        </pre>
+                      ) : (
+                        <code className="markdown-inline-code" {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                    // 自定义链接样式
+                    a: ({ children, href, ...props }) => (
+                      <a 
+                        href={href} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="markdown-link"
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    ),
+                    // 自定义表格样式
+                    table: ({ children, ...props }) => (
+                      <div className="markdown-table-wrapper">
+                        <table className="markdown-table" {...props}>
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                  }}
+                >
+                  {message.text}
+                </ReactMarkdown>
+              </div>
               <span className="message-time">
                 {formatTime(message.timestamp)}
               </span>

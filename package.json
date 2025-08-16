@@ -30,6 +30,8 @@
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.1",
     "three": "^0.179.1",
     "web-ifc-three": "0.0.126",

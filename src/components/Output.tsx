@@ -875,8 +875,6 @@ const Output: React.FC<OutputProps> = React.memo(
 
           return (
             <>
-              {configLoading && <div className="config-loading">加载项目配置中...</div>}
-              {configError && <div className="config-error">加载项目配置失败: {configError}</div>}
               <GanttChart
                 tasks={taskManagement.tasks}
                 onTaskClick={taskManagement.handleTaskClick}
