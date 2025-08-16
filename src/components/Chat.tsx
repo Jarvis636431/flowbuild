@@ -473,7 +473,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // 自定义代码块样式
-                    code: ({ className, children, ...props }: any) => {
+                    code: ({ className, children, ...props }: React.ComponentProps<'code'>) => {
                       const isInline =
                         !className || !className.includes('language-');
                       return !isInline ? (
@@ -539,7 +539,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       <div className="input-area">
         <div className="input-container">
           <textarea
-            placeholder={isConnected ? '输入你的消息...' : '等待连接...'}
+            placeholder='输入你的消息...'
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -550,7 +550,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             onClick={handleSendMessage}
             disabled={isTyping || inputValue.trim() === ''}
             className="send-button"
-            title={isConnected ? '发送消息' : '等待连接'}
+            title='发送消息'
           >
             <svg
               width="20"
