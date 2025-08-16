@@ -41,6 +41,16 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   useEffect(() => {
     console.log('🔍 Chat组件 - useEffect触发，项目ID:', currentProject?.id);
 
+    // 项目切换时清空聊天记录
+    setMessages([
+      {
+        id: 1,
+        text: '你好！我是AI助手，有什么可以帮你的吗？',
+        sender: 'ai',
+        timestamp: new Date(),
+      },
+    ]);
+
     const socketService = getDefaultWebSocketService();
     if (!socketService) {
       console.warn('❌ Chat组件 - WebSocket服务未初始化');
