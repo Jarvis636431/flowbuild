@@ -81,7 +81,7 @@ export const useChartData = (
         trigger: 'axis',
         formatter: (params: Array<{ name: string; value: number }>) => {
           const data = params[0];
-          return `${data.name}<br/>累积投入: ${data.value.toFixed(2)}万元`;
+          return `${data.name}<br/>累积投入: ${data.value.toFixed(2)}`;
         },
       },
       grid: {
@@ -105,13 +105,13 @@ export const useChartData = (
       },
       yAxis: {
         type: 'value',
-        name: '资金(万元)',
+        name: '资金',
         nameTextStyle: {
           color: '#888',
         },
         axisLabel: {
           color: '#888',
-          formatter: '{value}万',
+          formatter: '{value}',
         },
         axisLine: {
           lineStyle: {
@@ -169,15 +169,87 @@ export const useChartData = (
       (_, i) => `第${i + 1}天`
     );
 
-    // 如果有 crew 数据，使用它；否则使用默认数据
-    let chartData: number[] = [];
+    // 如果有 crew 数据，为每个工种创建独立的折线
+    let series: any[] = [];
     if (crewData && crewData.length > 0) {
-      // 计算每天的总人数
-      chartData = new Array(totalDays).fill(0);
+      // 为每个工种创建独立的折线
+      series = crewData.map((crew, index) => {
+        const colors = ['#8BC34A', '#9E9E9E', '#607D8B', '#795548', '#9C27B0', '#FF9800'];
+        const color = colors[index % colors.length];
+        
+        return {
+          name: crew.name,
+          type: 'line',
+          data: crew.data.slice(0, totalDays),
+          smooth: true,
+          lineStyle: {
+            color: color,
+            width: 1.5,
+          },
+          itemStyle: {
+            color: color,
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: `${color}20`, // 20% opacity
+                },
+                {
+                  offset: 1,
+                  color: `${color}05`, // 5% opacity
+                },
+              ],
+            },
+          },
+        };
+      });
+
+      // 添加总人数折线
+      const totalData = new Array(totalDays).fill(0);
       crewData.forEach((crew) => {
         crew.data.slice(0, totalDays).forEach((count, dayIndex) => {
-          chartData[dayIndex] += count;
+          totalData[dayIndex] += count;
         });
+      });
+
+      series.push({
+        name: '总人数',
+        type: 'line',
+        data: totalData,
+        smooth: true,
+        lineStyle: {
+          color: '#00BCD4',
+          width: 3,
+        },
+        itemStyle: {
+          color: '#00BCD4',
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: 'rgba(0, 188, 212, 0.4)',
+              },
+              {
+                offset: 1,
+                color: 'rgba(0, 188, 212, 0.1)',
+              },
+            ],
+          },
+        },
       });
     } else {
       // 使用默认的累积物料数据
@@ -194,10 +266,45 @@ export const useChartData = (
       });
 
       let total = 0;
-      chartData = dailyMaterial.map((daily) => {
+      const chartData = dailyMaterial.map((daily) => {
         total += daily;
         return total;
       });
+
+      series = [
+        {
+          name: '总工作量',
+          type: 'line',
+          data: chartData,
+          smooth: true,
+          lineStyle: {
+            color: '#FF9800',
+            width: 2,
+          },
+          itemStyle: {
+            color: '#FF9800',
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: 'rgba(255, 152, 0, 0.3)',
+                },
+                {
+                  offset: 1,
+                  color: 'rgba(255, 152, 0, 0.1)',
+                },
+              ],
+            },
+          },
+        },
+      ];
     }
 
     return {
@@ -211,9 +318,12 @@ export const useChartData = (
       },
       tooltip: {
         trigger: 'axis',
-        formatter: (params: Array<{ name: string; value: number }>) => {
-          const data = params[0];
-          return `${data.name}<br/>总人数: ${data.value}人`;
+        formatter: (params: Array<{ name: string; value: number; seriesName: string }>) => {
+          let result = `${params[0].name}<br/>`;
+          params.forEach((param) => {
+            result += `${param.seriesName}: ${param.value}人<br/>`;
+          });
+          return result;
         },
       },
       grid: {
@@ -257,40 +367,7 @@ export const useChartData = (
           },
         },
       },
-      series: [
-        {
-          name: '总人数',
-          type: 'line',
-          data: chartData,
-          smooth: true,
-          lineStyle: {
-            color: '#FF9800',
-            width: 2,
-          },
-          itemStyle: {
-            color: '#FF9800',
-          },
-          areaStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: 'rgba(255, 152, 0, 0.3)',
-                },
-                {
-                  offset: 1,
-                  color: 'rgba(255, 152, 0, 0.1)',
-                },
-              ],
-            },
-          },
-        },
-      ],
+      series: series,
     };
   }, [crewData, tasks, totalDays]);
 
