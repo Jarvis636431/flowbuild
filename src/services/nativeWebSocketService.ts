@@ -57,8 +57,8 @@ export class NativeWebSocketService {
     this.config = {
       reconnectAttempts: 5,
       reconnectDelay: 1000,
-      heartbeatInterval: 30000,
-      connectionTimeout: 10000,
+      heartbeatInterval: 10000,
+      connectionTimeout: 100000,
       ...config,
     };
     this.maxReconnectAttempts = this.config.reconnectAttempts || 5;
