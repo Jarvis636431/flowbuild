@@ -362,29 +362,29 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     }
   };
 
-  // 获取状态显示文本和颜色
-  const getStatusDisplay = () => {
-    // 模拟模式下显示模拟状态
-    if (FEATURE_FLAGS.USE_MOCK_CHAT) {
-      return { text: '模拟模式', color: '#2196f3' };
-    }
+  // // 获取状态显示文本和颜色
+  // const getStatusDisplay = () => {
+  //   // 模拟模式下显示模拟状态
+  //   if (FEATURE_FLAGS.USE_MOCK_CHAT) {
+  //     return { text: '模拟模式', color: '#2196f3' };
+  //   }
 
-    // WebSocket模式下显示连接状态
-    switch (socketStatus) {
-      case 'connecting':
-        return { text: '连接中...', color: '#ffa500' };
-      case 'connected':
-        return { text: '已连接', color: '#4caf50' };
-      case 'disconnected':
-        return { text: '未连接', color: '#f44336' };
-      case 'reconnecting':
-        return { text: '重连中...', color: '#ff9800' };
-      case 'error':
-        return { text: '连接错误', color: '#f44336' };
-      default:
-        return { text: '未知状态', color: '#9e9e9e' };
-    }
-  };
+  //   // WebSocket模式下显示连接状态
+  //   switch (socketStatus) {
+  //     case 'connecting':
+  //       return { text: '连接中...', color: '#ffa500' };
+  //     case 'connected':
+  //       return { text: '已连接', color: '#4caf50' };
+  //     case 'disconnected':
+  //       return { text: '未连接', color: '#f44336' };
+  //     case 'reconnecting':
+  //       return { text: '重连中...', color: '#ff9800' };
+  //     case 'error':
+  //       return { text: '连接错误', color: '#f44336' };
+  //     default:
+  //       return { text: '未知状态', color: '#9e9e9e' };
+  //   }
+  // };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('zh-CN', {
