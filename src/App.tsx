@@ -367,6 +367,9 @@ function App() {
   const handleProjectCreated = async () => {
     // 项目创建成功后的回调
     try {
+      // 添加短暂延迟，确保ProjectService数据完全更新
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // 刷新项目列表
       const projects = await projectAPI.getProjects();
       if (projects.length > 0) {
@@ -382,6 +385,9 @@ function App() {
             latestProjectData.tasks.length
           );
 
+          // 再次确保数据同步，添加额外的延迟
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
           // 将Excel数据转换为ArrayBuffer格式，以便传递给Output组件
           // 这里我们创建一个标记，让useTaskManagement知道要从ProjectService获取数据
           setViewData(new ArrayBuffer(0)); // 设置一个空的ArrayBuffer作为标记
