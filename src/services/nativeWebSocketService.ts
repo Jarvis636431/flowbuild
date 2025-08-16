@@ -165,15 +165,30 @@ export class NativeWebSocketService {
    */
   sendRaw(data: unknown): boolean {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket未连接，无法发送消息');
+      console.warn('WebSocket未连接，无法发送消息:', {
+        wsExists: !!this.ws,
+        readyState: this.ws?.readyState,
+        status: this.status
+      });
       return false;
     }
 
     try {
-      this.ws.send(JSON.stringify(data));
+      const message = JSON.stringify(data);
+      console.log('📤 发送WebSocket消息:', {
+        data,
+        messageLength: message.length,
+        timestamp: new Date().toISOString()
+      });
+      this.ws.send(message);
       return true;
     } catch (error) {
-      console.error('发送原始消息失败:', error);
+      console.error('发送原始消息失败:', {
+        error,
+        data,
+        wsReadyState: this.ws?.readyState,
+        timestamp: new Date().toISOString()
+      });
       return false;
     }
   }
@@ -257,7 +272,14 @@ export class NativeWebSocketService {
     };
 
     this.ws.onerror = (error) => {
-      console.error('WebSocket错误:', error);
+      console.error('❌ WebSocket错误:', {
+        error,
+        type: error.type,
+        message: (error as ErrorEvent).message,
+        readyState: this.ws?.readyState,
+        url: this.config.url,
+        timestamp: new Date().toISOString()
+      });
       this.status = WebSocketStatus.ERROR;
       this.emitStatusChange();
       this.emitEvent(
@@ -267,6 +289,13 @@ export class NativeWebSocketService {
     };
 
     this.ws.onclose = (event) => {
+      console.log('🔌 WebSocket连接关闭:', {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+        timestamp: new Date().toISOString()
+      });
+      
       this.stopHeartbeat();
       this.status = WebSocketStatus.DISCONNECTED;
       this.emitStatusChange();
