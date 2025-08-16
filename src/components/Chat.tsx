@@ -352,7 +352,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     // 设置超时，如果10秒内没有收到回复，显示超时消息
     setTimeout(() => {
       setIsTyping(false);
-    }, 10000);
+    }, 30000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
