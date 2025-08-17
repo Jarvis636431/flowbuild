@@ -16,6 +16,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const animateIdRef = useRef<number | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // 根据项目名称选择模型文件
   const getModelURL = (projectName: string): string => {
@@ -33,6 +34,9 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
     if (isInitializedRef.current || !containerRef.current) {
       return;
     }
+
+    // 创建新的AbortController用于取消下载
+    abortControllerRef.current = new AbortController();
 
     const container = containerRef.current;
     container.innerHTML = '';
@@ -78,17 +82,42 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
 
     const loadModel = async () => {
       try {
+        // 检查是否已被取消
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
         // 根据项目名称选择模型文件
         const modelURL = project?.name
           ? getModelURL(project.name)
           : '/绿城石岗.ifc';
-        const response = await fetch(modelURL);
+        
+        const response = await fetch(modelURL, {
+          signal: abortControllerRef.current?.signal
+        });
+        
         if (!response.ok) {
           throw new Error(`请求模型文件失败: ${response.status}`);
         }
 
+        // 再次检查是否已被取消
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
         const data = await response.arrayBuffer();
+        
+        // 再次检查是否已被取消
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
         const model = await ifcLoader.parse(data);
+
+        // 检查是否已被取消
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
 
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
@@ -113,6 +142,11 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
             child.renderOrder = 0;
           }
         });
+
+        // 检查是否已被取消
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
 
         scene.add(model);
 
@@ -164,6 +198,11 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
         let needsRender = true;
 
         const animate = (currentTime: number) => {
+          // 检查是否已被取消
+          if (abortControllerRef.current?.signal.aborted) {
+            return;
+          }
+          
           animateIdRef.current = requestAnimationFrame(animate);
 
           if (currentTime - lastTime >= frameInterval) {
@@ -182,6 +221,11 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
 
         isInitializedRef.current = true;
       } catch (error) {
+        // 如果是取消错误，不显示错误信息
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('IFC模型加载已取消');
+          return;
+        }
         console.error('加载IFC模型失败:', error);
       }
     };
@@ -222,6 +266,11 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      // 取消正在进行的下载
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
       if (animateIdRef.current) {
         cancelAnimationFrame(animateIdRef.current);
       }
