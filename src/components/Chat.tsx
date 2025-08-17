@@ -141,16 +141,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             wasAwaitingApproval: shouldTriggerRefresh
           });
             
-            // 添加刷新开始消息
-                  const refreshingMessage: ChatMessage = {
-                    id: Date.now() + 1000,
-                    text: '🔄 正在刷新项目数据...',
-                    sender: 'ai',
-                    timestamp: new Date(),
-                    className: 'refresh-status refreshing'
-                  };
-                 console.log('📝 [刷新流程] 添加刷新开始消息', { messageId: refreshingMessage.id });
-                 setMessages(prev => [...prev, refreshingMessage]);
+            console.log('🔄 [刷新流程] 开始刷新项目数据', { timestamp: new Date().toISOString() });
                  
                  // 调用/view接口刷新数据
                  if (currentProject?.id) {
@@ -198,22 +189,10 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                        
                        window.dispatchEvent(refreshEvent);
                        
-                       // 添加刷新成功消息
-                        const successMessage: ChatMessage = {
-                          id: Date.now() + 2000,
-                          text: '✅ 项目数据刷新完成',
-                          sender: 'ai',
-                          timestamp: new Date(),
-                          className: 'refresh-status success'
-                        };
-                       
                        console.log('✅ [刷新流程] 数据刷新成功完成', {
-                         messageId: successMessage.id,
                          totalTime: `${totalTime.toFixed(2)}ms`,
                          projectId: currentProject.id
                        });
-                       
-                       setMessages(prev => [...prev, successMessage]);
                      } catch (error) {
                        console.error('❌ [刷新流程] 数据刷新失败', {
                          error: error instanceof Error ? error.message : String(error),
@@ -222,21 +201,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
                          timestamp: new Date().toISOString()
                        });
                        
-                       // 添加刷新失败消息
-                        const errorMessage: ChatMessage = {
-                          id: Date.now() + 3000,
-                          text: '❌ 数据刷新失败，请稍后重试',
-                          sender: 'ai',
-                          timestamp: new Date(),
-                          className: 'refresh-status error'
-                        };
-                       
-                       console.log('📝 [刷新流程] 添加刷新失败消息', {
-                         messageId: errorMessage.id,
+                       console.log('❌ [刷新流程] 数据刷新失败', {
                          errorType: error instanceof Error ? error.constructor.name : 'Unknown'
                        });
-                       
-                       setMessages(prev => [...prev, errorMessage]);
                      }
                    };
                    
