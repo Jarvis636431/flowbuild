@@ -296,7 +296,7 @@ export const chatAPI = {
       let responseText: string;
       let responseType: string;
 
-      // 关键词匹配逻辑，只使用真实API的三种类型：approval、done、update_done
+      // 关键词匹配逻辑，只使用真实API的两种类型：approval、done
       if (
         userMessage.includes('确认') ||
         userMessage.includes('同意') ||
@@ -312,7 +312,7 @@ export const chatAPI = {
         userMessage.includes('完成')
       ) {
         responseText = '更新操作已完成。';
-        responseType = 'update_done';
+        responseType = 'done';
       } else {
         // 其他所有情况都使用done类型，根据关键词选择合适的回复
         if (
