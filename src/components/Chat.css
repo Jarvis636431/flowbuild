@@ -256,6 +256,55 @@
   }
 }
 
+/* 刷新状态消息样式 */
+.message.ai .message-content.refresh-status {
+  border-left: 4px solid;
+  padding-left: 16px;
+  font-weight: 500;
+  position: relative;
+}
+
+.message.ai .message-content.refresh-status.refreshing {
+  background-color: #1e3a8a;
+  border-left-color: #3b82f6;
+  color: #93c5fd;
+  animation: refreshPulse 1.5s infinite;
+}
+
+.message.ai .message-content.refresh-status.success {
+  background-color: #14532d;
+  border-left-color: #22c55e;
+  color: #86efac;
+}
+
+.message.ai .message-content.refresh-status.error {
+  background-color: #7f1d1d;
+  border-left-color: #ef4444;
+  color: #fca5a5;
+}
+
+/* 刷新中的旋转动画 */
+.message.ai .message-content.refresh-status.refreshing .message-text::first-letter {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes refreshPulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* 隐藏滚动条 */
 .messages::-webkit-scrollbar {
   display: none;

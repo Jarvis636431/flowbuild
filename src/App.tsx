@@ -215,6 +215,50 @@ function App() {
     handleAuthChange();
   }, [isAuthenticated]);
 
+  // 监听项目数据刷新事件
+  useEffect(() => {
+    const handleProjectDataRefresh = (event: CustomEvent) => {
+      console.log('📡 [App.tsx] 收到项目数据刷新事件', {
+        eventDetail: event.detail,
+        currentProjectId: currentProject?.id,
+        timestamp: new Date().toISOString()
+      });
+      
+      const { projectId, excelData } = event.detail;
+      console.log('📡 收到项目数据刷新事件:', { projectId, dataSize: excelData?.byteLength });
+      
+      // 如果刷新的是当前项目，更新viewData
+      if (currentProject?.id === projectId) {
+        console.log('✅ [App.tsx] 项目ID匹配，更新viewData', {
+          projectId,
+          currentProjectId: currentProject?.id,
+          previousViewDataExists: !!viewData,
+          newDataSize: excelData?.byteLength
+        });
+        setViewData(excelData);
+        console.log('✅ 当前项目数据已刷新');
+      } else {
+        console.log('⚠️ [App.tsx] 项目ID不匹配，忽略刷新事件', {
+          eventProjectId: projectId,
+          currentProjectId: currentProject?.id
+        });
+      }
+    };
+
+    console.log('🔧 [App.tsx] 注册项目数据刷新事件监听器', {
+      currentProjectId: currentProject?.id
+    });
+    
+    window.addEventListener('projectDataRefresh', handleProjectDataRefresh as EventListener);
+    
+    return () => {
+      console.log('🗑️ [App.tsx] 移除项目数据刷新事件监听器', {
+        currentProjectId: currentProject?.id
+      });
+      window.removeEventListener('projectDataRefresh', handleProjectDataRefresh as EventListener);
+    };
+  }, [currentProject?.id, viewData]);
+
   const handleProjectSelect = async (project: Project) => {
     const previousProject = currentProject;
     console.log('🔄 项目选择开始:', {

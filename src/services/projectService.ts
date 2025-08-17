@@ -664,14 +664,32 @@ export class ProjectService {
 
   // 下载项目Excel文件
   static async downloadProjectExcel(projectId: string): Promise<File> {
+    const startTime = Date.now();
+    console.log('📥 [ProjectService] 开始下载项目Excel文件', {
+      projectId,
+      useRealAPI: FEATURE_FLAGS.USE_REAL_API,
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
-        const response = await http.get(
-          `${ManagementServiceUrls.view()}?project_id=${projectId}`,
-          {
-            responseType: 'blob',
-          }
-        );
+        const apiUrl = `${ManagementServiceUrls.view()}?project_id=${projectId}`;
+        console.log('🌐 [ProjectService] 调用真实API', {
+          url: apiUrl,
+          method: 'GET',
+          responseType: 'blob'
+        });
+        
+        const response = await http.get(apiUrl, {
+          responseType: 'blob',
+        });
+
+        const responseTime = Date.now() - startTime;
+        console.log('✅ [ProjectService] API响应成功', {
+          responseTime: `${responseTime}ms`,
+          responseType: typeof response,
+          blobSize: response instanceof Blob ? response.size : 'unknown'
+        });
 
         // 创建File对象
         const blob = response as Blob;
@@ -679,19 +697,20 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
-        // // 直接触发浏览器下载
-        // const url = URL.createObjectURL(blob);
-        // const link = document.createElement('a');
-        // link.href = url;
-        // link.download = `project_${projectId}.xlsx`;
-        // link.style.display = 'none';
-        // document.body.appendChild(link);
-        // link.click();
-        // document.body.removeChild(link);
-        // URL.revokeObjectURL(url);
+        console.log('📄 [ProjectService] File对象创建成功', {
+          fileName: file.name,
+          fileSize: `${file.size} bytes`,
+          fileType: file.type,
+          lastModified: new Date(file.lastModified).toISOString()
+        });
 
         return file;
       } else {
+        console.log('🔧 [ProjectService] 使用模拟模式', {
+          projectId,
+          mockDataSize: '4 bytes'
+        });
+        
         // 模拟模式 - 创建一个模拟的Excel文件
         const mockExcelData = new Uint8Array([
           0x50,
@@ -707,10 +726,25 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
+        const responseTime = Date.now() - startTime;
+        console.log('✅ [ProjectService] 模拟文件创建成功', {
+          fileName: file.name,
+          fileSize: `${file.size} bytes`,
+          fileType: file.type,
+          responseTime: `${responseTime}ms`
+        });
+
         return file;
       }
     } catch (error) {
-      console.error('下载项目Excel文件失败:', error);
+      const responseTime = Date.now() - startTime;
+      console.error('❌ [ProjectService] 下载项目Excel文件失败', {
+        projectId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        responseTime: `${responseTime}ms`,
+        timestamp: new Date().toISOString()
+      });
       throw new Error(
         `下载项目Excel文件失败: ${error instanceof Error ? error.message : String(error)}`
       );

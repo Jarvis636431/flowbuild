@@ -56,6 +56,7 @@ export interface ChatMessage {
   timestamp: Date;
   needsApproval?: boolean;
   approvalData?: ApprovalData;
+  className?: string;
 }
 
 export interface ChatRequest {
