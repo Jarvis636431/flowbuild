@@ -21,8 +21,8 @@ interface SeriesItem {
   itemStyle: {
     color: string;
   };
-  areaStyle: {
-    color: {
+  areaStyle?: {
+    color?: {
       type: string;
       x: number;
       y: number;
@@ -83,6 +83,7 @@ export const useChartData = (
     if (budgetData && budgetData.length > 0) {
       series = budgetData.map((budget) => {
         const color = costColors[budget.name as keyof typeof costColors] || '#9E9E9E';
+        const isTotalCost = budget.name === '总成本';
         return {
           name: budget.name,
           type: 'line',
@@ -90,30 +91,32 @@ export const useChartData = (
           smooth: true,
           lineStyle: {
             color: color,
-            width: 2,
+            width: isTotalCost ? 3 : 2,
           },
           itemStyle: {
             color: color,
           },
-          areaStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: color.replace(')', ', 0.3)').replace('rgb', 'rgba'),
-                },
-                {
-                  offset: 1,
-                  color: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
-                },
-              ],
+          ...(isTotalCost && {
+            areaStyle: {
+              color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  {
+                    offset: 0,
+                    color: `${color}30`, // 30% opacity
+                  },
+                  {
+                    offset: 1,
+                    color: `${color}05`, // 5% opacity
+                  },
+                ],
+              },
             },
-          },
+          }),
         };
       });
     } else {
@@ -158,11 +161,11 @@ export const useChartData = (
             colorStops: [
               {
                 offset: 0,
-                color: 'rgba(76, 175, 80, 0.3)',
+                color: 'rgba(76, 175, 80, 0.2)',
               },
               {
                 offset: 1,
-                color: 'rgba(76, 175, 80, 0.1)',
+                color: 'rgba(76, 175, 80, 0.05)',
               },
             ],
           },
@@ -180,11 +183,7 @@ export const useChartData = (
         },
       },
       legend: {
-        show: budgetData && budgetData.length > 1,
-        top: '8%',
-        textStyle: {
-          color: '#888',
-        },
+        show: false,
       },
       tooltip: {
         trigger: 'axis',
