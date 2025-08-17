@@ -45,6 +45,7 @@ export interface ApprovalData {
   ai_message?: {
     text: string;
   };
+  approved?: boolean;
   [key: string]: unknown;
 }
 

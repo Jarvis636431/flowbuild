@@ -455,25 +455,24 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       }
 
       // 构建确认消息
-      const approvalResponse = {
-        type: 'approval_response',
-        project_id: projectId,
-        token: token,
-        approval_id: message.approvalData.approval_id || message.id,
-        approved: true,
-      };
+      const approvalMessage = {
+      type: 'hitl_decision',
+      approved: true
+    };
 
-      socketService.sendRaw(approvalResponse);
-      console.log('Chat组件 - 发送确认消息:', approvalResponse);
+      socketService.sendRaw(approvalMessage);
+      console.log('Chat组件 - 发送确认消息:', approvalMessage);
 
-      // 更新消息，移除确认按钮
+      // 更新消息，标记为已确认但保留按钮
       setMessages((prev) =>
         prev.map((msg) => {
           if (msg.id === message.id) {
             return {
               ...msg,
-              needsApproval: false,
-              text: msg.text + ' (已确认)',
+              approvalData: msg.approvalData ? {
+                ...msg.approvalData,
+                approved: true,
+              } : undefined,
             };
           }
           return msg;
@@ -545,10 +544,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
               </span>
               {message.needsApproval && (
                 <button
-                  className="approval-button"
+                  className={`approval-button ${message.approvalData?.approved ? 'approved' : ''}`}
                   onClick={() => handleApproval(message)}
+                  disabled={!!message.approvalData?.approved}
                 >
-                  确认
+                  {message.approvalData?.approved ? '已确认修改' : '确认修改'}
                 </button>
               )}
             </div>
