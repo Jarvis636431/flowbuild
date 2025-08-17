@@ -158,7 +158,7 @@ export async function readProjectFromExcel(
               break;
             case 'endDay':
               task.endTime = parseTimeString(value);
-              task.endDay = task.endTime.day - 1; // 结束日期减1用于甘特图绘制
+              task.endDay = task.endTime.day; // 结束日期减1用于甘特图绘制
               break;
             case 'isOvertime':
               task.isOvertime = parseOvertime(value);

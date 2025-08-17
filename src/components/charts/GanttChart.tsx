@@ -189,7 +189,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
                   {/* 渲染停工事件的灰色标记 */}
                   {(shutdownEvents || []).map((event, eventIndex) => {
                     const startDay = event.start_time.day;
-                    const endDay = event.end_time.day;
+                    const endDay = event.end_time.day-1;
                     const shutdownPosition = getTaskPosition(startDay, endDay);
                     return (
                       <div
