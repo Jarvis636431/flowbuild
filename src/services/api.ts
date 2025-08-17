@@ -394,6 +394,7 @@ export interface CrewData {
 }
 
 export interface BudgetData {
+  name: string;
   date: number[];
   data: number[];
 }
