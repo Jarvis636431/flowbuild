@@ -218,13 +218,30 @@ export const useFileUpload = (
           }
 
           if (result.status === 'success') {
-            console.log('项目处理完成，停止轮询');
-            stopPolling();
+            console.log('项目处理完成，开始4分钟等待期');
+            
+            // 清除轮询定时器，但保持 isPolling 状态为 true
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+            if (pollingTimeoutRef.current) {
+              clearTimeout(pollingTimeoutRef.current);
+              pollingTimeoutRef.current = null;
+            }
+            
+            // 更新轮询状态为等待状态，但保持 isPolling 为 true
+            setPollingStatus('waiting');
+            setPollingMessage('项目处理完成，正在等待数据准备...');
+            setPollingProgress(100);
 
             // 等待4分钟后执行后续逻辑
             console.log('项目处理成功，将在4分钟后开始数据处理...');
             setTimeout(async () => {
               console.log('4分钟等待结束，开始处理项目数据');
+              
+              // 更新状态为数据处理中
+              setPollingMessage('正在处理项目数据，请稍候...');
               
               // 下载并解析Excel文件
               try {
@@ -283,6 +300,9 @@ export const useFileUpload = (
                 // 即使Excel处理失败，也继续执行后续逻辑
               }
 
+              // 更新状态为完成
+              setPollingMessage('数据处理完成，即将刷新页面...');
+              
               // 重置状态
               setDocumentFile(null);
               setCadFile(null);
@@ -294,15 +314,20 @@ export const useFileUpload = (
               setValidationErrors([]);
               setProjectId(null);
               setJobId(null);
-              setPollingStatus('');
-              setPollingProgress(0);
-              setPollingMessage('');
-
+              
               // 调用回调函数刷新UI
               if (onProjectCreated) {
                 console.log('数据处理完成，开始刷新UI');
                 onProjectCreated();
               }
+              
+              // 最后停止轮询状态
+              setTimeout(() => {
+                setIsPolling(false);
+                setPollingStatus('');
+                setPollingProgress(0);
+                setPollingMessage('');
+              }, 1000); // 延迟1秒停止轮询状态，确保用户能看到完成信息
             }, 4 * 60 * 1000); // 4分钟 = 4 * 60 * 1000毫秒
           }
         } catch (error) {
