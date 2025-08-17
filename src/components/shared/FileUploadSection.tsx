@@ -122,8 +122,19 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = React.memo(
             {/* 轮询状态详细信息 */}
             {isPolling && pollingStatus && (
               <div className="polling-status">
-                <span className="status-indicator">🔄</span>
-                <span className="status-text">状态: {pollingStatus}</span>
+                <span className={`status-indicator ${pollingStatus === 'waiting' ? 'waiting' : ''}`}>
+                  {pollingStatus === 'waiting' ? '⏳' : 
+                   pollingStatus === 'success' ? '✅' : 
+                   pollingStatus === 'processing' ? '🔄' : '🔄'}
+                </span>
+                <span className="status-text">
+                  状态: {pollingStatus === 'waiting' ? '等待数据准备' : 
+                         pollingStatus === 'success' ? '处理成功' : 
+                         pollingStatus === 'processing' ? '处理中' : pollingStatus}
+                </span>
+                {pollingStatus === 'waiting' && (
+                  <span className="waiting-hint">（数据处理中，请耐心等待）</span>
+                )}
               </div>
             )}
           </div>
