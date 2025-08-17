@@ -115,11 +115,12 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           console.log('✅ done 消息已添加到聊天界面:', aiMessage);
         }, 100);
         
-      } else if (data.type === 'approval' && data.text) {
-        // 需要用户确认的消息
+      } else if (data.type === 'approval') {
+        // 需要用户确认的消息 - 新格式支持
+        const messageText = data.ai_message?.text || data.text || '需要确认的操作';
         const aiMessage: ChatMessage = {
           id: Date.now(),
-          text: `🔔 需要确认: ${data.text}`,
+          text: messageText,
           sender: 'ai',
           timestamp: new Date(),
           needsApproval: true, // 添加标记，表示需要确认按钮
@@ -308,11 +309,12 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             timestamp: response.timestamp || new Date(),
           };
           setMessages((prev) => [...prev, aiMessage]);
-        } else if (response.type === 'approval' && response.text) {
-          // 需要用户确认的消息
+        } else if (response.type === 'approval') {
+          // 需要用户确认的消息 - 新格式支持
+          const messageText = response.ai_message?.text || response.text || '需要确认的操作';
           const aiMessage: ChatMessage = {
             id: Date.now() + 1,
-            text: `🔔 需要确认: ${response.text}`,
+            text: messageText,
             sender: 'ai',
             timestamp: response.timestamp || new Date(),
             needsApproval: true, // 添加标记，表示需要确认按钮

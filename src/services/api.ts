@@ -36,6 +36,15 @@ export interface ApprovalData {
   text?: string;
   message?: string;
   approval_id?: string | number;
+  title?: string;
+  source_node?: string;
+  pending_update_call?: {
+    tool_name: string;
+    args: Record<string, unknown>;
+  };
+  ai_message?: {
+    text: string;
+  };
   [key: string]: unknown;
 }
 
@@ -55,10 +64,19 @@ export interface ChatRequest {
 
 export interface ChatResponse {
   type: string;
-  text: string;
+  text?: string;
   timestamp?: Date;
   message?: string;
   approval_id?: string | number;
+  title?: string;
+  source_node?: string;
+  pending_update_call?: {
+    tool_name: string;
+    args: Record<string, unknown>;
+  };
+  ai_message?: {
+    text: string;
+  };
   [key: string]: unknown;
 }
 
@@ -358,11 +376,39 @@ export const chatAPI = {
         responseType = 'done';
       }
 
-      return {
-        type: responseType,
-        text: responseText,
-        timestamp: new Date(),
-      };
+      // 根据响应类型构建不同格式的响应
+      if (responseType === 'approval') {
+        return {
+          type: responseType,
+          title: 'Update requires approval',
+          source_node: 'apply_update',
+          pending_update_call: {
+            tool_name: 'update_project_config',
+            args: {
+              project_id: 'current_project_id',
+              update_config: {
+                construction_methods: [
+                  {
+                    task_name: '内隔墙施工',
+                    method_index: 0
+                  }
+                ]
+              },
+              description: 'Update construction methods to use lightweight partition walls for all interior walls.'
+            }
+          },
+          ai_message: {
+            text: responseText
+          },
+          timestamp: new Date(),
+        };
+      } else {
+        return {
+          type: responseType,
+          text: responseText,
+          timestamp: new Date(),
+        };
+      }
     } catch (error) {
       console.error('发送消息失败:', error);
       throw new Error('AI服务暂时不可用，请稍后再试');
