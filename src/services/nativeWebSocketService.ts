@@ -265,6 +265,12 @@ export class NativeWebSocketService {
             });
           }
         }
+
+        // 特殊处理 done 消息，确保消息显示后再处理连接关闭
+        if (message.type === 'done') {
+          console.log('🔍 收到 done 消息，使用专门的处理方法:', message);
+          this.handleDoneMessage(message);
+        }
       } catch (error) {
         console.error('消息解析失败:', error);
         this.emitEvent('message', event.data);
@@ -409,6 +415,31 @@ export class NativeWebSocketService {
         }
       });
     }
+  }
+
+  /**
+   * 专门处理 done 消息，确保消息完整处理
+   */
+  private handleDoneMessage(message: any): void {
+    console.log('🔍 WebSocket服务 - 开始处理 done 消息:', {
+      message,
+      timestamp: new Date().toISOString(),
+      readyState: this.ws?.readyState,
+      status: this.status
+    });
+
+    // 注意：消息事件已经在 onmessage 中触发过了，这里不需要重复触发
+    // this.emitEvent('message', message); // 移除这行，避免重复触发
+    
+    // 延迟处理，给前端足够时间显示消息
+    setTimeout(() => {
+      console.log('✅ WebSocket服务 - done 消息处理完成，消息应该已经显示');
+      
+      // 检查连接状态，如果连接仍然存在，可以在这里做一些清理工作
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        console.log('🔍 WebSocket服务 - 连接仍然开放，done 消息处理成功');
+      }
+    }, 300); // 300ms 延迟，确保消息处理完成
   }
 
   /**

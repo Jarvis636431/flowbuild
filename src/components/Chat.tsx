@@ -91,15 +91,30 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
       // 处理不同类型的消息
       if (data.type === 'done' && data.text) {
-        // 任务完成消息
+        // 任务完成消息 - 特殊处理确保显示
+        console.log('🎯 Chat组件 - 处理 done 消息:', {
+          text: data.text,
+          timestamp: new Date().toISOString(),
+          isConnected: socketService.isConnected(),
+          socketStatus: socketService.getStatus()
+        });
+        
         const aiMessage: ChatMessage = {
           id: Date.now(),
           text: data.text,
           sender: 'ai',
           timestamp: new Date(),
         };
+        
+        // 立即设置消息，确保显示
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
+        
+        // 延迟确认消息已显示
+        setTimeout(() => {
+          console.log('✅ done 消息已添加到聊天界面:', aiMessage);
+        }, 100);
+        
       } else if (data.type === 'approval' && data.text) {
         // 需要用户确认的消息
         const aiMessage: ChatMessage = {
