@@ -28,6 +28,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     useState<WebSocketStatus>('disconnected');
   const [isConnected, setIsConnected] = useState(false);
   const [isAwaitingApprovalResponse, setIsAwaitingApprovalResponse] = useState(false);
+  const isAwaitingApprovalResponseRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -37,6 +38,15 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // 监听isAwaitingApprovalResponse状态变化
+  useEffect(() => {
+    console.log('🔍 [状态监听] isAwaitingApprovalResponse状态变化:', {
+      newValue: isAwaitingApprovalResponse,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack?.split('\n').slice(1, 5).join('\n')
+    });
+  }, [isAwaitingApprovalResponse]);
 
   // WebSocket连接管理
   useEffect(() => {
@@ -88,7 +98,12 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     // 监听接收到的消息
     const handleMessage = (...args: unknown[]) => {
       const data = args[0] as ApprovalData;
-      console.log('Chat组件 - 收到WebSocket消息:', data);
+      console.log('Chat组件 - 收到WebSocket消息:', {
+         data,
+         currentIsAwaitingApprovalResponse: isAwaitingApprovalResponse,
+         currentIsAwaitingApprovalResponseRef: isAwaitingApprovalResponseRef.current,
+         timestamp: new Date().toISOString()
+       });
 
       // 处理不同类型的消息
       if (data.type === 'done' && data.text) {
@@ -98,7 +113,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           timestamp: new Date().toISOString(),
           isConnected: socketService.isConnected(),
           socketStatus: socketService.getStatus(),
-          isAwaitingApprovalResponse
+          isAwaitingApprovalResponse,
+          isAwaitingApprovalResponseRef: isAwaitingApprovalResponseRef.current,
+          willTriggerRefresh: isAwaitingApprovalResponseRef.current
         });
         
         const aiMessage: ChatMessage = {
@@ -113,13 +130,16 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         setIsTyping(false);
         
         // 如果是确认按钮点击后的响应，调用刷新接口
-          if (isAwaitingApprovalResponse) {
-            setIsAwaitingApprovalResponse(false);
-            console.log('🎯 [刷新流程] 确认操作完成，开始调用刷新接口', {
-              currentProject: currentProject?.id,
-              timestamp: new Date().toISOString(),
-              messageType: data.type
-            });
+        const shouldTriggerRefresh = isAwaitingApprovalResponseRef.current;
+        if (shouldTriggerRefresh) {
+          setIsAwaitingApprovalResponse(false);
+          isAwaitingApprovalResponseRef.current = false;
+          console.log('🎯 [刷新流程] 确认操作完成，开始调用刷新接口', {
+            currentProject: currentProject?.id,
+            timestamp: new Date().toISOString(),
+            messageType: data.type,
+            wasAwaitingApproval: shouldTriggerRefresh
+          });
             
             // 添加刷新开始消息
                   const refreshingMessage: ChatMessage = {
@@ -248,16 +268,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         };
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
-      } else if (data.type === 'update_done' && data.text) {
-        // 更新完成通知
-        const aiMessage: ChatMessage = {
-          id: Date.now(),
-          text: `✅ 更新完成: ${data.text}`,
-          sender: 'ai',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-        setIsTyping(false);
+
       }
     };
 
@@ -441,15 +452,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             approvalData: response, // 保存原始数据，用于确认操作
           };
           setMessages((prev) => [...prev, aiMessage]);
-        } else if (response.type === 'update_done' && response.text) {
-          // 更新完成通知
-          const aiMessage: ChatMessage = {
-            id: Date.now() + 1,
-            text: `✅ 更新完成: ${response.text}`,
-            sender: 'ai',
-            timestamp: response.timestamp || new Date(),
-          };
-          setMessages((prev) => [...prev, aiMessage]);
         }
         setIsTyping(false);
       } catch (error) {
@@ -627,11 +629,19 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       );
       
       // 标记正在等待确认响应
+      console.log('🔄 [确认流程] 设置isAwaitingApprovalResponse为true', {
+        messageId: message.id,
+        beforeSet: isAwaitingApprovalResponse,
+        timestamp: new Date().toISOString()
+      });
+      
       setIsAwaitingApprovalResponse(true);
+      isAwaitingApprovalResponseRef.current = true;
       
       console.log('✅ [确认流程] 确认消息发送成功，等待响应', {
         messageId: message.id,
-        isAwaitingResponse: true
+        afterSet: true,
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('❌ [确认流程] 发送确认消息失败', {
