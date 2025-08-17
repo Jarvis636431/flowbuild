@@ -6,7 +6,7 @@ import { type ChatMessage, type ApprovalData, chatAPI } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
 import type { WebSocketStatus } from '../services/nativeWebSocketService';
 import { AuthService } from '../services/authService';
-import { type Project } from '../services/projectService';
+import { type Project, projectAPI } from '../services/projectService';
 import { FEATURE_FLAGS } from '../config/features';
 
 interface ChatProps {
@@ -27,6 +27,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
   const [socketStatus, setSocketStatus] =
     useState<WebSocketStatus>('disconnected');
   const [isConnected, setIsConnected] = useState(false);
+  const [isAwaitingApprovalResponse, setIsAwaitingApprovalResponse] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -96,7 +97,8 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           text: data.text,
           timestamp: new Date().toISOString(),
           isConnected: socketService.isConnected(),
-          socketStatus: socketService.getStatus()
+          socketStatus: socketService.getStatus(),
+          isAwaitingApprovalResponse
         });
         
         const aiMessage: ChatMessage = {
@@ -109,6 +111,124 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         // 立即设置消息，确保显示
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
+        
+        // 如果是确认按钮点击后的响应，调用刷新接口
+          if (isAwaitingApprovalResponse) {
+            setIsAwaitingApprovalResponse(false);
+            console.log('🎯 [刷新流程] 确认操作完成，开始调用刷新接口', {
+              currentProject: currentProject?.id,
+              timestamp: new Date().toISOString(),
+              messageType: data.type
+            });
+            
+            // 添加刷新开始消息
+                  const refreshingMessage: ChatMessage = {
+                    id: Date.now() + 1000,
+                    text: '🔄 正在刷新项目数据...',
+                    sender: 'ai',
+                    timestamp: new Date(),
+                    className: 'refresh-status refreshing'
+                  };
+                 console.log('📝 [刷新流程] 添加刷新开始消息', { messageId: refreshingMessage.id });
+                 setMessages(prev => [...prev, refreshingMessage]);
+                 
+                 // 调用/view接口刷新数据
+                 if (currentProject?.id) {
+                   console.log('🚀 [刷新流程] 开始执行数据刷新', {
+                     projectId: currentProject.id,
+                     projectName: currentProject.name
+                   });
+                   
+                   const refreshData = async () => {
+                     try {
+                       console.log('📡 [API调用] 开始调用/view接口', {
+                         projectId: currentProject.id,
+                         apiEndpoint: 'downloadProjectExcel',
+                         startTime: new Date().toISOString()
+                       });
+                       
+                       const startTime = performance.now();
+                       const file = await projectAPI.downloadProjectExcel(currentProject.id);
+                       const downloadTime = performance.now() - startTime;
+                       
+                       console.log('📥 [API调用] Excel文件下载完成', {
+                         downloadTime: `${downloadTime.toFixed(2)}ms`,
+                         fileSize: file.size,
+                         fileType: file.type
+                       });
+                       
+                       const excelData = await file.arrayBuffer();
+                       const totalTime = performance.now() - startTime;
+                       
+                       console.log('🔄 [数据处理] Excel数据转换完成', {
+                         dataSize: excelData.byteLength,
+                         totalTime: `${totalTime.toFixed(2)}ms`
+                       });
+                       
+                       // 触发数据刷新事件，通知父组件更新数据
+                       const refreshEvent = new CustomEvent('projectDataRefresh', {
+                         detail: { projectId: currentProject.id, excelData }
+                       });
+                       
+                       console.log('📢 [事件触发] 发送项目数据刷新事件', {
+                         eventType: 'projectDataRefresh',
+                         projectId: currentProject.id,
+                         dataSize: excelData.byteLength
+                       });
+                       
+                       window.dispatchEvent(refreshEvent);
+                       
+                       // 添加刷新成功消息
+                        const successMessage: ChatMessage = {
+                          id: Date.now() + 2000,
+                          text: '✅ 项目数据刷新完成',
+                          sender: 'ai',
+                          timestamp: new Date(),
+                          className: 'refresh-status success'
+                        };
+                       
+                       console.log('✅ [刷新流程] 数据刷新成功完成', {
+                         messageId: successMessage.id,
+                         totalTime: `${totalTime.toFixed(2)}ms`,
+                         projectId: currentProject.id
+                       });
+                       
+                       setMessages(prev => [...prev, successMessage]);
+                     } catch (error) {
+                       console.error('❌ [刷新流程] 数据刷新失败', {
+                         error: error instanceof Error ? error.message : String(error),
+                         stack: error instanceof Error ? error.stack : undefined,
+                         projectId: currentProject.id,
+                         timestamp: new Date().toISOString()
+                       });
+                       
+                       // 添加刷新失败消息
+                        const errorMessage: ChatMessage = {
+                          id: Date.now() + 3000,
+                          text: '❌ 数据刷新失败，请稍后重试',
+                          sender: 'ai',
+                          timestamp: new Date(),
+                          className: 'refresh-status error'
+                        };
+                       
+                       console.log('📝 [刷新流程] 添加刷新失败消息', {
+                         messageId: errorMessage.id,
+                         errorType: error instanceof Error ? error.constructor.name : 'Unknown'
+                       });
+                       
+                       setMessages(prev => [...prev, errorMessage]);
+                     }
+                   };
+                   
+                   refreshData();
+                 } else {
+                   console.warn('⚠️ [刷新流程] 无法获取当前项目ID，跳过刷新操作', {
+                     currentProject: currentProject,
+                     hasProject: !!currentProject,
+                     hasProjectId: !!currentProject?.id
+                   });
+                 }
+          }
         
         // 延迟确认消息已显示
         setTimeout(() => {
@@ -422,12 +542,25 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   // 处理确认按钮点击事件
   const handleApproval = (message: ChatMessage) => {
-    if (!message.approvalData) return;
+    console.log('🔘 [确认流程] 用户点击确认按钮', {
+      messageId: message.id,
+      hasApprovalData: !!message.approvalData,
+      timestamp: new Date().toISOString()
+    });
+    
+    if (!message.approvalData) {
+      console.error('❌ [确认流程] 缺少确认数据', { messageId: message.id });
+      return;
+    }
 
     // 发送确认消息
     const socketService = getDefaultWebSocketService();
     if (!socketService || !socketService.isConnected()) {
-      console.error('WebSocket未连接，无法发送确认消息');
+      console.error('❌ [确认流程] WebSocket未连接，无法发送确认消息', {
+        hasService: !!socketService,
+        isConnected: socketService?.isConnected(),
+        status: socketService?.getStatus()
+      });
       return;
     }
 
@@ -437,7 +570,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       const token = AuthService.getToken();
 
       if (!user || !token) {
-        console.error('用户未认证，无法发送确认消息');
+        console.error('❌ [确认流程] 用户未认证，无法发送确认消息', {
+          hasUser: !!user,
+          hasToken: !!token,
+          messageId: message.id
+        });
         return;
       }
 
@@ -450,7 +587,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       }
 
       if (!projectId) {
-        console.error('无法获取项目ID，无法发送确认消息');
+        console.error('❌ [确认流程] 无法获取项目ID，无法发送确认消息', {
+          currentProject: currentProject?.id,
+          userProjects: user.projects?.length || 0,
+          messageId: message.id
+        });
         return;
       }
 
@@ -460,8 +601,14 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       approved: true
     };
 
+      console.log('📤 [确认流程] 发送确认消息到WebSocket', {
+        approvalMessage,
+        socketStatus: socketService.getStatus(),
+        messageId: message.id,
+        projectId
+      });
+      
       socketService.sendRaw(approvalMessage);
-      console.log('Chat组件 - 发送确认消息:', approvalMessage);
 
       // 更新消息，标记为已确认但保留按钮
       setMessages((prev) =>
@@ -478,8 +625,21 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           return msg;
         })
       );
+      
+      // 标记正在等待确认响应
+      setIsAwaitingApprovalResponse(true);
+      
+      console.log('✅ [确认流程] 确认消息发送成功，等待响应', {
+        messageId: message.id,
+        isAwaitingResponse: true
+      });
     } catch (error) {
-      console.error('发送确认消息失败:', error);
+      console.error('❌ [确认流程] 发送确认消息失败', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        messageId: message.id,
+        timestamp: new Date().toISOString()
+      });
     }
   };
 
@@ -493,7 +653,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       <div className="messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.sender}`}>
-            <div className="message-content">
+            <div className={`message-content ${message.className || ''}`}>
               <div className="message-text">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
