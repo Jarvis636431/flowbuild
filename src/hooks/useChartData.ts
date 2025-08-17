@@ -9,6 +9,33 @@ export interface UseChartDataReturn {
 }
 
 // 新的图表数据 Hook，用于处理 crew 和 budget 数据
+interface SeriesItem {
+  name: string;
+  type: string;
+  data: number[];
+  smooth: boolean;
+  lineStyle: {
+    color: string;
+    width: number;
+  };
+  itemStyle: {
+    color: string;
+  };
+  areaStyle: {
+    color: {
+      type: string;
+      x: number;
+      y: number;
+      x2: number;
+      y2: number;
+      colorStops: Array<{
+        offset: number;
+        color: string;
+      }>;
+    };
+  };
+}
+
 export const useChartData = (
   tasks: TaskItem[],
   crewData?: CrewData[],
@@ -43,10 +70,52 @@ export const useChartData = (
       (_, i) => `第${i + 1}天`
     );
 
-    // 如果有 budget 数据，使用它；否则使用默认数据
-    let chartData: number[] = [];
+    // 定义不同成本类型的颜色
+    const costColors = {
+      '人工成本': '#2196F3',
+      '材料价格': '#FF9800', 
+      '总成本': '#4CAF50'
+    };
+
+    let series: SeriesItem[] = [];
+    
+    // 如果有 budget 数据，为每个成本类型创建独立的折线
     if (budgetData && budgetData.length > 0) {
-      chartData = budgetData[0].data.slice(0, totalDays);
+      series = budgetData.map((budget) => {
+        const color = costColors[budget.name as keyof typeof costColors] || '#9E9E9E';
+        return {
+          name: budget.name,
+          type: 'line',
+          data: budget.data.slice(0, totalDays),
+          smooth: true,
+          lineStyle: {
+            color: color,
+            width: 2,
+          },
+          itemStyle: {
+            color: color,
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: color.replace(')', ', 0.3)').replace('rgb', 'rgba'),
+                },
+                {
+                  offset: 1,
+                  color: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
+                },
+              ],
+            },
+          },
+        };
+      });
     } else {
       // 使用默认的累积资金数据
       const dailyFunding: number[] = new Array(totalDays).fill(0);
@@ -62,10 +131,43 @@ export const useChartData = (
       });
 
       let total = 0;
-      chartData = dailyFunding.map((daily) => {
+      const chartData = dailyFunding.map((daily) => {
         total += daily;
         return total;
       });
+
+      series = [{
+        name: '累积资金投入',
+        type: 'line',
+        data: chartData,
+        smooth: true,
+        lineStyle: {
+          color: '#4CAF50',
+          width: 2,
+        },
+        itemStyle: {
+          color: '#4CAF50',
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: 'rgba(76, 175, 80, 0.3)',
+              },
+              {
+                offset: 1,
+                color: 'rgba(76, 175, 80, 0.1)',
+              },
+            ],
+          },
+        },
+      }];
     }
 
     return {
@@ -77,18 +179,30 @@ export const useChartData = (
           fontSize: 16,
         },
       },
+      legend: {
+        show: budgetData && budgetData.length > 1,
+        top: '8%',
+        textStyle: {
+          color: '#888',
+        },
+      },
       tooltip: {
         trigger: 'axis',
-        formatter: (params: Array<{ name: string; value: number }>) => {
-          const data = params[0];
-          return `${data.name}<br/>累积投入: ${data.value.toFixed(2)}`;
+        formatter: (params: Array<{ name: string; seriesName: string; value: number }>) => {
+          if (!params || params.length === 0) return '';
+          
+          let result = `${params[0].name}<br/>`;
+          params.forEach((param) => {
+            result += `${param.seriesName}: ${param.value.toFixed(2)}<br/>`;
+          });
+          return result;
         },
       },
       grid: {
         left: '10%',
         right: '10%',
         bottom: '15%',
-        top: '20%',
+        top: budgetData && budgetData.length > 1 ? '25%' : '20%',
       },
       xAxis: {
         type: 'category',
@@ -125,40 +239,7 @@ export const useChartData = (
           },
         },
       },
-      series: [
-        {
-          name: '累积资金投入',
-          type: 'line',
-          data: chartData,
-          smooth: true,
-          lineStyle: {
-            color: '#4CAF50',
-            width: 2,
-          },
-          itemStyle: {
-            color: '#4CAF50',
-          },
-          areaStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: 'rgba(76, 175, 80, 0.3)',
-                },
-                {
-                  offset: 1,
-                  color: 'rgba(76, 175, 80, 0.1)',
-                },
-              ],
-            },
-          },
-        },
-      ],
+      series: series,
     };
   }, [budgetData, tasks, totalDays]);
 
@@ -170,7 +251,7 @@ export const useChartData = (
     );
 
     // 如果有 crew 数据，为每个工种创建独立的折线
-    let series: any[] = [];
+    let series: SeriesItem[] = [];
     if (crewData && crewData.length > 0) {
       // 为每个工种创建独立的折线
       series = crewData.map((crew, index) => {
