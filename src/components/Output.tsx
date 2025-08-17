@@ -950,6 +950,7 @@ const Output: React.FC<OutputProps> = React.memo(
       taskManagement.fetchTasks,
       chartData.totalDays,
       currentProject?.name,
+      projectConfig,
     ]);
 
     // 上传模式的渲染
