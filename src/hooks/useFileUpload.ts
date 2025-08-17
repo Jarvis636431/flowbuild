@@ -293,9 +293,13 @@ export const useFileUpload = (
             setPollingProgress(0);
             setPollingMessage('');
 
-            // 调用回调函数
+            // 调用回调函数 - 等待4分钟后刷新UI
             if (onProjectCreated) {
-              onProjectCreated();
+              console.log('项目创建完成，将在4分钟后刷新UI...');
+              setTimeout(() => {
+                console.log('4分钟等待结束，开始刷新UI');
+                onProjectCreated();
+              }, 4 * 60 * 1000); // 4分钟 = 4 * 60 * 1000毫秒
             }
           }
         } catch (error) {
