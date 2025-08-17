@@ -84,19 +84,17 @@ const Output: React.FC<OutputProps> = React.memo(
       try {
         setConfigLoading(true);
         setConfigError(null);
-        const config = await projectAPI.getProjectConfig(currentProject.id);
-
+        const response = await projectAPI.getProjectConfig(currentProject.id);
+        
+        // 处理接口返回的数据结构：{ config: { ... } }
+        const config = response?.config || response;
+        
         // 验证配置数据是否符合ProjectConfig接口
         const isValidConfig =
           config &&
           typeof config === 'object' &&
-          'construction_methods' in config &&
-          'overtime_tasks' in config &&
-          'shutdown_events' in config &&
           'work_start_hour' in config &&
-          'work_end_hour' in config &&
-          'backgrounds' in config &&
-          'compress' in config;
+          'work_end_hour' in config;
 
         if (isValidConfig) {
           setProjectConfig(config as unknown as ProjectConfig);

@@ -29,8 +29,26 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
       firstTask: safeTasks[0],
       hasOnTaskClick: typeof onTaskClick === 'function',
       originalTasksType: typeof tasks,
-      isTasksArray: Array.isArray(tasks)
+      isTasksArray: Array.isArray(tasks),
+      shutdownEvents: shutdownEvents,
+      shutdownEventsLength: shutdownEvents?.length || 0
     });
+    
+    // 调试停工事件数据
+    if (shutdownEvents && shutdownEvents.length > 0) {
+      console.log('🔍 停工事件详情:', shutdownEvents);
+      shutdownEvents.forEach((event, index) => {
+        console.log(`🔍 停工事件${index + 1}:`, {
+          name: event.name,
+          startDay: event.start_time.day,
+          endDay: event.end_time.day,
+          aLevelTasks: event.a_level_tasks,
+          bLevelTasks: event.b_level_tasks
+        });
+      });
+    } else {
+      console.log('🔍 没有停工事件数据');
+    }
     
     // 自动计算任务数据的天数范围
     const getTasksDayRange = useMemo(() => {
