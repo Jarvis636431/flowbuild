@@ -4,7 +4,7 @@
 .auth-modal {
   width: 28rem;
   max-width: 90vw;
-  background-color: #1f2937;
+  background-color: #374151;
   border-radius: 0.5rem;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -28,8 +28,8 @@
 
 /* Logo样式 */
 .auth-logo {
-  width: 6rem;
-  height: 6rem;
+  width: 60%;
+  height: auto;
   object-fit: contain;
 }
 
@@ -43,7 +43,7 @@
 /* Tab导航 */
 .auth-tabs {
   display: flex;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid #4b5563;
   margin-bottom: 1.5rem;
 }
 
@@ -74,11 +74,11 @@
 }
 
 .auth-tab.inactive {
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-tab.inactive:hover {
-  color: #d1d5db;
+  color: #9ca3af;
 }
 
 /* 表单容器 */
@@ -112,14 +112,14 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #d1d5db;
+  color: #e5e7eb;
   margin-bottom: 0.25rem;
 }
 
 .auth-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background-color: #374151;
+  background-color: #1f2937;
   border: 1px solid #4b5563;
   border-radius: 0.375rem;
   color: #ffffff;
@@ -160,7 +160,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #9ca3af;
+  color: #6b7280;
   cursor: pointer;
   padding: 0.25rem;
   transition: color 0.2s ease;
@@ -170,7 +170,7 @@
 }
 
 .auth-password-toggle:hover {
-  color: #d1d5db;
+  color: #9ca3af;
 }
 
 .auth-password-toggle:disabled {
@@ -238,7 +238,7 @@
 .auth-terms {
   text-align: center;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .auth-terms .auth-link {
