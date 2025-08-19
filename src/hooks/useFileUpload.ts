@@ -219,7 +219,7 @@ export const useFileUpload = (
 
           if (result.status === 'success') {
             console.log('项目处理完成，开始4分钟等待期');
-            
+
             // 清除轮询定时器，但保持 isPolling 状态为 true
             if (pollingIntervalRef.current) {
               clearInterval(pollingIntervalRef.current);
@@ -229,7 +229,7 @@ export const useFileUpload = (
               clearTimeout(pollingTimeoutRef.current);
               pollingTimeoutRef.current = null;
             }
-            
+
             // 更新轮询状态为等待状态，但保持 isPolling 为 true
             setPollingStatus('waiting');
             setPollingMessage('项目处理完成，正在等待数据准备...');
@@ -237,98 +237,114 @@ export const useFileUpload = (
 
             // 等待4分钟后执行后续逻辑
             console.log('项目处理成功，将在4分钟后开始数据处理...');
-            setTimeout(async () => {
-              console.log('4分钟等待结束，开始处理项目数据');
-              
-              // 更新状态为数据处理中
-              setPollingMessage('正在处理项目数据，请稍候...');
-              
-              // 下载并解析Excel文件
-              try {
-                if (projectId) {
-                  console.log('开始下载项目Excel文件:', projectId);
-                  const excelFile =
-                    await projectAPI.downloadProjectExcel(projectId);
-                  console.log('Excel文件下载成功:', excelFile.name);
+            setTimeout(
+              async () => {
+                console.log('4分钟等待结束，开始处理项目数据');
 
-                  // 解析Excel文件
-                  console.log('开始解析Excel文件...');
-                  const projectData = await readProjectFromFile(excelFile);
+                // 更新状态为数据处理中
+                setPollingMessage('正在处理项目数据，请稍候...');
 
-                  if (
-                    projectData &&
-                    projectData.tasks &&
-                    projectData.tasks.length > 0
-                  ) {
-                    console.log(
-                      'Excel解析成功，任务数量:',
-                      projectData.tasks.length
-                    );
-                    console.log('解析后的项目数据:', projectData);
+                // 下载并解析Excel文件
+                try {
+                  if (projectId) {
+                    console.log('开始下载项目Excel文件:', projectId);
+                    const excelFile =
+                      await projectAPI.downloadProjectExcel(projectId);
+                    console.log('Excel文件下载成功:', excelFile.name);
 
-                    // 使用正确的项目ID更新项目数据
-                    if (projectId) {
-                      projectData.id = projectId;
-                      projectData.name = projectName || projectData.name;
-                    }
+                    // 解析Excel文件
+                    console.log('开始解析Excel文件...');
+                    const projectData = await readProjectFromFile(excelFile);
 
-                    // 将解析后的数据设置为模拟数据，供其他组件使用
-                    ProjectService.setMockProjects([projectData]);
-                    console.log('项目数据已更新到系统中，项目ID:', projectData.id);
-                    
-                    // 验证数据是否正确设置
-                    try {
-                      const verifyProjects = await ProjectService.getProjects();
-                      const verifyProject = verifyProjects.find(p => p.id === projectData.id);
-                      if (verifyProject && verifyProject.tasks && verifyProject.tasks.length > 0) {
-                        console.log('✅ 数据验证成功，项目任务数量:', verifyProject.tasks.length);
-                      } else {
-                        console.warn('⚠️ 数据验证失败，可能需要重新设置');
+                    if (
+                      projectData &&
+                      projectData.tasks &&
+                      projectData.tasks.length > 0
+                    ) {
+                      console.log(
+                        'Excel解析成功，任务数量:',
+                        projectData.tasks.length
+                      );
+                      console.log('解析后的项目数据:', projectData);
+
+                      // 使用正确的项目ID更新项目数据
+                      if (projectId) {
+                        projectData.id = projectId;
+                        projectData.name = projectName || projectData.name;
                       }
-                    } catch (error) {
-                      console.error('数据验证过程中出错:', error);
-                    }
-                    
-                    // 存储Excel数据以便后续使用
-                    window.latestProjectData = projectData;
-                  } else {
-                    console.warn('Excel文件解析失败或无有效数据');
-                  }
-                }
-              } catch (error) {
-                console.error('下载或解析Excel文件失败:', error);
-                // 即使Excel处理失败，也继续执行后续逻辑
-              }
 
-              // 更新状态为完成
-              setPollingMessage('数据处理完成，即将刷新页面...');
-              
-              // 重置状态
-              setDocumentFile(null);
-              setCadFile(null);
-              setProjectName('');
-              setIsCreatingProject(false);
-              setIsPrecreating(false);
-              setIsUploading(false);
-              setUploadProgress(0);
-              setValidationErrors([]);
-              setProjectId(null);
-              setJobId(null);
-              
-              // 调用回调函数刷新UI
-              if (onProjectCreated) {
-                console.log('数据处理完成，开始刷新UI');
-                onProjectCreated();
-              }
-              
-              // 最后停止轮询状态
-              setTimeout(() => {
-                setIsPolling(false);
-                setPollingStatus('');
-                setPollingProgress(0);
-                setPollingMessage('');
-              }, 1000); // 延迟1秒停止轮询状态，确保用户能看到完成信息
-            }, 4 * 60 * 1000); // 4分钟 = 4 * 60 * 1000毫秒
+                      // 将解析后的数据设置为模拟数据，供其他组件使用
+                      ProjectService.setMockProjects([projectData]);
+                      console.log(
+                        '项目数据已更新到系统中，项目ID:',
+                        projectData.id
+                      );
+
+                      // 验证数据是否正确设置
+                      try {
+                        const verifyProjects =
+                          await ProjectService.getProjects();
+                        const verifyProject = verifyProjects.find(
+                          (p) => p.id === projectData.id
+                        );
+                        if (
+                          verifyProject &&
+                          verifyProject.tasks &&
+                          verifyProject.tasks.length > 0
+                        ) {
+                          console.log(
+                            '✅ 数据验证成功，项目任务数量:',
+                            verifyProject.tasks.length
+                          );
+                        } else {
+                          console.warn('⚠️ 数据验证失败，可能需要重新设置');
+                        }
+                      } catch (error) {
+                        console.error('数据验证过程中出错:', error);
+                      }
+
+                      // 存储Excel数据以便后续使用
+                      window.latestProjectData = projectData;
+                    } else {
+                      console.warn('Excel文件解析失败或无有效数据');
+                    }
+                  }
+                } catch (error) {
+                  console.error('下载或解析Excel文件失败:', error);
+                  // 即使Excel处理失败，也继续执行后续逻辑
+                }
+
+                // 更新状态为完成
+                setPollingMessage('数据处理完成，即将刷新页面...');
+
+                // 重置状态
+                setDocumentFile(null);
+                setCadFile(null);
+                setProjectName('');
+                setIsCreatingProject(false);
+                setIsPrecreating(false);
+                setIsUploading(false);
+                setUploadProgress(0);
+                setValidationErrors([]);
+                setProjectId(null);
+                setJobId(null);
+
+                // 调用回调函数刷新UI
+                if (onProjectCreated) {
+                  console.log('数据处理完成，开始刷新UI');
+                  onProjectCreated();
+                }
+
+                // 最后停止轮询状态
+                setTimeout(() => {
+                  setIsPolling(false);
+                  setPollingStatus('');
+                  setPollingProgress(0);
+                  setPollingMessage('');
+                }, 1000); // 延迟1秒停止轮询状态，确保用户能看到完成信息
+              },
+              2 * 60 * 1000
+            ); // 4分钟 = 4 * 60 * 1000毫秒
           }
         } catch (error) {
           console.error('轮询失败:', error);
