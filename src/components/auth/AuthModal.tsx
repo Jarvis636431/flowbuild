@@ -60,7 +60,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
       <div className="auth-header">
         <div className="auth-title-container">
           <img src="/logo.png" alt="FlowBuild Logo" className="auth-logo" />
-          <h2 className="auth-title">欢迎使用 FlowBuild</h2>
         </div>
 
         {/* Tab Navigation */}
