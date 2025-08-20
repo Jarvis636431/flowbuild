@@ -50,7 +50,7 @@ export const useChartData = (
       };
     }
 
-    const allDays = tasks.flatMap((task) => [task.startDay, task.endDay]);
+    const allDays = tasks.flatMap((task) => [task.startTime.day, task.endTime.day]);
     const minDay = Math.min(...allDays);
     const maxDay = Math.max(...allDays);
 
@@ -123,8 +123,8 @@ export const useChartData = (
       // 使用默认的累积资金数据
       const dailyFunding: number[] = new Array(totalDays).fill(0);
       tasks.forEach((task) => {
-        const startDay = task.startDay - 1;
-        const duration = task.endDay - task.startDay + 1;
+        const startDay = task.startTime.day - 1;
+    const duration = task.endTime.day - task.startTime.day + 1;
         const cost = task.cost || 0;
         const dailyCost = cost / duration;
 
@@ -335,8 +335,8 @@ export const useChartData = (
       // 使用默认的累积物料数据
       const dailyMaterial: number[] = new Array(totalDays).fill(0);
       tasks.forEach((task) => {
-        const startDay = task.startDay - 1;
-        const duration = task.endDay - task.startDay + 1;
+        const startDay = task.startTime.day - 1;
+    const duration = task.endTime.day - task.startTime.day + 1;
         const workload = task.workload || 0;
         const dailyMaterialAmount = workload / duration;
 

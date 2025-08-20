@@ -41,7 +41,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
         console.log(`🔍 停工事件${index + 1}:`, {
           name: event.name,
           startDay: event.start_time.day,
-          endDay: event.end_time.day,
+        endDay: event.end_time.day,
           aLevelTasks: event.a_level_tasks,
           bLevelTasks: event.b_level_tasks
         });
@@ -59,7 +59,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
         };
       }
 
-      const allDays = safeTasks.flatMap((task) => [task.startDay, task.endDay]);
+      const allDays = safeTasks.flatMap((task) => [task.startTime.day, task.endTime.day]);
       const minDay = Math.min(...allDays);
       const maxDay = Math.max(...allDays);
 
@@ -159,7 +159,7 @@ const GanttChart: React.FC<GanttChartProps> = React.memo(
         </div>
         <div className="tasks-container">
           {safeTasks.map((task) => {
-            const position = getTaskPosition(task.startDay, task.endDay);
+            const position = getTaskPosition(task.startTime.day, task.endTime.day);
             return (
               <div
                 key={task.id}

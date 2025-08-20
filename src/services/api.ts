@@ -1,6 +1,3 @@
-import { readAllProjectsFromExcel } from './excelReader';
-import { ProjectService } from './projectService';
-
 // 重新导出projectAPI和Project以保持向后兼容
 export { projectAPI, type Project } from './projectService';
 
@@ -21,10 +18,8 @@ export interface TaskItem {
   cost: number; // 价格
   workload: number; // 工程量
   unit: string; // 单位
-  startDay: number; // 开始天数 (保持向后兼容)
-  endDay: number; // 结束天数 (保持向后兼容)
-  startTime?: TaskTime; // 详细开始时间
-  endTime?: TaskTime; // 详细结束时间
+  startTime: TaskTime; // 详细开始时间
+  endTime: TaskTime; // 详细结束时间
   isOvertime: boolean; // 是否加班
   dependencies: string[]; // 直接依赖工种
   projectId: number; // 关联的项目ID
@@ -83,35 +78,9 @@ export interface ChatResponse {
 }
 
 // 初始化数据变量
-let mockTasks: TaskItem[] = [];
+const mockTasks: TaskItem[] = [];
 
-// 异步加载Excel数据
-const loadExcelData = async () => {
-  try {
-    const projects = await readAllProjectsFromExcel();
-    if (projects.length > 0) {
-      // 设置项目模拟数据到ProjectService
-      ProjectService.setMockProjects(projects);
-      // 从项目中提取任务
-      mockTasks = projects.flatMap((project) => project.tasks || []);
-      console.log(
-        'Excel数据加载成功，共加载',
-        projects.length,
-        '个项目，',
-        mockTasks.length,
-        '个任务'
-      );
-    } else {
-      throw new Error('Excel文件中没有找到有效的项目数据');
-    }
-  } catch (error) {
-    console.error('Excel数据读取失败:', error);
-    // 不使用备用数据，直接抛出错误
-    throw new Error(
-      `Excel数据读取失败: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-};
+
 
 // 聊天模拟数据
 const mockChatResponses = {
@@ -270,12 +239,7 @@ export const taskAPI = {
   },
 };
 
-// 初始化Excel数据
-loadExcelData().catch((error) => {
-  console.error('Excel数据初始化失败:', error);
-  // 系统将无法正常工作，因为没有备用数据
-  console.log('Excel数据读取失败，请检查data/output.xlsx文件是否存在且格式正确。');
-});
+
 
 // 聊天API函数
 export const chatAPI = {

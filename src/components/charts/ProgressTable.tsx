@@ -52,19 +52,13 @@ const ProgressTable: React.FC<ProgressTableProps> = React.memo(
                 </div>
                 <div className="table-cell">{task.constructionMethod}</div>
                 <div className="table-cell">
-                  {task.startTime
-                    ? `第${task.startTime.day}天 ${task.startTime.hour.toString().padStart(2, '0')}:00`
-                    : `第${task.startDay}天`}
+                  第{task.startTime.day}天 {task.startTime.hour.toString().padStart(2, '0')}:00
                 </div>
                 <div className="table-cell">
-                  {task.endTime
-                    ? `第${task.endTime.day}天 ${task.endTime.hour.toString().padStart(2, '0')}:00`
-                    : `第${task.endDay}天`}
+                  第{task.endTime.day}天 {task.endTime.hour.toString().padStart(2, '0')}:00
                 </div>
                 <div className="table-cell">
-                  {task.startTime && task.endTime
-                    ? `${Math.max(1, Math.ceil((task.endTime.totalHours - task.startTime.totalHours) / 24))}天`
-                    : `${task.endDay - task.startDay + 1}天`}
+                  {Math.max(1, Math.ceil((task.endTime.totalHours - task.startTime.totalHours) / 24))}天
                 </div>
                 <div className="table-cell">{task.workerCount}人</div>
                 <div className="table-cell">{task.workType}</div>
