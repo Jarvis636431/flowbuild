@@ -12,8 +12,8 @@ const COLUMN_MAPPING: Record<string, string> = {
   总成本: 'cost',
   工程量: 'workload',
   工程量单位: 'unit',
-  开始时间: 'startDay',
-  结束时间: 'endDay',
+  开始时间: 'startTime',
+  结束时间: 'endTime',
   是否加班: 'isOvertime',
   直接依赖任务: 'dependencies',
 };
@@ -44,8 +44,9 @@ function parseTimeString(timeStr: string | number): TaskTime {
     }
   }
 
-  // 匹配时间格式 HH:MM 或 HH
-  const timeMatch = str.match(/(\d{1,2}):(\d{2})|(\d{1,2})(?!天)/);
+  // 先移除天数部分，然后匹配时间格式 HH:MM 或 HH
+  const timeOnlyStr = str.replace(/第\d+天\s*/, '');
+  const timeMatch = timeOnlyStr.match(/(\d{1,2}):(\d{2})|(\d{1,2})/);
   if (timeMatch) {
     if (timeMatch[1] && timeMatch[2]) {
       // HH:MM 格式
@@ -152,13 +153,11 @@ export async function readProjectFromExcel(
 
           // 根据字段类型进行数据转换
           switch (mappedField) {
-            case 'startDay':
+            case 'startTime':
               task.startTime = parseTimeString(value);
-              task.startDay = task.startTime.day; // 保持向后兼容
               break;
-            case 'endDay':
+            case 'endTime':
               task.endTime = parseTimeString(value);
-              task.endDay = task.endTime.day; // 结束日期减1用于甘特图绘制
               break;
             case 'isOvertime':
               task.isOvertime = parseOvertime(value);
@@ -219,8 +218,6 @@ export async function readProjectFromExcel(
 
       // 设置默认值
       if (!task.cost) task.cost = 0;
-      if (!task.startDay) task.startDay = 1;
-      if (!task.endDay) task.endDay = 1;
       if (!task.startTime) task.startTime = { day: 1, hour: 0, totalHours: 24 };
       if (!task.endTime) task.endTime = { day: 1, hour: 0, totalHours: 24 };
       if (!task.workerCount) task.workerCount = 0;
@@ -300,13 +297,11 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
 
           // 根据字段类型进行数据转换
           switch (mappedField) {
-            case 'startDay':
+            case 'startTime':
               task.startTime = parseTimeString(value);
-              task.startDay = task.startTime.day; // 保持向后兼容
               break;
-            case 'endDay':
+            case 'endTime':
               task.endTime = parseTimeString(value);
-              task.endDay = task.endTime.day; // 保持向后兼容
               break;
             case 'isOvertime':
               task.isOvertime = parseOvertime(value);
@@ -367,8 +362,6 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
 
       // 设置默认值
       if (!task.cost) task.cost = 0;
-      if (!task.startDay) task.startDay = 1;
-      if (!task.endDay) task.endDay = 1;
       if (!task.startTime) task.startTime = { day: 1, hour: 0, totalHours: 24 };
       if (!task.endTime) task.endTime = { day: 1, hour: 0, totalHours: 24 };
       if (!task.workerCount) task.workerCount = 0;
