@@ -1,5 +1,33 @@
 /* 认证组件样式 */
 
+/* 登录模态框特殊背景 */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(0px) brightness(0.7);
+  z-index: 1000;
+  cursor: pointer;
+}
+
+/* 添加轻微的遮罩层 */
+.auth-modal-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: -1;
+}
+
 /* 认证模态框 */
 .auth-modal {
   width: 28rem;
