@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Modal from '../shared/Modal';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import './Auth.css';
@@ -50,44 +49,45 @@ const AuthModal: React.FC<AuthModalProps> = ({
    */
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      className="auth-modal"
-      showOverlay={true}
-    >
-      {/* Header */}
-      <div className="auth-header">
-        <div className="auth-title-container">
-          <img src="/logo.png" alt="FlowBuild Logo" className="auth-logo" />
+    <>
+      {/* 自定义背景覆盖层 */}
+      <div className="auth-modal-overlay" onClick={onClose}></div>
+      
+      {/* 模态框内容 */}
+      <div className="modal-content auth-modal">
+        {/* Header */}
+        <div className="auth-header">
+          <div className="auth-title-container">
+            <img src="/logo.png" alt="FlowBuild Logo" className="auth-logo" />
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="auth-tabs">
+            <button
+              onClick={() => setActiveTab('login')}
+              className={`auth-tab ${activeTab === 'login' ? 'active' : 'inactive'}`}
+            >
+              登录
+            </button>
+            <button
+              onClick={() => setActiveTab('register')}
+              className={`auth-tab ${activeTab === 'register' ? 'active' : 'inactive'}`}
+            >
+              注册
+            </button>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="auth-tabs">
-          <button
-            onClick={() => setActiveTab('login')}
-            className={`auth-tab ${activeTab === 'login' ? 'active' : 'inactive'}`}
-          >
-            登录
-          </button>
-          <button
-            onClick={() => setActiveTab('register')}
-            className={`auth-tab ${activeTab === 'register' ? 'active' : 'inactive'}`}
-          >
-            注册
-          </button>
+        {/* Tab Content */}
+        <div className="auth-content">
+          {activeTab === 'login' ? (
+            <LoginForm onSuccess={handleAuthSuccess} />
+          ) : (
+            <RegisterForm onSuccess={handleAuthSuccess} />
+          )}
         </div>
       </div>
-
-      {/* Tab Content */}
-      <div className="auth-content">
-        {activeTab === 'login' ? (
-          <LoginForm onSuccess={handleAuthSuccess} />
-        ) : (
-          <RegisterForm onSuccess={handleAuthSuccess} />
-        )}
-      </div>
-    </Modal>
+    </>
   );
 };
 

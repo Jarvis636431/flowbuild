@@ -5,11 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('/background.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(0px) brightness(0.7);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   cursor: pointer;
 }

@@ -99,11 +99,11 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
     const handleMessage = (...args: unknown[]) => {
       const data = args[0] as ApprovalData;
       console.log('Chat组件 - 收到WebSocket消息:', {
-         data,
-         currentIsAwaitingApprovalResponse: isAwaitingApprovalResponse,
-         currentIsAwaitingApprovalResponseRef: isAwaitingApprovalResponseRef.current,
-         timestamp: new Date().toISOString()
-       });
+        data,
+        currentIsAwaitingApprovalResponse: isAwaitingApprovalResponse,
+        currentIsAwaitingApprovalResponseRef: isAwaitingApprovalResponseRef.current,
+        timestamp: new Date().toISOString()
+      });
 
       // 处理不同类型的消息
       if (data.type === 'done' && data.text) {
@@ -117,18 +117,18 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           isAwaitingApprovalResponseRef: isAwaitingApprovalResponseRef.current,
           willTriggerRefresh: isAwaitingApprovalResponseRef.current
         });
-        
+
         const aiMessage: ChatMessage = {
           id: Date.now(),
           text: data.text,
           sender: 'ai',
           timestamp: new Date(),
         };
-        
+
         // 立即设置消息，确保显示
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
-        
+
         // 如果是确认按钮点击后的响应，调用刷新接口
         const shouldTriggerRefresh = isAwaitingApprovalResponseRef.current;
         if (shouldTriggerRefresh) {
@@ -140,88 +140,88 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             messageType: data.type,
             wasAwaitingApproval: shouldTriggerRefresh
           });
-            
-            console.log('🔄 [刷新流程] 开始刷新项目数据', { timestamp: new Date().toISOString() });
-                 
-                 // 调用/view接口刷新数据
-                 if (currentProject?.id) {
-                   console.log('🚀 [刷新流程] 开始执行数据刷新', {
-                     projectId: currentProject.id,
-                     projectName: currentProject.name
-                   });
-                   
-                   const refreshData = async () => {
-                     try {
-                       console.log('📡 [API调用] 开始调用/view接口', {
-                         projectId: currentProject.id,
-                         apiEndpoint: 'downloadProjectExcel',
-                         startTime: new Date().toISOString()
-                       });
-                       
-                       const startTime = performance.now();
-                       const file = await projectAPI.downloadProjectExcel(currentProject.id);
-                       const downloadTime = performance.now() - startTime;
-                       
-                       console.log('📥 [API调用] Excel文件下载完成', {
-                         downloadTime: `${downloadTime.toFixed(2)}ms`,
-                         fileSize: file.size,
-                         fileType: file.type
-                       });
-                       
-                       const excelData = await file.arrayBuffer();
-                       const totalTime = performance.now() - startTime;
-                       
-                       console.log('🔄 [数据处理] Excel数据转换完成', {
-                         dataSize: excelData.byteLength,
-                         totalTime: `${totalTime.toFixed(2)}ms`
-                       });
-                       
-                       // 触发数据刷新事件，通知父组件更新数据
-                       const refreshEvent = new CustomEvent('projectDataRefresh', {
-                         detail: { projectId: currentProject.id, excelData }
-                       });
-                       
-                       console.log('📢 [事件触发] 发送项目数据刷新事件', {
-                         eventType: 'projectDataRefresh',
-                         projectId: currentProject.id,
-                         dataSize: excelData.byteLength
-                       });
-                       
-                       window.dispatchEvent(refreshEvent);
-                       
-                       console.log('✅ [刷新流程] 数据刷新成功完成', {
-                         totalTime: `${totalTime.toFixed(2)}ms`,
-                         projectId: currentProject.id
-                       });
-                     } catch (error) {
-                       console.error('❌ [刷新流程] 数据刷新失败', {
-                         error: error instanceof Error ? error.message : String(error),
-                         stack: error instanceof Error ? error.stack : undefined,
-                         projectId: currentProject.id,
-                         timestamp: new Date().toISOString()
-                       });
-                       
-                       console.log('❌ [刷新流程] 数据刷新失败', {
-                         errorType: error instanceof Error ? error.constructor.name : 'Unknown'
-                       });
-                     }
-                   };
-                   
-                   refreshData();
-                 } else {
-                   console.warn('⚠️ [刷新流程] 无法获取当前项目ID，跳过刷新操作', {
-                     currentProject: currentProject,
-                     hasProject: !!currentProject,
-                     hasProjectId: !!currentProject?.id
-                   });
-                 }
+
+          console.log('🔄 [刷新流程] 开始刷新项目数据', { timestamp: new Date().toISOString() });
+
+          // 调用/view接口刷新数据
+          if (currentProject?.id) {
+            console.log('🚀 [刷新流程] 开始执行数据刷新', {
+              projectId: currentProject.id,
+              projectName: currentProject.name
+            });
+
+            const refreshData = async () => {
+              try {
+                console.log('📡 [API调用] 开始调用/view接口', {
+                  projectId: currentProject.id,
+                  apiEndpoint: 'downloadProjectExcel',
+                  startTime: new Date().toISOString()
+                });
+
+                const startTime = performance.now();
+                const file = await projectAPI.downloadProjectExcel(currentProject.id);
+                const downloadTime = performance.now() - startTime;
+
+                console.log('📥 [API调用] Excel文件下载完成', {
+                  downloadTime: `${downloadTime.toFixed(2)}ms`,
+                  fileSize: file.size,
+                  fileType: file.type
+                });
+
+                const excelData = await file.arrayBuffer();
+                const totalTime = performance.now() - startTime;
+
+                console.log('🔄 [数据处理] Excel数据转换完成', {
+                  dataSize: excelData.byteLength,
+                  totalTime: `${totalTime.toFixed(2)}ms`
+                });
+
+                // 触发数据刷新事件，通知父组件更新数据
+                const refreshEvent = new CustomEvent('projectDataRefresh', {
+                  detail: { projectId: currentProject.id, excelData }
+                });
+
+                console.log('📢 [事件触发] 发送项目数据刷新事件', {
+                  eventType: 'projectDataRefresh',
+                  projectId: currentProject.id,
+                  dataSize: excelData.byteLength
+                });
+
+                window.dispatchEvent(refreshEvent);
+
+                console.log('✅ [刷新流程] 数据刷新成功完成', {
+                  totalTime: `${totalTime.toFixed(2)}ms`,
+                  projectId: currentProject.id
+                });
+              } catch (error) {
+                console.error('❌ [刷新流程] 数据刷新失败', {
+                  error: error instanceof Error ? error.message : String(error),
+                  stack: error instanceof Error ? error.stack : undefined,
+                  projectId: currentProject.id,
+                  timestamp: new Date().toISOString()
+                });
+
+                console.log('❌ [刷新流程] 数据刷新失败', {
+                  errorType: error instanceof Error ? error.constructor.name : 'Unknown'
+                });
+              }
+            };
+
+            refreshData();
+          } else {
+            console.warn('⚠️ [刷新流程] 无法获取当前项目ID，跳过刷新操作', {
+              currentProject: currentProject,
+              hasProject: !!currentProject,
+              hasProjectId: !!currentProject?.id
+            });
           }
-        
+        }
+
         // 延迟确认消息已显示
         setTimeout(() => {
           console.log('✅ done 消息已添加到聊天界面:', aiMessage);
         }, 100);
-        
+
       } else if (data.type === 'approval') {
         // 需要用户确认的消息 - 新格式支持
         const messageText = data.ai_message?.text || data.text || '需要确认的操作';
@@ -516,7 +516,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       hasApprovalData: !!message.approvalData,
       timestamp: new Date().toISOString()
     });
-    
+
     if (!message.approvalData) {
       console.error('❌ [确认流程] 缺少确认数据', { messageId: message.id });
       return;
@@ -566,9 +566,9 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
       // 构建确认消息
       const approvalMessage = {
-      type: 'hitl_decision',
-      approved: true
-    };
+        type: 'hitl_decision',
+        approved: true
+      };
 
       console.log('📤 [确认流程] 发送确认消息到WebSocket', {
         approvalMessage,
@@ -576,7 +576,7 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
         messageId: message.id,
         projectId
       });
-      
+
       socketService.sendRaw(approvalMessage);
 
       // 更新消息，标记为已确认但保留按钮
@@ -594,17 +594,17 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
           return msg;
         })
       );
-      
+
       // 标记正在等待确认响应
       console.log('🔄 [确认流程] 设置isAwaitingApprovalResponse为true', {
         messageId: message.id,
         beforeSet: isAwaitingApprovalResponse,
         timestamp: new Date().toISOString()
       });
-      
+
       setIsAwaitingApprovalResponse(true);
       isAwaitingApprovalResponseRef.current = true;
-      
+
       console.log('✅ [确认流程] 确认消息发送成功，等待响应', {
         messageId: message.id,
         afterSet: true,
