@@ -77,7 +77,7 @@ export class OperatorService {
    */
   private static async registerOperator(): Promise<void> {
     try {
-      console.log('🔑 正在注册操作员用户:', OPERATOR_CONFIG.OP_USER);
+
       await httpClient.post(
         `${OPERATOR_CONFIG.BASE_URL_USER}/register`,
         {
@@ -89,7 +89,7 @@ export class OperatorService {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-      console.log('✅ 操作员注册成功:', OPERATOR_CONFIG.OP_USER);
+
     } catch (error: unknown) {
       const axiosError = error as {
         response?: { status?: number; data?: unknown };
@@ -102,7 +102,7 @@ export class OperatorService {
         status === 409 ||
         (typeof message === 'string' && /already exists|已存在/i.test(message))
       ) {
-        console.log('ℹ️ 操作员用户已存在，继续后续流程');
+
         return;
       }
 
@@ -133,7 +133,7 @@ export class OperatorService {
         throw new Error('登录失败：未获取到访问令牌');
       }
 
-      console.log('✅ 操作员登录成功');
+
       return accessToken;
     } catch (error: unknown) {
       const errorMessage =
@@ -150,23 +150,23 @@ export class OperatorService {
     accessToken: string
   ): Promise<void> {
     try {
-      console.log(`🏁 正在完成任务，项目ID: ${projectId}`);
+
 
       const formData = new FormData();
       formData.append('project_id', projectId);
 
-      const response = await httpClient.post(
-        `${OPERATOR_CONFIG.BASE_URL_OP}/finish`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            // 移除 Content-Type，让浏览器自动设置为 multipart/form-data
-          },
-        }
-      );
+      await httpClient.post(
+          `${OPERATOR_CONFIG.BASE_URL_OP}/finish`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              // 移除 Content-Type，让浏览器自动设置为 multipart/form-data
+            },
+          }
+        );
 
-      console.log('✅ 任务完成成功:', response.data);
+
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -185,11 +185,11 @@ export class OperatorService {
     label: string
   ): Promise<void> {
     try {
-      console.log(`🔍 [DEBUG] 准备处理文件: ${filePath}`);
+
 
       // 从文件路径提取文件名
       const fileName = filePath.split('/').pop() || 'unknown';
-      console.log(`🔍 [DEBUG] 提取的文件名: ${fileName}`);
+
 
       // 根据文件扩展名确定MIME类型
       let mimeType = 'application/octet-stream';
@@ -203,15 +203,13 @@ export class OperatorService {
 
       // 检查是否是GitHub URL
       if (filePath.startsWith('http')) {
-        console.log(`🔍 [DEBUG] 检测到GitHub URL，正在获取文件内容...`);
+
         try {
           // 获取GitHub文件的实际内容
           fileBlob = await OperatorService.fetchFileContent(filePath);
-          console.log(
-            `🔍 [DEBUG] 成功获取GitHub文件内容，大小: ${fileBlob.size} bytes`
-          );
-        } catch (fetchError) {
-          console.warn(`⚠️ 获取GitHub文件失败，使用备用方案: ${fetchError}`);
+
+        } catch {
+ 
           // 如果获取失败，创建包含文件路径信息的文本文件作为备用
           const fileContent = `文件路径: ${filePath}\n文件名: ${fileName}\n文件类型: ${atype}\n上传时间: ${new Date().toISOString()}\n获取失败，使用备用内容`;
           fileBlob = new Blob([fileContent], { type: mimeType });
@@ -222,8 +220,7 @@ export class OperatorService {
         fileBlob = new Blob([fileContent], { type: mimeType });
       }
 
-      console.log(`🔍 [DEBUG] 最终文件Blob大小: ${fileBlob.size} bytes`);
-      console.log(`🔍 [DEBUG] 文件MIME类型: ${mimeType}`);
+
 
       // 创建FormData
       const formData = new FormData();
@@ -231,28 +228,19 @@ export class OperatorService {
       formData.append('files', fileBlob, fileName);
       formData.append('atype', atype);
 
-      // 调试信息：上传前打印详细信息
-      const uploadUrl = `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`;
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 准备上传文件`);
-      console.log(`🔍 [DEBUG] 文件标签: ${label}`);
-      console.log(`🔍 [DEBUG] 文件名: ${fileName}`);
-      console.log(`🔍 [DEBUG] 文件类型: ${atype}`);
-      console.log(`🔍 [DEBUG] 项目ID: ${projectId}`);
-      console.log(`🔍 [DEBUG] 文件路径: ${filePath}`);
-      console.log(`🔍 [DEBUG] 上传URL: ${uploadUrl}`);
-      console.log(`📤 正在上传 ${label}: ${fileName}`);
 
-      const response = await httpClient.post(
-        `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
 
-      console.log(`✅ ${label} 上传成功:`, response.data);
+      await httpClient.post(
+          `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -265,16 +253,16 @@ export class OperatorService {
    */
   static async fetchFileContent(fileUrl: string): Promise<Blob> {
     try {
-      console.log(`🔍 正在获取文件内容: ${fileUrl}`);
+
 
       // 处理GitHub链接，将blob链接转换为raw链接
       let finalUrl = fileUrl;
       if (fileUrl.includes('github.com') && fileUrl.includes('/blob/')) {
         finalUrl = fileUrl.replace('/blob/', '/raw/');
-        console.log(`🔍 转换GitHub链接为raw链接: ${finalUrl}`);
+
       }
 
-      console.log(`🔍 最终请求URL: ${finalUrl}`);
+
 
       const response = await httpClient.get(finalUrl, {
         responseType: 'blob',
@@ -288,26 +276,18 @@ export class OperatorService {
         },
       });
 
-      console.log(`🔍 响应状态码: ${response.status}`);
-      console.log(`🔍 响应头:`, response.headers);
+
 
       if (!response.data) {
         throw new Error('未获取到文件内容');
       }
 
-      console.log(`✅ 文件获取成功，大小: ${response.data.size} bytes`);
+
       return response.data;
     } catch (error: unknown) {
-      console.error(`❌ 获取文件失败: ${fileUrl}`, error);
 
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as {
-          response?: { status?: number; headers?: unknown; data?: unknown };
-        };
-        console.error(`❌ 响应状态码: ${axiosError.response?.status}`);
-        console.error(`❌ 响应头:`, axiosError.response?.headers);
-        console.error(`❌ 响应数据:`, axiosError.response?.data);
-      }
+
+
 
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -328,7 +308,7 @@ export class OperatorService {
       throw new Error(`不支持的项目名称: ${projectName}`);
     }
 
-    console.log(`📁 开始获取项目文件: ${projectName}`);
+
 
     const [ifcBlob, steelBlob, summaryBlob] = await Promise.all([
       this.fetchFileContent(filePaths.ifc),
@@ -352,17 +332,10 @@ export class OperatorService {
     const { projectId, projectName } = options;
 
     try {
-      // 调试信息：方法开始时打印projectId
-      console.log(
-        `🔍 [DEBUG] ${new Date().toISOString()} - executeOperatorActions 开始`
-      );
-      console.log(`🔍 [DEBUG] 项目ID: ${projectId}`);
-      console.log(`🔍 [DEBUG] 项目名称: ${projectName}`);
-      console.log('🚀 开始执行操作员操作...', { projectId, projectName });
+
 
       // 如果是模拟模式，直接返回成功
       if (!FEATURE_FLAGS.USE_REAL_API) {
-        console.log('📝 模拟模式：跳过操作员操作');
         return {
           success: true,
           message: '模拟模式：操作员操作已完成',
@@ -378,7 +351,7 @@ export class OperatorService {
         );
       }
 
-      console.log('📁 选择的文件路径:', filePaths);
+
 
       // 步骤1: 注册操作员
       await OperatorService.registerOperator();
@@ -387,19 +360,10 @@ export class OperatorService {
       const accessToken = await OperatorService.loginOperator();
 
       // 步骤3: 上传文件
-      const totalUploadUrl = `${OPERATOR_CONFIG.BASE_URL_OP}/uploads`;
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 准备上传文件`);
-      console.log(`🔍 [DEBUG] 使用项目ID: ${projectId}`);
-      console.log(`🔍 [DEBUG] 总的上传文件URL: ${totalUploadUrl}`);
-      console.log(`🔍 [DEBUG] 文件路径配置:`, filePaths);
 
       const uploadedFiles: string[] = [];
 
       // 上传IFC文件
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传IFC文件`);
-      console.log(
-        `🔍 [DEBUG] IFC文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.ifc}`
-      );
       await OperatorService.uploadFile(
         filePaths.ifc,
         'ifc',
@@ -410,10 +374,6 @@ export class OperatorService {
       uploadedFiles.push(filePaths.ifc);
 
       // 上传钢筋文件
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传钢筋文件`);
-      console.log(
-        `🔍 [DEBUG] 钢筋文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.steel}`
-      );
       await OperatorService.uploadFile(
         filePaths.steel,
         'steel',
@@ -424,10 +384,6 @@ export class OperatorService {
       uploadedFiles.push(filePaths.steel);
 
       // 上传汇总文件
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始上传汇总文件`);
-      console.log(
-        `🔍 [DEBUG] 汇总文件 - 项目ID: ${projectId}, 文件路径: ${filePaths.summary}`
-      );
       await OperatorService.uploadFile(
         filePaths.summary,
         'summary',
@@ -438,10 +394,7 @@ export class OperatorService {
       uploadedFiles.push(filePaths.summary);
 
       // 步骤4: 完成任务
-      console.log(`🔍 [DEBUG] ${new Date().toISOString()} - 开始完成任务`);
       await OperatorService.finishTask(projectId, accessToken);
-
-      console.log('✅ 操作员操作全部完成');
 
       return {
         success: true,
@@ -449,7 +402,6 @@ export class OperatorService {
         uploadedFiles,
       };
     } catch (error: unknown) {
-      console.error('❌ 操作员操作失败:', error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       return {
@@ -471,12 +423,12 @@ export class OperatorService {
       try {
         const result = await this.executeOperatorActions(options);
         if (result.success) {
-          console.log('🎉 后台操作员操作完成:', result.message);
+          // 操作成功
         } else {
-          console.error('💥 后台操作员操作失败:', result.error);
+          // 操作失败
         }
-      } catch (error) {
-        console.error('💥 后台操作员操作异常:', error);
+      } catch {
+        // 操作异常
       }
     }, 1000); // 延迟1秒执行，确保轮询已经开始
   }

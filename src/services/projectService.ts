@@ -181,7 +181,6 @@ let mockProjects: Project[] = [];
 // 数据转换函数
 const convertApiProjectToProject = (apiProject: ApiProject): Project => {
   try {
-    console.log('转换API项目数据:', apiProject);
 
     // 验证必需字段
     if (!apiProject) {
@@ -207,10 +206,8 @@ const convertApiProjectToProject = (apiProject: ApiProject): Project => {
       color: apiProject.color,
     };
 
-    console.log('成功转换项目数据:', convertedProject);
     return convertedProject;
   } catch (error) {
-    console.error('转换API项目数据失败:', error, '原始数据:', apiProject);
     throw new Error(
       `项目数据转换失败: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -240,16 +237,12 @@ export class ProjectService {
         );
 
         // 验证API响应格式
-        console.log('API响应数据:', response);
-
         // 检查response.result是否存在且为数组
         if (!response || !response.result) {
-          console.error('API响应格式错误: result字段不存在', response);
           throw new Error('API响应格式错误: 缺少result字段');
         }
 
         if (!Array.isArray(response.result)) {
-          console.error('API响应格式错误: result不是数组', response.result);
           throw new Error('API响应格式错误: result字段不是数组');
         }
 
@@ -261,15 +254,10 @@ export class ProjectService {
         return mockProjects;
       }
     } catch (error) {
-      console.error('获取项目列表失败:', error);
-
       // 如果是使用真实API模式，降级到模拟数据
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据。错误详情:', error);
-
         // 确保模拟数据是数组
         if (!Array.isArray(mockProjects)) {
-          console.warn('模拟数据不是数组，返回空数组');
           return [];
         }
 
@@ -290,26 +278,21 @@ export class ProjectService {
     user_id: string;
     name: string;
   }): Promise<{ project_id: string }> {
-    try {
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        const response = await http.post<{ project_id: string }>(
-          ManagementServiceUrls.precreate(),
-          {
-            user_id: request.user_id,
-            name: request.name,
-          }
-        );
-        return response;
-      } else {
-        // 模拟模式
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        return {
-          project_id: `project_${Date.now()}`,
-        };
-      }
-    } catch (error) {
-      console.error('预创建项目失败:', error);
-      throw error;
+    if (FEATURE_FLAGS.USE_REAL_API) {
+      const response = await http.post<{ project_id: string }>(
+        ManagementServiceUrls.precreate(),
+        {
+          user_id: request.user_id,
+          name: request.name,
+        }
+      );
+      return response;
+    } else {
+      // 模拟模式
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return {
+        project_id: `project_${Date.now()}`,
+      };
     }
   }
 
@@ -343,8 +326,7 @@ export class ProjectService {
           job_id: `job_${Date.now()}`,
         };
       }
-    } catch (error) {
-      console.error('创建项目失败:', error);
+    } catch {
       throw new Error('创建项目失败');
     }
   }
@@ -384,11 +366,9 @@ export class ProjectService {
         };
         return mockProjects[projectIndex];
       }
-    } catch (error) {
-      console.error('更新项目失败:', error);
+    } catch {
       // 降级到模拟数据
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
         const projectIndex = mockProjects.findIndex(
           (project) => project.id === id
         );
@@ -423,11 +403,9 @@ export class ProjectService {
         }
         mockProjects.splice(projectIndex, 1);
       }
-    } catch (error) {
-      console.error('删除项目失败:', error);
+    } catch {
       // 降级到模拟数据
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
         const projectIndex = mockProjects.findIndex(
           (project) => project.id === id
         );
@@ -470,9 +448,9 @@ export class ProjectService {
     }
 
     // 检查MIME类型（可选，因为某些文件的MIME类型可能不准确）
-    if (file.type && !config.mimeTypes.includes(file.type)) {
-      console.warn(`文件MIME类型不匹配: ${file.type}，但扩展名有效，继续处理`);
-    }
+    // if (file.type && !config.mimeTypes.includes(file.type)) {
+    //   // MIME类型不匹配但扩展名有效，继续处理
+    // }
 
     return {
       isValid: true,
@@ -537,11 +515,9 @@ export class ProjectService {
         };
       }
     } catch (error) {
-      console.error('文件上传失败:', error);
-
       // 如果是真实API模式，可以考虑降级到模拟模式
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API上传失败，错误详情:', error);
+        // API上传失败
       }
 
       throw new Error(
@@ -561,7 +537,6 @@ export class ProjectService {
         const result = await this.uploadDocuments(fileConfig);
         results.push(result);
       } catch (error) {
-        console.error(`文件 ${fileConfig.file.name} 上传失败:`, error);
         results.push({
           success: false,
           uploaded_files: [],
@@ -581,28 +556,23 @@ export class ProjectService {
     request: FileUploadRequest
   ): Promise<FileUploadResponse> {
     if (FEATURE_FLAGS.USE_REAL_API) {
-      try {
-        const formData = new FormData();
-        formData.append('file', request.file);
-        formData.append('project_id', request.project_id);
-        formData.append('uploaded_by', request.uploaded_by);
-        formData.append('category', request.category);
+      const formData = new FormData();
+      formData.append('file', request.file);
+      formData.append('project_id', request.project_id);
+      formData.append('uploaded_by', request.uploaded_by);
+      formData.append('category', request.category);
 
-        const response = await http.post<FileUploadResponse>(
-          ManagementServiceUrls.uploads(request.file_type),
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        );
+      const response = await http.post<FileUploadResponse>(
+        ManagementServiceUrls.uploads(request.file_type),
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
 
-        return response;
-      } catch (error) {
-        console.error('文件上传失败:', error);
-        throw error;
-      }
+      return response;
     } else {
       // 模拟模式
       return new Promise((resolve) => {
@@ -655,7 +625,6 @@ export class ProjectService {
         };
       }
     } catch (error) {
-      console.error('轮询项目状态失败:', error);
       throw new Error(
         `轮询项目状态失败: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -664,32 +633,15 @@ export class ProjectService {
 
   // 下载项目Excel文件
   static async downloadProjectExcel(projectId: string): Promise<File> {
-    const startTime = Date.now();
-    console.log('📥 [ProjectService] 开始下载项目Excel文件', {
-      projectId,
-      useRealAPI: FEATURE_FLAGS.USE_REAL_API,
-      timestamp: new Date().toISOString()
-    });
-    
-    try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         const apiUrl = `${ManagementServiceUrls.view()}?project_id=${projectId}`;
-        console.log('🌐 [ProjectService] 调用真实API', {
-          url: apiUrl,
-          method: 'GET',
-          responseType: 'blob'
-        });
+
         
         const response = await http.get(apiUrl, {
           responseType: 'blob',
         });
 
-        const responseTime = Date.now() - startTime;
-        console.log('✅ [ProjectService] API响应成功', {
-          responseTime: `${responseTime}ms`,
-          responseType: typeof response,
-          blobSize: response instanceof Blob ? response.size : 'unknown'
-        });
+
 
         // 创建File对象
         const blob = response as Blob;
@@ -697,12 +649,7 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
-        console.log('📄 [ProjectService] File对象创建成功', {
-          fileName: file.name,
-          fileSize: `${file.size} bytes`,
-          fileType: file.type,
-          lastModified: new Date(file.lastModified).toISOString()
-        });
+
         // 直接触发浏览器下载
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -716,10 +663,7 @@ export class ProjectService {
 
         return file;
       } else {
-        console.log('🔧 [ProjectService] 使用模拟模式', {
-          projectId,
-          mockDataSize: '4 bytes'
-        });
+
         
         // 模拟模式 - 创建一个模拟的Excel文件
         const mockExcelData = new Uint8Array([
@@ -736,29 +680,10 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
-        const responseTime = Date.now() - startTime;
-        console.log('✅ [ProjectService] 模拟文件创建成功', {
-          fileName: file.name,
-          fileSize: `${file.size} bytes`,
-          fileType: file.type,
-          responseTime: `${responseTime}ms`
-        });
+
 
         return file;
       }
-    } catch (error) {
-      const responseTime = Date.now() - startTime;
-      console.error('❌ [ProjectService] 下载项目Excel文件失败', {
-        projectId,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        responseTime: `${responseTime}ms`,
-        timestamp: new Date().toISOString()
-      });
-      throw new Error(
-        `下载项目Excel文件失败: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
   }
 
   // 创建项目并上传文件的完整流程
@@ -819,7 +744,6 @@ export class ProjectService {
 
       return { project: createdProject };
     } catch (error) {
-      console.error('创建项目并上传文件失败:', error);
       throw new Error(
         `创建项目并上传文件失败: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -837,8 +761,7 @@ export class ProjectService {
         `${ManagementServiceUrls.processInfo()}?project_id=${encodeURIComponent(projectId)}&work_process_name=${encodeURIComponent(workProcessName)}`
       );
       return response;
-    } catch (error) {
-      console.error('获取工序信息失败:', error);
+    } catch {
       throw new Error('获取工序信息失败');
     }
   }
@@ -850,23 +773,17 @@ export class ProjectService {
         `/mgmt/crew?project_id=${encodeURIComponent(projectId)}`
       );
       return response;
-    } catch (error) {
-      console.error('获取人员配置数据失败:', error);
+    } catch {
       throw new Error('获取人员配置数据失败');
     }
   }
 
   // 获取预算数据
   static async getBudgetData(projectId: string): Promise<BudgetData[]> {
-    try {
-      const response = await http.get<BudgetData[]>(
-        `/mgmt/budget?project_id=${encodeURIComponent(projectId)}`
-      );
-      return response;
-    } catch (error) {
-      console.error('获取预算数据失败:', error);
-      throw new Error('获取预算数据失败');
-    }
+    const response = await http.get<BudgetData[]>(
+      `/mgmt/budget?project_id=${encodeURIComponent(projectId)}`
+    );
+    return response;
   }
 
   // 获取项目配置信息
@@ -909,11 +826,9 @@ export class ProjectService {
           compress: { target_days: 100, add_carpenter_first: true }
         };
       }
-    } catch (error) {
-      console.error('获取项目配置失败:', error);
+    } catch {
       // 降级到模拟数据
       if (FEATURE_FLAGS.USE_REAL_API) {
-        console.warn('API调用失败，降级到模拟数据');
         return {
           construction_methods: [
             { task_name: "柱钢筋绑扎", method_index: 0 },
