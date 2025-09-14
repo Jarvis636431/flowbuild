@@ -649,17 +649,17 @@ export class ProjectService {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
-
-        // 直接触发浏览器下载
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `project_${projectId}.xlsx`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // // 直接触发浏览器下载
+        // const url = URL.createObjectURL(blob);
+        // const link = document.createElement('a');
+        // link.href = url;
+        // link.download = `project_${projectId}.xlsx`;
+        // link.style.display = 'none';
+        // document.body.appendChild(link);
+        // link.click();
+        // document.body.removeChild(link);
+        // URL.revokeObjectURL(url);
+      
 
         return file;
       } else {
