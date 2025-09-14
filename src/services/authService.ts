@@ -81,10 +81,9 @@ class TokenManager {
     if (userStr) {
       try {
         return JSON.parse(userStr);
-      } catch (error) {
-        console.error('解析用户信息失败:', error);
-        return null;
-      }
+      } catch {
+          return null;
+        }
     }
     return null;
   }
@@ -167,12 +166,8 @@ export class AuthService {
               token_type: response.token_type,
               user: userInfo,
             };
-          } catch (userError) {
-            console.warn(
-              '获取用户信息失败，使用登录响应中的用户信息:',
-              userError
-            );
-            if (response.user) {
+          } catch {
+              if (response.user) {
               TokenManager.setUser(response.user);
             }
           }
@@ -214,7 +209,7 @@ export class AuthService {
         return authResponse;
       }
     } catch (error) {
-      console.error('登录失败:', error);
+      
       throw this.handleAuthError(error);
     }
   }
@@ -245,7 +240,7 @@ export class AuthService {
         return { message: '用户注册成功' };
       }
     } catch (error) {
-      console.error('注册失败:', error);
+
       throw this.handleAuthError(error);
     }
   }
@@ -273,7 +268,7 @@ export class AuthService {
         return storedUser;
       }
     } catch (error) {
-      console.error('获取用户信息失败:', error);
+
       throw this.handleAuthError(error);
     }
   }
@@ -283,15 +278,14 @@ export class AuthService {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         // 如果有真实的登出API，可以在这里调用
-        // await http.post(UserServiceUrls.logout());
+  
       }
 
       // 清除本地认证信息
       TokenManager.clearAuth();
-    } catch (error) {
-      console.error('登出失败:', error);
-      // 即使API调用失败，也要清除本地认证信息
-      TokenManager.clearAuth();
+    } catch {
+        // 即使API调用失败，也要清除本地认证信息
+        TokenManager.clearAuth();
     }
   }
 
@@ -328,7 +322,7 @@ export class AuthService {
         return newToken;
       }
     } catch (error) {
-      console.error('刷新token失败:', error);
+
       // 刷新失败，清除认证信息
       TokenManager.clearAuth();
       throw this.handleAuthError(error);

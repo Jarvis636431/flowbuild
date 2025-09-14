@@ -15,7 +15,6 @@ export const ENV_CONFIG = {
 };
 
 // 调试信息
-if (ENV_CONFIG.IS_DEVELOPMENT) {
-  console.log('🔧 Feature Flags:', FEATURE_FLAGS);
-  console.log('🌍 Environment Config:', ENV_CONFIG);
-}
+// if (ENV_CONFIG.IS_DEVELOPMENT) {
+//   // 开发环境下的调试信息
+// }

@@ -98,13 +98,12 @@ const Output: React.FC<OutputProps> = React.memo(
 
         if (isValidConfig) {
           setProjectConfig(config as unknown as ProjectConfig);
-          console.log('项目配置数据:', config);
         } else {
-          console.warn('项目配置数据格式不符合预期:', config);
+
           setConfigError('项目配置数据格式不符合预期');
         }
       } catch (error) {
-        console.error('获取项目配置失败:', error);
+
         setConfigError(
           error instanceof Error ? error.message : '获取项目配置失败'
         );
@@ -129,7 +128,7 @@ const Output: React.FC<OutputProps> = React.memo(
         !taskManagement.loading &&
         taskManagement.tasks.length === 0
       ) {
-        console.log('🔄 切换到甘特图模式，重新加载任务数据');
+
         taskManagement.fetchTasks(viewData || undefined);
       }
     }, [
@@ -853,14 +852,7 @@ const Output: React.FC<OutputProps> = React.memo(
             </div>
           );
         case '甘特图模式':
-          console.log('🎯 甘特图模式渲染 - 任务数据状态:', {
-            tasksLength: taskManagement.tasks.length,
-            tasks: taskManagement.tasks,
-            loading: taskManagement.loading,
-            error: taskManagement.error,
-            currentProject: currentProject?.name,
-            viewData: viewData ? 'Excel数据存在' : '无Excel数据',
-          });
+
 
           if (taskManagement.tasks.length === 0) {
             return (
@@ -893,14 +885,7 @@ const Output: React.FC<OutputProps> = React.memo(
             </>
           );
         case '进度表模式':
-          console.log('📋 进度表模式渲染 - 任务数据状态:', {
-            tasksLength: taskManagement.tasks.length,
-            tasks: taskManagement.tasks,
-            loading: taskManagement.loading,
-            error: taskManagement.error,
-            currentProject: currentProject?.name,
-            viewData: viewData ? 'Excel数据存在' : '无Excel数据',
-          });
+
 
           if (taskManagement.tasks.length === 0) {
             return (

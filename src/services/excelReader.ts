@@ -242,8 +242,7 @@ export async function readProjectFromExcel(
     };
 
     return project;
-  } catch (error) {
-    console.error('读取Excel文件失败:', error);
+  } catch {
     return null;
   }
 }
@@ -386,8 +385,7 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
     };
 
     return project;
-  } catch (error) {
-    console.error('读取Excel文件失败:', error);
+  } catch {
     return null;
   }
 }
@@ -398,23 +396,18 @@ export async function readProjectFromFile(file: File): Promise<Project | null> {
 export async function readExcelFromBuffer(
   arrayBuffer: ArrayBuffer
 ): Promise<unknown[][]> {
-  try {
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const sheetNames = workbook.SheetNames;
+  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+  const sheetNames = workbook.SheetNames;
 
-    if (sheetNames.length === 0) {
-      throw new Error('Excel文件中没有工作表');
-    }
-
-    // 使用第一个工作表
-    const worksheet = workbook.Sheets[sheetNames[0]];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-    return jsonData as unknown[][];
-  } catch (error) {
-    console.error('解析Excel ArrayBuffer失败:', error);
-    throw error;
+  if (sheetNames.length === 0) {
+    throw new Error('Excel文件中没有工作表');
   }
+
+  // 使用第一个工作表
+  const worksheet = workbook.Sheets[sheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  return jsonData as unknown[][];
 }
 
 /**
@@ -425,8 +418,7 @@ export async function readAllProjectsFromExcel(): Promise<Project[]> {
     // 目前只读取output-2.xlsx文件
     const project = await readProjectFromExcel('output-2.xlsx');
     return project ? [project] : [];
-  } catch (error) {
-    console.error('Excel数据读取失败，请检查data/output-2.xlsx文件是否存在且格式正确:', error);
+  } catch {
     return [];
   }
 }

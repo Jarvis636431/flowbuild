@@ -54,19 +54,15 @@ export const useTaskManagement = (
             const project = await readProjectFromFile(file);
             if (project && project.tasks) {
               tasksData = project.tasks;
-              console.log('从Excel文件解析的任务:', tasksData);
             } else {
-              console.warn('Excel文件解析失败或没有任务数据，使用默认API');
               tasksData = await taskAPI.getTasks();
             }
-          } catch (error) {
-            console.error('解析Excel数据失败:', error);
+          } catch {
             // 解析失败时回退到默认API
             tasksData = await taskAPI.getTasks();
           }
         } else if (viewData && viewData.byteLength === 0) {
           // 如果viewData是空的ArrayBuffer，说明需要从ProjectService获取数据
-          console.log('🔍 检测到空ArrayBuffer标记，从ProjectService获取项目数据');
           
           // 初始化tasksData为默认值
           tasksData = await taskAPI.getTasks();
@@ -84,24 +80,17 @@ export const useTaskManagement = (
               
               if (targetProject && targetProject.tasks && targetProject.tasks.length > 0) {
                 tasksData = targetProject.tasks;
-                console.log('✅ 从ProjectService获取到任务数据:', tasksData.length, '个任务');
                 break; // 成功获取数据，跳出重试循环
               } else {
                 retryCount++;
                 if (retryCount < maxRetries) {
-                  console.log(`⏳ 第${retryCount}次重试，ProjectService中暂未找到数据，${retryDelay}ms后重试...`);
                   await new Promise(resolve => setTimeout(resolve, retryDelay));
-                } else {
-                  console.log('⚠️ 重试次数已达上限，ProjectService中未找到匹配的项目数据，使用默认API');
                 }
               }
-            } catch (error) {
+            } catch {
               retryCount++;
               if (retryCount < maxRetries) {
-                console.log(`❌ 第${retryCount}次获取数据失败，${retryDelay}ms后重试...`, error);
                 await new Promise(resolve => setTimeout(resolve, retryDelay));
-              } else {
-                console.error('从ProjectService获取数据失败，使用默认API:', error);
               }
             }
           }
@@ -127,7 +116,7 @@ export const useTaskManagement = (
       event.preventDefault();
       event.stopPropagation();
 
-      console.log('Task clicked:', task.name); // 调试信息
+  
 
       setSelectedTask(task);
 
@@ -143,12 +132,11 @@ export const useTaskManagement = (
           );
 
           setProcessInfo(processData);
-          console.log('Process info fetched:', processData);
+  
         } catch (error) {
-          console.error('获取工序信息失败:', error);
-          setProcessInfoError(
-            error instanceof Error ? error.message : '获取工序信息失败'
-          );
+            setProcessInfoError(
+              error instanceof Error ? error.message : '获取工序信息失败'
+            );
         } finally {
           setProcessInfoLoading(false);
         }
