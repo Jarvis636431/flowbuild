@@ -33,7 +33,7 @@ const MaterialCharts: React.FC<MaterialChartsProps> = React.memo(
           setCrewData(crewResult);
           setBudgetData(budgetResult);
         } catch (err) {
-          console.error('获取图表数据失败:', err);
+  
           setError(err instanceof Error ? err.message : '获取图表数据失败');
         } finally {
           setLoading(false);

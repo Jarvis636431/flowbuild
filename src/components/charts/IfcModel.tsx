@@ -495,10 +495,10 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
       } catch (error) {
         // 如果是取消错误，不显示错误信息
         if (error instanceof Error && error.name === 'AbortError') {
-          console.log('IFC模型加载已取消');
+  
           return;
         }
-        console.error('加载IFC模型失败:', error);
+
       }
     };
 

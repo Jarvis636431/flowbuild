@@ -6,24 +6,13 @@ import Sidebar from './components/Sidebar';
 import AuthModal from './components/auth/AuthModal';
 import { type Project, projectAPI } from './services/projectService';
 import { AuthService } from './services/authService';
-import { ManagementServiceUrls } from './services/apiConfig';
 import {
   initDefaultWebSocketService,
   getDefaultWebSocketService,
 } from './services/nativeWebSocketService';
-import { FEATURE_FLAGS, ENV_CONFIG } from './config/features';
+import { FEATURE_FLAGS } from './config/features';
 
-// 调试环境变量
-console.log('🔍 环境变量调试信息:');
-console.log('VITE_ENABLE_SOCKET:', import.meta.env.VITE_ENABLE_SOCKET);
-console.log(
-  'VITE_ENABLE_SOCKET类型:',
-  typeof import.meta.env.VITE_ENABLE_SOCKET
-);
-console.log('FEATURE_FLAGS.ENABLE_SOCKET:', FEATURE_FLAGS.ENABLE_SOCKET);
-console.log('完整环境变量:', import.meta.env);
-console.log('完整FEATURE_FLAGS:', FEATURE_FLAGS);
-console.log('完整ENV_CONFIG:', ENV_CONFIG);
+
 
 function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -48,8 +37,7 @@ function App() {
           setIsAuthenticated(false);
           setShowAuthModal(true);
         }
-      } catch (error) {
-        console.error('认证检查失败:', error);
+      } catch {
         setIsAuthenticated(false);
         setShowAuthModal(true);
       } finally {
@@ -74,9 +62,9 @@ function App() {
       setCurrentProject(null);
       setShowAuthModal(true);
 
-      console.log('用户已成功退出登录');
-    } catch (error) {
-      console.error('退出登录失败:', error);
+
+    } catch {
+      // 忽略退出登录错误
     }
   };
 
@@ -84,41 +72,25 @@ function App() {
   useEffect(() => {
     if (!FEATURE_FLAGS.ENABLE_SOCKET) return;
 
-    console.log('🔍 useEffect触发 - Socket连接管理:', {
-      currentProjectId: currentProject?.id,
-      currentProjectName: currentProject?.name,
-      isAuthenticated: isAuthenticated,
-      timestamp: new Date().toISOString(),
-    });
+
 
     const initSocket = async () => {
       try {
         const token = AuthService.getToken();
         if (!isAuthenticated || !currentProject || !token) {
-          console.log('❌ Socket连接条件不满足:', {
-            isAuthenticated,
-            hasCurrentProject: !!currentProject,
-            hasToken: !!token,
-          });
           // 如果条件不满足，确保断开现有连接
           const existingService = getDefaultWebSocketService();
           if (existingService) {
-            console.log('🔌 断开现有WebSocket连接');
             existingService.destroy();
           }
           return;
         }
 
-        console.log('✅ Socket连接条件满足，开始建立连接...', {
-          projectId: currentProject.id,
-          projectName: currentProject.name,
-          token: token ? '已获取' : '未获取',
-        });
+
 
         // 先断开现有连接
         const existingService = getDefaultWebSocketService();
         if (existingService) {
-          console.log('🔌 断开现有WebSocket连接以建立新连接');
           existingService.destroy();
           // 等待一小段时间确保连接完全断开
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -138,28 +110,19 @@ function App() {
         });
 
         // 监听连接状态变化
-        socketService.on('statusChange', (status) => {
-          console.log(`Socket状态变化 [项目${projectId}]:`, status);
+        socketService.on('statusChange', () => {
+          // Socket状态变化处理
         });
 
         // 监听连接错误
-        socketService.on('error', (error) => {
-          console.error(`Socket连接错误 [项目${projectId}]:`, error);
+        socketService.on('error', () => {
+          // Socket连接错误处理
         });
 
         // 建立WebSocket连接
-        console.log('🚀 开始建立WebSocket连接:', {
-          wsUrl: wsUrl,
-          projectId: projectId,
-          projectName: currentProject.name,
-        });
-
         await socketService.connect();
-        console.log(
-          `🎉 WebSocket已连接到项目: ${currentProject.name} (ID: ${projectId})`
-        );
-      } catch (error) {
-        console.error('WebSocket初始化失败:', error);
+      } catch {
+        // WebSocket初始化失败
       }
     };
 
@@ -167,10 +130,8 @@ function App() {
 
     // 清理函数 - 只在组件卸载时执行
     return () => {
-      console.log('🧹 useEffect清理函数执行 - 项目切换或组件卸载');
       const socketService = getDefaultWebSocketService();
       if (socketService) {
-        console.log('🔌 清理函数中断开WebSocket连接');
         socketService.destroy();
       }
     };
@@ -186,8 +147,8 @@ function App() {
         if (projects.length > 0) {
           setCurrentProject(projects[0]);
         }
-      } catch (error) {
-        console.error('初始化应用失败:', error);
+      } catch {
+        // 初始化应用失败
       } finally {
         setLoading(false);
       }
@@ -207,7 +168,6 @@ function App() {
       if (!isAuthenticated) {
         // 用户登出时断开Socket连接
         socketService.disconnect();
-        console.log('用户登出，WebSocket连接已断开');
       }
       // 用户登录时的Socket连接由Socket初始化useEffect处理
     };
@@ -218,170 +178,51 @@ function App() {
   // 监听项目数据刷新事件
   useEffect(() => {
     const handleProjectDataRefresh = (event: CustomEvent) => {
-      console.log('📡 [App.tsx] 收到项目数据刷新事件', {
-        eventDetail: event.detail,
-        currentProjectId: currentProject?.id,
-        timestamp: new Date().toISOString()
-      });
-      
       const { projectId, excelData } = event.detail;
-      console.log('📡 收到项目数据刷新事件:', { projectId, dataSize: excelData?.byteLength });
       
       // 如果刷新的是当前项目，更新viewData
       if (currentProject?.id === projectId) {
-        console.log('✅ [App.tsx] 项目ID匹配，更新viewData', {
-          projectId,
-          currentProjectId: currentProject?.id,
-          previousViewDataExists: !!viewData,
-          newDataSize: excelData?.byteLength
-        });
         setViewData(excelData);
-        console.log('✅ 当前项目数据已刷新');
-      } else {
-        console.log('⚠️ [App.tsx] 项目ID不匹配，忽略刷新事件', {
-          eventProjectId: projectId,
-          currentProjectId: currentProject?.id
-        });
       }
     };
-
-    console.log('🔧 [App.tsx] 注册项目数据刷新事件监听器', {
-      currentProjectId: currentProject?.id
-    });
     
     window.addEventListener('projectDataRefresh', handleProjectDataRefresh as EventListener);
     
     return () => {
-      console.log('🗑️ [App.tsx] 移除项目数据刷新事件监听器', {
-        currentProjectId: currentProject?.id
-      });
       window.removeEventListener('projectDataRefresh', handleProjectDataRefresh as EventListener);
     };
   }, [currentProject?.id, viewData]);
 
   const handleProjectSelect = async (project: Project) => {
-    const previousProject = currentProject;
-    console.log('🔄 项目选择开始:', {
-      previousProject: {
-        id: previousProject?.id,
-        name: previousProject?.name,
-      },
-      newProject: {
-        id: project.id,
-        name: project.name,
-        idType: typeof project.id,
-      },
-      isAuthenticated: isAuthenticated,
-      timestamp: new Date().toISOString(),
-    });
 
     try {
-      console.log('📡 /view接口调用开始:', {
-        projectId: project.id,
-        method: '使用projectAPI.downloadProjectExcel',
-      });
-
       // 使用封装好的方法调用/view接口
-      const startTime = Date.now();
       const file = await projectAPI.downloadProjectExcel(project.id);
-      const responseTime = Date.now() - startTime;
-
-      console.log('📥 /view接口响应详情:', {
-        responseTime: `${responseTime}ms`,
-        fileName: file.name,
-        fileSize: `${file.size} bytes (${(file.size / 1024).toFixed(2)} KB)`,
-        fileType: file.type,
-      });
 
       // 获取返回的Excel数据
       const excelData = await file.arrayBuffer();
 
-      // 详细检查Excel数据
+      // 检查Excel数据
       const dataSize = excelData.byteLength;
       const isValidSize = dataSize > 0;
-      const first4Bytes = new Uint8Array(excelData.slice(0, 4));
-      const first4BytesHex = Array.from(first4Bytes)
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join(' ');
-
-      // 检查是否为Excel文件格式
-      const isExcelFormat =
-        // XLSX格式 (ZIP文件头)
-        (first4Bytes[0] === 0x50 && first4Bytes[1] === 0x4b) ||
-        // XLS格式 (OLE文件头)
-        (first4Bytes[0] === 0xd0 &&
-          first4Bytes[1] === 0xcf &&
-          first4Bytes[2] === 0x11 &&
-          first4Bytes[3] === 0xe0);
-
-      console.log('📊 Excel数据详细分析:', {
-        dataSize: `${dataSize} bytes (${(dataSize / 1024).toFixed(2)} KB)`,
-        isValidSize,
-        first4BytesHex,
-        isExcelFormat,
-        possibleFormat: isExcelFormat
-          ? first4Bytes[0] === 0x50
-            ? 'XLSX (ZIP-based)'
-            : 'XLS (OLE-based)'
-          : '未知格式',
-        dataType: Object.prototype.toString.call(excelData),
-      });
 
       if (!isValidSize) {
         throw new Error('接收到的Excel数据为空');
       }
 
-      if (!isExcelFormat) {
-        console.warn('⚠️ 警告: 接收到的数据可能不是有效的Excel格式');
-        // 尝试将前100字节转换为文本查看内容
-        const preview = new TextDecoder('utf-8', { fatal: false }).decode(
-          excelData.slice(0, 100)
-        );
-        console.log('📄 数据预览 (前100字节):', preview);
-      }
-
       setViewData(excelData);
-      console.log('✅ /view接口调用成功，Excel数据已保存到状态');
 
       // 更新项目状态
       setCurrentProject(project);
 
       // 切换到输出模式
       setViewMode('output');
-      console.log('🎯 已切换到输出模式');
-
-      console.log('✅ 项目状态已更新:', {
-        from: previousProject?.id,
-        to: project.id,
-        projectName: project.name,
-        shouldTriggerReconnect: previousProject?.id !== project.id,
-        viewMode: 'output',
-        excelDataReady: !!excelData && dataSize > 0,
-      });
-    } catch (error) {
-      console.error('❌ 项目切换失败:', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        projectId: project.id,
-        projectName: project.name,
-        apiUrl: ManagementServiceUrls.view(),
-      });
+    } catch {
       // 即使API调用失败，仍然更新项目状态并切换到输出模式
       setCurrentProject(project);
       setViewMode('output');
       setViewData(null); // 清除之前的Excel数据
-      console.log('⚠️ API调用失败，但已切换到输出模式，将使用默认数据');
     }
-
-    // 强制触发Socket连接检查
-    console.log('🔄 等待useEffect响应项目变化...');
-    setTimeout(() => {
-      console.log('⏰ 延迟检查 - 项目切换后状态:', {
-        currentProjectId: project.id,
-        isAuthenticated: isAuthenticated,
-        expectedReconnection: true,
-      });
-    }, 200);
   };
 
   const handleSidebarToggle = () => {
@@ -401,11 +242,9 @@ function App() {
   };
 
   const handleNewProject = () => {
-    console.log('🆕 新建项目开始 - 清除当前项目状态');
     setViewMode('upload');
     setCurrentProject(null);
     setViewData(null);
-    console.log('✅ 新建项目状态已清除，可以切换到其他项目');
   };
 
   const handleProjectCreated = async () => {
@@ -424,34 +263,25 @@ function App() {
         // 检查是否有最新的Excel数据
         const latestProjectData = window.latestProjectData;
         if (latestProjectData && latestProjectData.tasks) {
-          console.log(
-            '🎯 检测到最新的Excel数据，项目任务数量:',
-            latestProjectData.tasks.length
-          );
-
           // 再次确保数据同步，添加额外的延迟
           await new Promise(resolve => setTimeout(resolve, 50));
           
           // 将Excel数据转换为ArrayBuffer格式，以便传递给Output组件
           // 这里我们创建一个标记，让useTaskManagement知道要从ProjectService获取数据
           setViewData(new ArrayBuffer(0)); // 设置一个空的ArrayBuffer作为标记
-
-          console.log('✅ Excel数据已准备就绪，将传递给图表组件');
           
           // 数据成功获取后执行页面刷新
-          console.log('🔄 数据获取成功，即将刷新页面...');
           setTimeout(() => {
             window.location.reload();
           }, 1000); // 延迟1秒刷新，确保数据完全加载
         } else {
-          console.log('⚠️ 未检测到Excel数据，使用默认数据源');
           setViewData(null);
         }
       }
       // 切换到输出模式
       setViewMode('output');
-    } catch (error) {
-      console.error('刷新项目列表失败:', error);
+    } catch {
+      // 刷新项目列表失败
     }
   };
 

@@ -140,7 +140,7 @@ export class NativeWebSocketService {
    */
   emit(event: string, data?: unknown): boolean {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket未连接，无法发送消息');
+
       return false;
     }
 
@@ -154,10 +154,9 @@ export class NativeWebSocketService {
 
       this.ws.send(JSON.stringify(message));
       return true;
-    } catch (error) {
-      console.error('发送消息失败:', error);
-      return false;
-    }
+    } catch {
+        return false;
+      }
   }
 
   /**
@@ -165,32 +164,18 @@ export class NativeWebSocketService {
    */
   sendRaw(data: unknown): boolean {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket未连接，无法发送消息:', {
-        wsExists: !!this.ws,
-        readyState: this.ws?.readyState,
-        status: this.status
-      });
+  
       return false;
     }
 
     try {
       const message = JSON.stringify(data);
-      console.log('📤 发送WebSocket消息:', {
-        data,
-        messageLength: message.length,
-        timestamp: new Date().toISOString()
-      });
+
       this.ws.send(message);
       return true;
-    } catch (error) {
-      console.error('发送原始消息失败:', {
-        error,
-        data,
-        wsReadyState: this.ws?.readyState,
-        timestamp: new Date().toISOString()
-      });
-      return false;
-    }
+    } catch {
+        return false;
+      }
   }
 
   /**
@@ -259,33 +244,24 @@ export class NativeWebSocketService {
             listeners.forEach((listener) => {
               try {
                 listener(message.data);
-              } catch (error) {
-                console.error('消息处理错误:', error);
-              }
+              } catch {
+                  // 忽略消息处理错误
+                }
             });
           }
         }
 
         // 特殊处理 done 消息，确保消息显示后再处理连接关闭
         if (message.type === 'done') {
-          console.log('🔍 收到 done 消息，使用专门的处理方法:', message);
-          this.handleDoneMessage(message);
+            this.handleDoneMessage();
+          }
+      } catch {
+          this.emitEvent('message', event.data);
         }
-      } catch (error) {
-        console.error('消息解析失败:', error);
-        this.emitEvent('message', event.data);
-      }
     };
 
     this.ws.onerror = (error) => {
-      console.error('❌ WebSocket错误:', {
-        error,
-        type: error.type,
-        message: (error as ErrorEvent).message,
-        readyState: this.ws?.readyState,
-        url: this.config.url,
-        timestamp: new Date().toISOString()
-      });
+
       this.status = WebSocketStatus.ERROR;
       this.emitStatusChange();
       this.emitEvent(
@@ -295,12 +271,7 @@ export class NativeWebSocketService {
     };
 
     this.ws.onclose = (event) => {
-      console.log('🔌 WebSocket连接关闭:', {
-        code: event.code,
-        reason: event.reason,
-        wasClean: event.wasClean,
-        timestamp: new Date().toISOString()
-      });
+
       
       this.stopHeartbeat();
       this.status = WebSocketStatus.DISCONNECTED;
@@ -346,10 +317,10 @@ export class NativeWebSocketService {
     this.stopHeartbeat();
     if (this.config.heartbeatInterval && this.config.heartbeatInterval > 0) {
       this.heartbeatTimer = setInterval(() => {
-        if (this.isConnected()) {
-          // this.emit('ping', { timestamp: Date.now() });
-        }
-      }, this.config.heartbeatInterval);
+          if (this.isConnected()) {
+            // 心跳检测
+          }
+        }, this.config.heartbeatInterval);
     }
   }
 
@@ -394,9 +365,9 @@ export class NativeWebSocketService {
       listeners.forEach((listener) => {
         try {
           (listener as (status: WebSocketStatus) => void)(this.status);
-        } catch (error) {
-          console.error('状态变化事件处理错误:', error);
-        }
+        } catch {
+            // 忽略状态变化事件处理错误
+          }
       });
     }
   }
@@ -410,9 +381,9 @@ export class NativeWebSocketService {
       listeners.forEach((listener) => {
         try {
           listener(...args);
-        } catch (error) {
-          console.error(`事件 ${event} 处理错误:`, error);
-        }
+        } catch {
+            // 忽略事件处理错误
+          }
       });
     }
   }
@@ -420,24 +391,15 @@ export class NativeWebSocketService {
   /**
    * 专门处理 done 消息，确保消息完整处理
    */
-  private handleDoneMessage(message: any): void {
-    console.log('🔍 WebSocket服务 - 开始处理 done 消息:', {
-      message,
-      timestamp: new Date().toISOString(),
-      readyState: this.ws?.readyState,
-      status: this.status
-    });
-
+  private handleDoneMessage(): void {
     // 注意：消息事件已经在 onmessage 中触发过了，这里不需要重复触发
     // this.emitEvent('message', message); // 移除这行，避免重复触发
     
     // 延迟处理，给前端足够时间显示消息
     setTimeout(() => {
-      console.log('✅ WebSocket服务 - done 消息处理完成，消息应该已经显示');
-      
       // 检查连接状态，如果连接仍然存在，可以在这里做一些清理工作
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        console.log('🔍 WebSocket服务 - 连接仍然开放，done 消息处理成功');
+        // done 消息处理成功
       }
     }, 300); // 300ms 延迟，确保消息处理完成
   }
