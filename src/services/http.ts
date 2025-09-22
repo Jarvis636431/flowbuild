@@ -59,13 +59,7 @@ class HttpClient {
 
     this.setupInterceptors();
 
-    // 开发环境下输出配置信息
-    if (ENV_CONFIG.IS_DEVELOPMENT) {
-      console.log(
-        '🌐 HTTP Client initialized with baseURL:',
-        this.getBaseURL()
-      );
-    }
+
   }
 
   // 动态获取API基础URL
@@ -95,14 +89,11 @@ class HttpClient {
         // 添加请求时间戳
         config.headers['X-Request-Time'] = Date.now().toString();
 
-        console.log(
-          `[HTTP Request] ${config.method?.toUpperCase()} ${config.url}`,
-          config
-        );
+
         return config;
       },
       (error) => {
-        console.error('[HTTP Request Error]', error);
+
         return Promise.reject(this.handleError(error));
       }
     );
@@ -115,7 +106,7 @@ class HttpClient {
           this.requestQueue.delete(requestId);
         }
 
-        console.log(`[HTTP Response] ${response.status}`, response.data);
+
 
         // 统一处理响应数据格式
         if (response.data && typeof response.data === 'object') {
@@ -137,7 +128,7 @@ class HttpClient {
           this.requestQueue.delete(requestId);
         }
 
-        console.error('[HTTP Response Error]', error);
+
 
         // 处理401错误和token刷新
         if (
@@ -152,7 +143,7 @@ class HttpClient {
               return this.instance.request(error.config);
             }
           } catch {
-            console.error('Token refresh failed, redirecting to login');
+
             return Promise.reject(this.handleError(error));
           }
         }
@@ -202,7 +193,7 @@ class HttpClient {
       const { AuthService } = await import('./authService');
       return await AuthService.refreshToken();
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      
       this.handleUnauthorized();
       throw error;
     }
@@ -229,7 +220,7 @@ class HttpClient {
     const delay = config.retryDelay || 1000;
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    console.log(`[HTTP Retry] Retrying request, ${config.retry} attempts left`);
+    
     return this.instance.request(config);
   }
 
@@ -290,7 +281,7 @@ class HttpClient {
   private handleUnauthorized(): void {
     TokenManager.clearAuth();
     // 可以在这里添加跳转到登录页的逻辑
-    // window.location.href = '/login';
+    
 
     // 触发自定义事件，通知应用用户需要重新登录
     window.dispatchEvent(new CustomEvent('auth:unauthorized'));
@@ -332,14 +323,11 @@ class HttpClient {
         }
 
         config.headers['X-Request-Time'] = Date.now().toString();
-        console.log(
-          `[HTTP Request] ${config.method?.toUpperCase()} ${config.url}`,
-          config
-        );
+
         return config;
       },
       (error) => {
-        console.error('[HTTP Request Error]', error);
+
         return Promise.reject(this.handleError(error));
       }
     );
@@ -352,7 +340,7 @@ class HttpClient {
           this.requestQueue.delete(requestId);
         }
 
-        console.log(`[HTTP Response] ${response.status}`, response.data);
+
 
         if (response.data && typeof response.data === 'object') {
           if (response.data.code !== undefined) {
@@ -372,7 +360,7 @@ class HttpClient {
           this.requestQueue.delete(requestId);
         }
 
-        console.error('[HTTP Response Error]', error);
+
 
         if (
           error.response?.status === 401 &&
@@ -385,7 +373,7 @@ class HttpClient {
               return instance.request(error.config);
             }
           } catch {
-            console.error('Token refresh failed, redirecting to login');
+
             return Promise.reject(this.handleError(error));
           }
         }

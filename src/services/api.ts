@@ -148,13 +148,11 @@ export const taskAPI = {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // 在实际项目中，这里会是真实的API调用
-      // const response = await apiClient.get('/tasks');
-      // return response.data;
+
 
       // 目前返回模拟数据
       return mockTasks;
-    } catch (error) {
-      console.error('获取任务列表失败:', error);
+    } catch {
       throw new Error('获取任务列表失败');
     }
   },
@@ -164,13 +162,11 @@ export const taskAPI = {
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // const response = await apiClient.get(`/tasks/${id}`);
-      // return response.data;
+
 
       const task = mockTasks.find((task) => task.id === id);
       return task || null;
-    } catch (error) {
-      console.error('获取任务详情失败:', error);
+    } catch {
       throw new Error('获取任务详情失败');
     }
   },
@@ -180,8 +176,7 @@ export const taskAPI = {
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      // const response = await apiClient.post('/tasks', task);
-      // return response.data;
+
 
       const newTask: TaskItem = {
         ...task,
@@ -189,8 +184,7 @@ export const taskAPI = {
       };
       mockTasks.push(newTask);
       return newTask;
-    } catch (error) {
-      console.error('创建任务失败:', error);
+    } catch {
       throw new Error('创建任务失败');
     }
   },
@@ -203,8 +197,7 @@ export const taskAPI = {
     try {
       await new Promise((resolve) => setTimeout(resolve, 600));
 
-      // const response = await apiClient.put(`/tasks/${id}`, updates);
-      // return response.data;
+
 
       const taskIndex = mockTasks.findIndex((task) => task.id === id);
       if (taskIndex === -1) {
@@ -213,8 +206,7 @@ export const taskAPI = {
 
       mockTasks[taskIndex] = { ...mockTasks[taskIndex], ...updates };
       return mockTasks[taskIndex];
-    } catch (error) {
-      console.error('更新任务失败:', error);
+    } catch {
       throw new Error('更新任务失败');
     }
   },
@@ -224,7 +216,7 @@ export const taskAPI = {
     try {
       await new Promise((resolve) => setTimeout(resolve, 400));
 
-      // await apiClient.delete(`/tasks/${id}`);
+
 
       const taskIndex = mockTasks.findIndex((task) => task.id === id);
       if (taskIndex === -1) {
@@ -232,8 +224,7 @@ export const taskAPI = {
       }
 
       mockTasks.splice(taskIndex, 1);
-    } catch (error) {
-      console.error('删除任务失败:', error);
+    } catch {
       throw new Error('删除任务失败');
     }
   },
@@ -252,8 +243,7 @@ export const chatAPI = {
       );
 
       // 在实际项目中，这里会是真实的API调用
-      // const response = await apiClient.post('/chat', request);
-      // return response.data;
+
 
       // 模拟AI回复逻辑
       const userMessage = request.message.toLowerCase();
@@ -375,8 +365,7 @@ export const chatAPI = {
           timestamp: new Date(),
         };
       }
-    } catch (error) {
-      console.error('发送消息失败:', error);
+    } catch {
       throw new Error('AI服务暂时不可用，请稍后再试');
     }
   },
@@ -386,13 +375,11 @@ export const chatAPI = {
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // const response = await apiClient.get('/chat/history');
-      // return response.data;
+
 
       // 返回空历史记录，实际项目中可以从后端获取
       return [];
-    } catch (error) {
-      console.error('获取聊天历史失败:', error);
+    } catch {
       throw new Error('获取聊天历史失败');
     }
   },
