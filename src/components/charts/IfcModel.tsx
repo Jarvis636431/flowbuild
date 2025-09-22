@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { IFCLoader } from 'web-ifc-three/IFCLoader';
+import { IFCPRODUCT } from 'web-ifc';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { type Project } from '../../services/projectService';
 
@@ -17,6 +18,18 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
   const controlsRef = useRef<OrbitControls | null>(null);
   const animateIdRef = useRef<number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const ifcLoaderRef = useRef<IFCLoader | null>(null);
+  const modelRef = useRef<any>(null);
+  const raycasterRef = useRef<THREE.Raycaster | null>(null);
+  const mouseRef = useRef<THREE.Vector2 | null>(null);
+  const infoDivRef = useRef<HTMLDivElement | null>(null);
+  const selectionSubsetRef = useRef<THREE.Mesh | null>(null);
+
+  // 需要高亮（红色）的 GlobalId 列表
+  const HIGHLIGHT_GLOBAL_IDS = [
+    "aJsnXu9eIpoyoEJdJSv$0G",
+    "x5GgzOLEIt6paCvCuno_0G",
+  ];
 
   // 根据项目名称选择模型文件
   const getModelURL = (projectName: string): string => {
@@ -79,6 +92,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
 
     const ifcLoader = new IFCLoader();
     ifcLoader.ifcManager.setWasmPath('./');
+    ifcLoaderRef.current = ifcLoader;
 
     const loadModel = async () => {
       try {
@@ -112,14 +126,14 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
           return;
         }
 
-        const model = await ifcLoader.parse(data);
+        const model = (await ifcLoader.parse(data)) as any;
 
         // 检查是否已被取消
         if (abortControllerRef.current?.signal.aborted) {
           return;
         }
 
-        model.traverse((child) => {
+        model.traverse((child: THREE.Object3D) => {
           if (child instanceof THREE.Mesh) {
             if (child.geometry) {
               child.geometry.computeBoundingSphere();
@@ -149,6 +163,145 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
         }
 
         scene.add(model);
+        modelRef.current = model;
+
+        // 信息面板
+        if (!infoDivRef.current) {
+          const info = document.createElement('div');
+          info.style.position = 'absolute';
+          info.style.top = '12px';
+          info.style.right = '12px';
+          info.style.maxWidth = '360px';
+          info.style.background = 'rgba(0,0,0,0.65)';
+          info.style.color = '#fff';
+          info.style.padding = '10px 12px';
+          info.style.borderRadius = '8px';
+          info.style.fontSize = '12px';
+          info.style.lineHeight = '1.4';
+          info.style.pointerEvents = 'none';
+          info.style.whiteSpace = 'pre-wrap';
+          info.textContent = '点击构件以查看属性';
+          infoDivRef.current = info;
+          container.style.position = 'relative';
+          container.appendChild(info);
+        }
+
+        // 底色统一为半透明灰色
+        const baseMaterial = new THREE.MeshStandardMaterial({
+          color: 0x808080,
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: false,
+          metalness: 0,
+          roughness: 1,
+        });
+        model.traverse((child: THREE.Object3D) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = baseMaterial;
+            child.renderOrder = 0;
+          }
+        });
+
+        // 根据 GlobalId 创建高亮子集（红色）
+        try {
+          const modelID = (model as any).modelID as number;
+
+          // 获取所有产品元素的 expressID 列表（优先方式）
+          const rawIds = await ifcLoader.ifcManager.getAllItemsOfType(
+            modelID,
+            IFCPRODUCT,
+            true
+          );
+          let allProductIds: number[] = Array.isArray(rawIds)
+            ? (rawIds as number[])
+            : Array.from(rawIds as Iterable<number>);
+
+          console.log('[IFC] 产品总数(方式A IFCPRODUCT):', allProductIds.length);
+
+          // 回退：通过空间结构收集 expressID
+          if (!allProductIds.length) {
+            try {
+              const spatial = await ifcLoader.ifcManager.getSpatialStructure(modelID, true);
+              const idsSet = new Set<number>();
+              const collect = (node: any) => {
+                if (!node) return;
+                if (typeof node.expressID === 'number') idsSet.add(node.expressID);
+                if (Array.isArray(node.items)) {
+                  for (const it of node.items) {
+                    if (typeof it?.expressID === 'number') idsSet.add(it.expressID);
+                  }
+                }
+                if (Array.isArray(node.children)) {
+                  for (const ch of node.children) collect(ch);
+                }
+              };
+              collect(spatial);
+              allProductIds = Array.from(idsSet);
+              console.log('[IFC] 产品总数(方式B SpatialStructure):', allProductIds.length);
+            } catch (se) {
+              console.warn('[IFC] 通过空间结构收集ID失败:', se);
+            }
+          }
+
+          const globalIdToExpressId = new Map<string, number>();
+
+          for (const expressID of allProductIds) {
+            const props: any = await ifcLoader.ifcManager.getItemProperties(
+              modelID,
+              expressID,
+              false
+            );
+            const gid = props?.GlobalId?.value as string | undefined;
+            if (gid) {
+              globalIdToExpressId.set(gid, expressID);
+            }
+          }
+
+          console.log('[IFC] 已映射GlobalId数量:', globalIdToExpressId.size);
+          const resolvedPairs = HIGHLIGHT_GLOBAL_IDS.map((gid) => ({
+            gid,
+            expressID: globalIdToExpressId.get(gid) ?? null,
+          }));
+          console.log('[IFC] 待高亮ID映射:', resolvedPairs);
+
+          const idsToHighlight = HIGHLIGHT_GLOBAL_IDS.map((gid) =>
+            globalIdToExpressId.get(gid)
+          ).filter((id): id is number => typeof id === 'number');
+
+          if (idsToHighlight.length > 0) {
+            const highlightMaterial = new THREE.MeshStandardMaterial({
+              color: 0xff0000,
+              transparent: true,
+              opacity: 0.5,
+              depthWrite: true,
+              depthTest: true,
+              metalness: 0,
+              roughness: 0.6,
+            });
+
+            // 不再把子集直接加到 scene，避免与居中后的 model 产生偏移
+            const subset = ifcLoader.ifcManager.createSubset({
+              modelID,
+              ids: idsToHighlight,
+              material: highlightMaterial,
+              removePrevious: true,
+              customID: 'highlight',
+            } as any);
+
+            if (subset) {
+              subset.renderOrder = 1;
+              // 挂到原模型上，保持与模型相同的坐标变换
+              (model as THREE.Object3D).add(subset);
+              console.log('[IFC] 创建高亮子集成功(挂到model)，数量:', idsToHighlight.length);
+            } else {
+              console.warn('[IFC] 创建高亮子集失败');
+            }
+          } else {
+            console.warn('[IFC] 未找到匹配的GlobalId用于高亮');
+          }
+        } catch (e) {
+          console.warn('根据 GlobalId 高亮失败:', e);
+        }
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = false;
@@ -191,6 +344,125 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
         sceneRef.current = scene;
         cameraRef.current = camera;
         rendererRef.current = renderer;
+
+        // 拾取器与事件
+        raycasterRef.current = new THREE.Raycaster();
+        mouseRef.current = new THREE.Vector2();
+
+        const handleClick = async (event: MouseEvent) => {
+          if (!rendererRef.current || !cameraRef.current || !raycasterRef.current) return;
+          const rect = rendererRef.current.domElement.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+          mouseRef.current!.set(x, y);
+
+          raycasterRef.current.setFromCamera(mouseRef.current!, cameraRef.current);
+          const targets: THREE.Object3D[] = modelRef.current ? [modelRef.current] : sceneRef.current ? [sceneRef.current] : [];
+          const intersects = raycasterRef.current.intersectObjects(targets, true);
+          if (!intersects.length) {
+            if (infoDivRef.current) infoDivRef.current.textContent = '未选中构件';
+            // 未命中，移除已有的黄色选择子集，避免误判为选中
+            if (selectionSubsetRef.current && modelRef.current) {
+              (modelRef.current as THREE.Object3D).remove(selectionSubsetRef.current);
+              selectionSubsetRef.current = null;
+              try {
+                if (sceneRef.current && cameraRef.current && rendererRef.current) {
+                  rendererRef.current.render(sceneRef.current, cameraRef.current);
+                }
+              } catch {}
+            }
+            return;
+          }
+
+          const first = intersects[0];
+          if (!first.object || !('geometry' in first.object) || typeof first.faceIndex !== 'number') {
+            if (infoDivRef.current) infoDivRef.current.textContent = '未选中有效面';
+            // 无效命中，同样移除黄色选择
+            if (selectionSubsetRef.current && modelRef.current) {
+              (modelRef.current as THREE.Object3D).remove(selectionSubsetRef.current);
+              selectionSubsetRef.current = null;
+              try {
+                if (sceneRef.current && cameraRef.current && rendererRef.current) {
+                  rendererRef.current.render(sceneRef.current, cameraRef.current);
+                }
+              } catch {}
+            }
+            return;
+          }
+
+          try {
+            const geom = (first.object as any).geometry as THREE.BufferGeometry;
+            const expressID = ifcLoader.ifcManager.getExpressId(geom, first.faceIndex as number);
+            const modelID = (first.object as any).modelID ?? (modelRef.current as any)?.modelID;
+            if (typeof expressID !== 'number' || typeof modelID !== 'number') {
+              if (infoDivRef.current) infoDivRef.current.textContent = '无法解析构件ID';
+              return;
+            }
+
+            const props: any = await ifcLoader.ifcManager.getItemProperties(modelID, expressID, true);
+            const gid = props?.GlobalId?.value ?? '';
+            const name = props?.Name?.value ?? '';
+            const type = props?.ObjectType?.value ?? props?.type ?? '';
+            const predef = props?.PredefinedType?.value ?? '';
+
+            console.log('[IFC] 点击选中:', { expressID, GlobalId: gid, Name: name, Type: type, Predefined: predef });
+
+            if (infoDivRef.current) {
+              infoDivRef.current.innerHTML =
+                `<div><b>ExpressID</b>: ${expressID}</div>` +
+                (gid ? `<div><b>GlobalId</b>: ${gid}</div>` : '') +
+                (name ? `<div><b>Name</b>: ${name}</div>` : '') +
+                (type ? `<div><b>Type</b>: ${type}</div>` : '') +
+                (predef ? `<div><b>Predefined</b>: ${predef}</div>` : '');
+            }
+
+            // 创建/更新黄色半透明选择子集，挂到 model 保持原位
+            try {
+              if (selectionSubsetRef.current && modelRef.current) {
+                (modelRef.current as THREE.Object3D).remove(selectionSubsetRef.current);
+                selectionSubsetRef.current = null;
+              }
+
+              const selectMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffff00,
+                transparent: true,
+                opacity: 0.5,
+                depthWrite: false,
+                depthTest: true,
+                metalness: 0,
+                roughness: 0.6,
+              });
+
+              const selectionSubset = ifcLoader.ifcManager.createSubset({
+                modelID,
+                ids: [expressID],
+                material: selectMaterial,
+                removePrevious: true,
+                customID: 'select',
+              } as any);
+
+              if (selectionSubset) {
+                selectionSubset.renderOrder = 2;
+                (modelRef.current as THREE.Object3D).add(selectionSubset);
+                selectionSubsetRef.current = selectionSubset as THREE.Mesh;
+              }
+            } catch (se) {
+              console.warn('[IFC] 创建选择子集失败:', se);
+            }
+
+            // 立即渲染一次以反映选择
+            try {
+              if (sceneRef.current && cameraRef.current && rendererRef.current) {
+                rendererRef.current.render(sceneRef.current, cameraRef.current);
+              }
+            } catch {}
+          } catch (e) {
+            if (infoDivRef.current) infoDivRef.current.textContent = '读取属性失败';
+            console.warn('点击读取属性失败', e);
+          }
+        };
+
+        renderer.domElement.addEventListener('click', handleClick);
 
         let lastTime = 0;
         const targetFPS = 60;
@@ -279,6 +551,13 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
       }
       if (rendererRef.current) {
         rendererRef.current.dispose();
+      }
+        if (renderer && renderer.domElement) {
+          renderer.domElement.replaceWith(renderer.domElement.cloneNode(false));
+        }
+        if (infoDivRef.current && container.contains(infoDivRef.current)) {
+          container.removeChild(infoDivRef.current);
+          infoDivRef.current = null;
       }
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
