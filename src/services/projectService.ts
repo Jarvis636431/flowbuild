@@ -271,7 +271,6 @@ export class ProjectService {
     }
   }
 
-  // 根据ID获取单个项目方法已删除
 
   // 预创建项目（获取project_id）
   static async precreateProject(request: {
