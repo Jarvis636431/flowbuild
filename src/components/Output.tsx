@@ -996,6 +996,7 @@ const Output: React.FC<OutputProps> = React.memo(
           processInfo={taskManagement.processInfo}
           processInfoLoading={taskManagement.processInfoLoading}
           processInfoError={taskManagement.processInfoError}
+          project={currentProject}
         />
       </div>
     );

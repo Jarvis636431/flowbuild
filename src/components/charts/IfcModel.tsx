@@ -7,9 +7,10 @@ import { type Project } from '../../services/projectService';
 
 interface IfcModelProps {
   project?: Project | null;
+  highlightIds?: string[];
 }
 
-const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
+const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -26,7 +27,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project }) => {
   const selectionSubsetRef = useRef<THREE.Mesh | null>(null);
 
   // 需要高亮（红色）的 GlobalId 列表
-  const HIGHLIGHT_GLOBAL_IDS = [
+  const HIGHLIGHT_GLOBAL_IDS = highlightIds || [
     "aJsnXu9eIpoyoEJdJSv$0G",
     "x5GgzOLEIt6paCvCuno_0G",
   ];

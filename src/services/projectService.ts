@@ -94,13 +94,16 @@ export interface ProcessInfo {
   拆单名称: string;
 }
 
-// 工单信息
+// 派单信息接口
 export interface OrderInfo {
   工单内容: string;
   详细信息: string;
+  节点大样图: string;
   设计交底: string;
   安全交底: string;
   技术验收标准: string;
+  构件: string[];
+  视频: string;
 }
 
 // API响应结构
