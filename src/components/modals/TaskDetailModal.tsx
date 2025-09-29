@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from '../shared/Modal';
+import IfcModel from '../charts/IfcModel';
 import { type TaskItem } from '../../services/api';
 import { type ProcessInfoResponse } from '../../services/projectService';
 
@@ -33,6 +34,9 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     Boolean(processInfo.order_info?.视频?.trim())
   );
 
+  // 获取构件ID数组
+  const componentIds = processInfo?.order_info?.构件 || [];
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="task-detail-popup">
       <div className="popup-header">
@@ -50,6 +54,23 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       </div>
       <div className="popup-content">
       
+        {/* 模型显示区域 */}
+        {componentIds.length > 0 && (
+          <div className="detail-section">
+            <span className="detail-label" style={{ fontSize: '20px', fontWeight: 'bold', color: '#00CED1' }}>构件模型:</span>
+            <div style={{ 
+              height: '400px', 
+              width: '100%', 
+              border: '1px solid #333',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              marginTop: '10px'
+            }}>
+              <IfcModel highlightIds={componentIds} />
+            </div>
+          </div>
+        )}
+
         {/* 工序信息部分 */}
         <div className="detail-section">
           <span className="detail-label" style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFD700' }}>工序信息:</span>
