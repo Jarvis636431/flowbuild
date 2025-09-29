@@ -1,8 +1,7 @@
 import React from 'react';
 import Modal from '../shared/Modal';
 import { type TaskItem } from '../../services/api';
-import { type ProcessInfoResponse, type Project } from '../../services/projectService';
-import IfcModel from '../charts/IfcModel';
+import { type ProcessInfoResponse } from '../../services/projectService';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -11,7 +10,6 @@ interface TaskDetailModalProps {
   processInfo: ProcessInfoResponse | null;
   processInfoLoading: boolean;
   processInfoError: string | null;
-  project?: Project | null;
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -21,19 +19,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   processInfo,
   processInfoLoading,
   processInfoError,
-  project,
 }) => {
   if (!task) return null;
 
   // 检查派单信息是否有任何字段有值
   const hasOrderInfo = processInfo?.order_info && (
     Boolean(processInfo.order_info?.工单内容?.trim()) ||
-    Boolean(processInfo.order_info?.详细信息?.trim()) ||
-    Boolean(processInfo.order_info?.节点大样图?.trim()) ||
+    (Array.isArray(processInfo.order_info?.详细信息) && processInfo.order_info.详细信息.length > 0) ||
+    (Array.isArray(processInfo.order_info?.节点大样图) && processInfo.order_info.节点大样图.length > 0) ||
     Boolean(processInfo.order_info?.设计交底?.trim()) ||
     Boolean(processInfo.order_info?.安全交底?.trim()) ||
     Boolean(processInfo.order_info?.技术验收标准?.trim()) ||
-    (processInfo.order_info?.构件 && Array.isArray(processInfo.order_info.构件) && processInfo.order_info.构件.length > 0) ||
     Boolean(processInfo.order_info?.视频?.trim())
   );
 
@@ -128,16 +124,34 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.工单内容}</span>
                 </div>
               )}
-              {(processInfo.order_info?.详细信息 !== null && processInfo.order_info?.详细信息 !== undefined && processInfo.order_info?.详细信息 !== '') && (
+              {(processInfo.order_info?.详细信息 && Array.isArray(processInfo.order_info.详细信息) && processInfo.order_info.详细信息.length > 0) && (
                 <div className="detail-item">
                   <span className="detail-label">详细信息:</span>
-                  <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.详细信息}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {processInfo.order_info.详细信息.map((imageUrl, index) => (
+                      <img 
+                        key={index}
+                        style={{ width: '80%', maxWidth: '400px', borderRadius: '4px' }} 
+                        src={imageUrl} 
+                        alt={`详细信息图片 ${index + 1}`} 
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
-              {(processInfo.order_info?.节点大样图 !== null && processInfo.order_info?.节点大样图 !== undefined && processInfo.order_info?.节点大样图 !== '') && (
+              {(processInfo.order_info?.节点大样图 && Array.isArray(processInfo.order_info.节点大样图) && processInfo.order_info.节点大样图.length > 0) && (
                 <div className="detail-item">
                   <span className="detail-label">节点大样图:</span>
-                  <img style={{ width: '80%', maxWidth: '400px', borderRadius: '4px' }} src={processInfo.order_info.节点大样图} alt="节点大样图" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {processInfo.order_info.节点大样图.map((imageUrl, index) => (
+                      <img 
+                        key={index}
+                        style={{ width: '80%', maxWidth: '400px', borderRadius: '4px' }} 
+                        src={imageUrl} 
+                        alt={`节点大样图 ${index + 1}`} 
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
               {(processInfo.order_info?.设计交底 !== null && processInfo.order_info?.设计交底 !== undefined && processInfo.order_info?.设计交底 !== '') && (
@@ -158,23 +172,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{processInfo.order_info.技术验收标准}</span>
                 </div>
               )}
-              {(processInfo.order_info?.构件 && Array.isArray(processInfo.order_info.构件) && processInfo.order_info.构件.length > 0) && (
-                <div className="detail-item">
-                  <span className="detail-label">IFC模型:</span>
-                  <div style={{ 
-                    width: '100%', 
-                    height: '400px', 
-                    border: '1px solid rgba(255, 255, 255, 0.2)', 
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
-                    <IfcModel 
-                      project={project} 
-                      highlightIds={processInfo.order_info.构件}
-                    />
-                  </div>
-                </div>
-              )}
+
               {(processInfo.order_info?.视频 !== null && processInfo.order_info?.视频 !== undefined && processInfo.order_info?.视频 !== '') && (
                 <div className="detail-item">
                   <span className="detail-label">视频:</span>

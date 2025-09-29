@@ -26,6 +26,10 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds })
   const infoDivRef = useRef<HTMLDivElement | null>(null);
   const selectionSubsetRef = useRef<THREE.Mesh | null>(null);
 
+  // 添加错误状态
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
   // 需要高亮（红色）的 GlobalId 列表
   const HIGHLIGHT_GLOBAL_IDS = highlightIds || [
     "aJsnXu9eIpoyoEJdJSv$0G",
@@ -105,7 +109,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds })
         // 根据项目名称选择模型文件
         const modelURL = project?.name
           ? getModelURL(project.name)
-          : '/绿城石岗.ifc';
+          : '/18号楼石钢住宅18#楼【拆分标准层】【删除部分楼层＜100mb】.ifc';
         
         const response = await fetch(modelURL, {
           signal: abortControllerRef.current?.signal
@@ -496,10 +500,14 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds })
       } catch (error) {
         // 如果是取消错误，不显示错误信息
         if (error instanceof Error && error.name === 'AbortError') {
-  
           return;
         }
-
+        
+        console.error('[IFC] 加载模型失败:', error);
+        setError(error instanceof Error ? error.message : '加载模型失败');
+        setLoading(false);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -565,6 +573,52 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds })
       isInitializedRef.current = false;
     };
   }, [project?.name]); // 添加project.name作为依赖项，当项目名称变化时重新加载模型
+
+  // 如果有错误，显示错误信息
+  if (error) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          height: '100%',
+          padding: '20px',
+          color: '#ff6b6b',
+          textAlign: 'center',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '18px', marginBottom: '10px' }}>❌ 模型加载失败</div>
+          <div style={{ fontSize: '14px', opacity: 0.8 }}>{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在加载，显示加载状态
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          height: '100%',
+          padding: '20px',
+          color: '#4CAF50',
+          textAlign: 'center',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '18px', marginBottom: '10px' }}>🔄 正在加载模型...</div>
+          <div style={{ fontSize: '14px', opacity: 0.8 }}>请稍候</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

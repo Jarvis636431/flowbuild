@@ -97,8 +97,8 @@ export interface ProcessInfo {
 // 派单信息接口
 export interface OrderInfo {
   工单内容: string;
-  详细信息: string;
-  节点大样图: string;
+  详细信息: string[];
+  节点大样图: string[];
   设计交底: string;
   安全交底: string;
   技术验收标准: string;
