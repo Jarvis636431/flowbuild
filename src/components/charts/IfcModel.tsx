@@ -38,10 +38,10 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(({ project, highlightIds })
     if (firstChar === '海') {
       return '/海河玺.ifc';
     } else if (firstChar === '绿') {
-      return '/绿城石岗.ifc';
+      return '/18号楼石钢住宅18#楼【拆分标准层】【删除部分楼层＜100mb】.ifc';
     }
-    // 默认返回绿城石岗.ifc
-    return '/绿城石岗.ifc';
+    // 默认返回18号楼石钢住宅18#楼【拆分标准层】【删除部分楼层＜100mb】.ifc
+    return '/18号楼石钢住宅18#楼【拆分标准层】【删除部分楼层＜100mb】.ifc';
   };
 
   useEffect(() => {
