@@ -39,10 +39,10 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(
       if (firstChar === '海') {
         return '/海河玺.ifc';
       } else if (firstChar === '绿') {
-        return '/绿城石岗 0930.ifc';
+        return '/0923.ifc';
       }
-      // 默认返回绿城石岗 0930.ifc
-      return '/绿城石岗 0930.ifc';
+      // 默认返回0923.ifc
+      return '/0923.ifc';
     };
 
     useEffect(() => {
@@ -106,7 +106,7 @@ const IfcModel: React.FC<IfcModelProps> = React.memo(
           // 根据项目名称选择模型文件
           const modelURL = project?.name
             ? getModelURL(project.name)
-            : '/绿城石岗 0930.ifc';
+            : '/0923.ifc';
 
           const response = await fetch(modelURL, {
             signal: abortControllerRef.current?.signal,

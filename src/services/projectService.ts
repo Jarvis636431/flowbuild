@@ -184,7 +184,6 @@ let mockProjects: Project[] = [];
 // 数据转换函数
 const convertApiProjectToProject = (apiProject: ApiProject): Project => {
   try {
-
     // 验证必需字段
     if (!apiProject) {
       throw new Error('API项目数据为空');
@@ -273,7 +272,6 @@ export class ProjectService {
       );
     }
   }
-
 
   // 预创建项目（获取project_id）
   static async precreateProject(request: {
@@ -635,57 +633,49 @@ export class ProjectService {
 
   // 下载项目Excel文件
   static async downloadProjectExcel(projectId: string): Promise<File> {
-      if (FEATURE_FLAGS.USE_REAL_API) {
-        const apiUrl = `${ManagementServiceUrls.view()}?project_id=${projectId}`;
+    if (FEATURE_FLAGS.USE_REAL_API) {
+      const apiUrl = `${ManagementServiceUrls.view()}?project_id=${projectId}`;
 
-        
-        const response = await http.get(apiUrl, {
-          responseType: 'blob',
-        });
+      const response = await http.get(apiUrl, {
+        responseType: 'blob',
+      });
 
+      // 创建File对象
+      const blob = response as Blob;
+      const file = new File([blob], `project_${projectId}.xlsx`, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
 
+      // // 直接触发浏览器下载
+      // const url = URL.createObjectURL(blob);
+      // const link = document.createElement('a');
+      // link.href = url;
+      // link.download = `project_${projectId}.xlsx`;
+      // link.style.display = 'none';
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      // URL.revokeObjectURL(url);
 
-        // 创建File对象
-        const blob = response as Blob;
-        const file = new File([blob], `project_${projectId}.xlsx`, {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
+      return file;
+    } else {
+      // 模拟模式 - 创建一个模拟的Excel文件
+      const mockExcelData = new Uint8Array([
+        0x50,
+        0x4b,
+        0x03,
+        0x04, // ZIP文件头
+        // 这里是简化的Excel文件数据
+      ]);
+      const blob = new Blob([mockExcelData], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const file = new File([blob], `mock_project_${projectId}.xlsx`, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
 
-        // // 直接触发浏览器下载
-        // const url = URL.createObjectURL(blob);
-        // const link = document.createElement('a');
-        // link.href = url;
-        // link.download = `project_${projectId}.xlsx`;
-        // link.style.display = 'none';
-        // document.body.appendChild(link);
-        // link.click();
-        // document.body.removeChild(link);
-        // URL.revokeObjectURL(url);
-      
-
-        return file;
-      } else {
-
-        
-        // 模拟模式 - 创建一个模拟的Excel文件
-        const mockExcelData = new Uint8Array([
-          0x50,
-          0x4b,
-          0x03,
-          0x04, // ZIP文件头
-          // 这里是简化的Excel文件数据
-        ]);
-        const blob = new Blob([mockExcelData], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-        const file = new File([blob], `mock_project_${projectId}.xlsx`, {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-
-
-
-        return file;
-      }
+      return file;
+    }
   }
 
   // 创建项目并上传文件的完整流程
@@ -789,7 +779,9 @@ export class ProjectService {
   }
 
   // 获取项目配置信息
-  static async getProjectConfig(projectId: string): Promise<Record<string, unknown>> {
+  static async getProjectConfig(
+    projectId: string
+  ): Promise<Record<string, unknown>> {
     try {
       if (FEATURE_FLAGS.USE_REAL_API) {
         // 使用真实API
@@ -805,27 +797,35 @@ export class ProjectService {
         if (!project) {
           throw new Error('项目不存在');
         }
-        
+
         // 返回模拟的配置数据，根据用户提供的示例格式
         return {
           construction_methods: [
-            { task_name: "柱钢筋绑扎", method_index: 0 },
-            { task_name: "梁板底排钢筋绑扎", method_index: 1 }
+            { task_name: '柱钢筋绑扎', method_index: 0 },
+            { task_name: '梁板底排钢筋绑扎', method_index: 1 },
           ],
-          overtime_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+          overtime_tasks: [
+            '短肢剪力墙混凝土浇筑',
+            '柱混凝土浇筑',
+            '梁板混凝土浇筑',
+          ],
           shutdown_events: [
             {
-              name: "雨天停工",
+              name: '雨天停工',
               start_time: { day: 5, hour: 0 },
               end_time: { day: 7, hour: 0 },
-              a_level_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
-              b_level_tasks: ["柱钢筋绑扎", "梁板底排钢筋绑扎"]
-            }
+              a_level_tasks: [
+                '短肢剪力墙混凝土浇筑',
+                '柱混凝土浇筑',
+                '梁板混凝土浇筑',
+              ],
+              b_level_tasks: ['柱钢筋绑扎', '梁板底排钢筋绑扎'],
+            },
           ],
           work_start_hour: 8,
           work_end_hour: 20,
-          backgrounds: ["标准层施工", "暑期施工"],
-          compress: { target_days: 100, add_carpenter_first: true }
+          backgrounds: ['标准层施工', '暑期施工'],
+          compress: { target_days: 100, add_carpenter_first: true },
         };
       }
     } catch {
@@ -833,23 +833,31 @@ export class ProjectService {
       if (FEATURE_FLAGS.USE_REAL_API) {
         return {
           construction_methods: [
-            { task_name: "柱钢筋绑扎", method_index: 0 },
-            { task_name: "梁板底排钢筋绑扎", method_index: 1 }
+            { task_name: '柱钢筋绑扎', method_index: 0 },
+            { task_name: '梁板底排钢筋绑扎', method_index: 1 },
           ],
-          overtime_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
+          overtime_tasks: [
+            '短肢剪力墙混凝土浇筑',
+            '柱混凝土浇筑',
+            '梁板混凝土浇筑',
+          ],
           shutdown_events: [
             {
-              name: "雨天停工",
+              name: '雨天停工',
               start_time: { day: 5, hour: 0 },
               end_time: { day: 7, hour: 0 },
-              a_level_tasks: ["短肢剪力墙混凝土浇筑", "柱混凝土浇筑", "梁板混凝土浇筑"],
-              b_level_tasks: ["柱钢筋绑扎", "梁板底排钢筋绑扎"]
-            }
+              a_level_tasks: [
+                '短肢剪力墙混凝土浇筑',
+                '柱混凝土浇筑',
+                '梁板混凝土浇筑',
+              ],
+              b_level_tasks: ['柱钢筋绑扎', '梁板底排钢筋绑扎'],
+            },
           ],
           work_start_hour: 8,
           work_end_hour: 20,
-          backgrounds: ["标准层施工", "暑期施工"],
-          compress: { target_days: 100, add_carpenter_first: true }
+          backgrounds: ['标准层施工', '暑期施工'],
+          compress: { target_days: 100, add_carpenter_first: true },
         };
       }
       throw new Error('获取项目配置失败');
@@ -879,7 +887,7 @@ export const projectAPI = {
   uploadDocuments: ProjectService.uploadDocuments,
   uploadMultipleDocuments: ProjectService.uploadMultipleDocuments,
   createProjectWithFiles: ProjectService.createProjectWithFiles,
-  
+
   // 图表数据相关方法
   getCrewData: ProjectService.getCrewData,
   getBudgetData: ProjectService.getBudgetData,
