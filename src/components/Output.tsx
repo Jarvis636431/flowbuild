@@ -53,6 +53,7 @@ const Output: React.FC<OutputProps> = React.memo(
     // 缓存计算结果
     const memoizedTabButtons = useMemo(() => {
       return [
+        'AI 分包策划框',
         '项目信息',
         '甘特图模式',
         '进度表模式',
@@ -161,6 +162,8 @@ const Output: React.FC<OutputProps> = React.memo(
       }
 
       switch (activeTab) {
+        case 'AI 分包策划框':
+          return <div className="ai-planning-tab"></div>;
         case '项目信息':
           return (
             <div>
