@@ -4,7 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { type ChatMessage, type ApprovalData, chatAPI } from '../services/api';
 import { getDefaultWebSocketService } from '../services/nativeWebSocketService';
-import type { WebSocketStatus } from '../services/nativeWebSocketService';
+import type {
+  NativeWebSocketService,
+  WebSocketStatus,
+} from '../services/nativeWebSocketService';
 import { AuthService } from '../services/authService';
 import { type Project, projectAPI } from '../services/projectService';
 import { FEATURE_FLAGS } from '../config/features';
@@ -45,8 +48,6 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
 
   // WebSocket连接管理
   useEffect(() => {
-
-    // 项目切换时清空聊天记录
     setMessages([
       {
         id: 1,
@@ -56,59 +57,55 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
       },
     ]);
 
-    const socketService = getDefaultWebSocketService();
-    if (!socketService) {
-      return;
-    }
+    const logPrefix = `[Chat] [project:${currentProject?.id ?? 'none'}]`;
+    console.log(`${logPrefix} effect triggered.`);
 
-    // 监听连接状态变化
+    let isUnmounted = false;
+    let boundService: NativeWebSocketService | null = null;
+    let pollingTimer: ReturnType<typeof setInterval> | null = null;
+
     const handleStatusChange = (...args: unknown[]) => {
       const status = args[0] as WebSocketStatus;
-
+      console.log(`${logPrefix} statusChange:`, status);
       setSocketStatus(status);
       setIsConnected(status === 'connected');
-
-
     };
 
-    // 监听接收到的消息
     const handleMessage = (...args: unknown[]) => {
-      const data = args[0] as ApprovalData;
+      console.log(`${logPrefix} handleMessage raw args:`, args);
+      const data = args[0] as ApprovalData | undefined;
+      console.log(`${logPrefix} parsed data:`, data);
 
-      // 处理不同类型的消息
+      if (!data || typeof data !== 'object') {
+        console.log(`${logPrefix} handleMessage received invalid data, exit.`);
+        setIsTyping(false);
+        return;
+      }
+
       if (data.type === 'done' && data.text) {
-        // 任务完成消息 - 特殊处理确保显示
-
+        console.log(`${logPrefix} received done message with text.`);
         const aiMessage: ChatMessage = {
           id: Date.now(),
           text: data.text,
           sender: 'ai',
           timestamp: new Date(),
         };
-
-        // 立即设置消息，确保显示
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
 
-        // 如果是确认按钮点击后的响应，调用刷新接口
-        const shouldTriggerRefresh = isAwaitingApprovalResponseRef.current;
-        if (shouldTriggerRefresh) {
+        if (isAwaitingApprovalResponseRef.current) {
+          console.log(`${logPrefix} clearing approval awaiting flag.`);
           setIsAwaitingApprovalResponse(false);
           isAwaitingApprovalResponseRef.current = false;
 
-          // 调用/view接口刷新数据
           if (currentProject?.id) {
-
             const refreshData = async () => {
               try {
                 const file = await projectAPI.downloadProjectExcel(currentProject.id);
                 const excelData = await file.arrayBuffer();
-
-                // 触发数据刷新事件，通知父组件更新数据
                 const refreshEvent = new CustomEvent('projectDataRefresh', {
-                  detail: { projectId: currentProject.id, excelData }
+                  detail: { projectId: currentProject.id, excelData },
                 });
-
                 window.dispatchEvent(refreshEvent);
               } catch {
                   // 数据刷新失败时静默处理
@@ -118,49 +115,107 @@ const Chat: React.FC<ChatProps> = ({ currentProject }) => {
             refreshData();
           }
         }
-
-
-
+      } else if (data.type === 'done' && !data.text) {
+        console.log(`${logPrefix} received done message without text.`);
+        setIsTyping(false);
       } else if (data.type === 'approval') {
-        // 需要用户确认的消息 - 新格式支持
+        console.log(`${logPrefix} received approval message.`);
         const messageText = data.ai_message?.text || data.text || '需要确认的操作';
         const aiMessage: ChatMessage = {
           id: Date.now(),
           text: messageText,
           sender: 'ai',
           timestamp: new Date(),
-          needsApproval: true, // 添加标记，表示需要确认按钮
-          approvalData: data, // 保存原始数据，用于确认操作
+          needsApproval: true,
+          approvalData: data,
         };
         setMessages((prev) => [...prev, aiMessage]);
         setIsTyping(false);
-
+      } else {
+        console.log(`${logPrefix} received unhandled message type:`, data?.type, data);
       }
     };
 
-    // 绑定事件监听器
-    socketService.on('statusChange', handleStatusChange);
-    socketService.on('message', handleMessage);
+    const attachListeners = (service: NativeWebSocketService) => {
+      console.log(`${logPrefix} attaching listeners to socket instance.`);
+      boundService = service;
+      service.on('statusChange', handleStatusChange);
+      service.on('message', handleMessage);
 
-    // 获取当前连接状态
-    const currentStatus = socketService.getStatus();
-    setSocketStatus(currentStatus);
-    setIsConnected(currentStatus === 'connected');
+      const currentStatus = service.getStatus();
+      setSocketStatus(currentStatus);
+      setIsConnected(currentStatus === 'connected');
 
-    // 延迟检查确保状态同步
-    setTimeout(() => {
-      const latestStatus = socketService.getStatus();
-      if (latestStatus !== currentStatus) {
-        setSocketStatus(latestStatus);
-        setIsConnected(latestStatus === 'connected');
+      setTimeout(() => {
+        if (!boundService || boundService !== service) return;
+        const latestStatus = service.getStatus();
+        if (latestStatus !== currentStatus) {
+          setSocketStatus(latestStatus);
+          setIsConnected(latestStatus === 'connected');
+        }
+      }, 200);
+    };
+
+    const detachListeners = () => {
+      if (!boundService) return;
+      console.log(`${logPrefix} detaching listeners from socket instance.`);
+      boundService.off('statusChange', handleStatusChange);
+      boundService.off('message', handleMessage);
+      boundService.off('chat_response', handleMessage);
+      boundService = null;
+    };
+
+    const tryAttach = () => {
+      if (isUnmounted) return false;
+      const service = getDefaultWebSocketService();
+      if (!service) {
+        console.log(`${logPrefix} socket service not ready.`);
+        return false;
       }
+
+      if (service === boundService) {
+        return true;
+      }
+
+      detachListeners();
+      attachListeners(service);
+      return true;
+    };
+
+    pollingTimer = setInterval(() => {
+      const service = getDefaultWebSocketService();
+      if (!service) {
+        console.log(`${logPrefix} polling: socket service still null.`);
+        return;
+      }
+
+      if (service !== boundService) {
+        console.log(`${logPrefix} polling detected socket instance change.`);
+        detachListeners();
+        attachListeners(service);
+        return;
+      }
+
+      const currentStatus = service.getStatus();
+      setSocketStatus((prev) => {
+        if (prev !== currentStatus) {
+          console.log(`${logPrefix} polling status update:`, currentStatus);
+        }
+        return prev !== currentStatus ? currentStatus : prev;
+      });
+      setIsConnected(service.isConnected());
     }, 200);
 
-    // 清理函数
+    // 初次尝试绑定
+    tryAttach();
+
     return () => {
-      socketService.off('statusChange', handleStatusChange);
-      socketService.off('message', handleMessage);
-      socketService.off('chat_response', handleMessage);
+      isUnmounted = true;
+      if (pollingTimer) {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+      }
+      detachListeners();
     };
   }, [currentProject?.id]);
 
